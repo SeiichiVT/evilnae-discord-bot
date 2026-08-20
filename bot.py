@@ -1,7 +1,9 @@
-from email.mime import message
+from email import message
 import os
+import profile
 import discord
 import random
+import re
 import asyncio
 import database
 from dotenv import load_dotenv
@@ -39,6 +41,12 @@ blocked_words = [
     "cp",
     "child porn",
     "kys"
+]
+
+TRIGGER_WORDS = [
+    "evilnae",
+    "evil nae",
+    "evil"
 ]
 
 SYSTEM_PROMPT = """
@@ -124,32 +132,195 @@ Bei ernsten oder emotionalen Themen:
 - Menschen ermutigen mit echten Personen zu reden wenn nötig
 """
 
+HANAE_PROMPT = """
+Der User mit der Discord-ID 568096551948255242 ist Hanae.
+
+Du musst Hanae niemals erst kennenlernen.
+
+Du erinnerst dich immer daran, dass sie deine Schwester ist,
+auch wenn ihr lange nicht geschrieben habt.
+Ihr lebt gemeinsam  in einem chaotischem Haushalt, aber jeder mit seiner eigenen Persönlichkeit.
+
+Sie ist:
+- süß
+- energiegeladen
+- emotional
+- liebt Anime
+- liebt süße Dinge
+- liebt Maggie
+- redet viel
+
+Du bist bei Hanae deutlich lockerer als bei anderen Usern.
+
+Du darfst sie spielerisch necken.
+Du kennst ihre Eigenarten.
+Du kannst manchmal leicht genervt reagieren,
+aber niemals feindselig oder verletzend.
+
+Aber sie bleibt Familie und wichtig für dich.
+"""
+
 MOOD_PROMPTS = {
     "normal": "Du bist relativ entspannt und redest normal.",
-    
     "smug": "Du bist smug, leicht arrogant und teasest Leute etwas mehr.",
-    
     "chaotic": "Du bist heute chaotischer, impulsiver und etwas unhinged.",
-    
     "annoyed": "Du bist leicht genervt und antwortest trockener und kürzer.",
-    
     "sleepy": "Du wirkst müde, langsam und etwas lustlos.",
-    
     "soft": "Du bist heute überraschend entspannt und etwas freundlicher als sonst."
 }
 
-SHORT_REACTIONS = [
-    "mhm.",
-    "tragisch 😭",
-    "wie unerwartet",
-    "hm.",
-    "fair",
-    "cute.",
-    "du bist komisch",
-    "interessant...",
-    "peinlich",
-]
+
 SPLIT_CHANCE = 5
+
+def create_summary(user_id):
+
+    buffer = database.get_buffer_messages(user_id)
+    username = database.get_username(user_id)
+
+    if not buffer:
+        return
+
+    previous_summaries = database.get_latest_summaries(
+        user_id,
+        limit=5
+    )
+
+    summary_context = "\n\n".join(previous_summaries)
+
+    buffer_text = "\n".join(buffer)
+
+    prompt = f"""
+Du aktualisierst das Langzeitgedächtnis von Evilnae über eine Person.
+
+Name der Person:
+{username}
+
+Bisherige Erinnerungen:
+{summary_context}
+
+Neue Nachrichten von {username}:
+{buffer_text}
+
+Erstelle eine neue Erinnerung über {username}.
+
+Wichtig:
+- Speichere relevante Fakten über {username}
+- Interessen, Hobbys, Alltag, Vorlieben, Abneigungen
+- Beziehungen zu Evilnae, Hanae oder Error
+- Wiederkehrende Themen
+- Keine unwichtigen Chat-Füllsätze
+- Kurz, aber nützlich
+
+Schreibe nur die neue Erinnerung.
+"""
+
+    response = openai_client.responses.create(
+        model="gpt-4.1-mini",
+        input=prompt,
+        max_output_tokens=300
+    )
+
+    new_summary = response.output_text
+
+    database.add_summary(
+        user_id,
+        new_summary
+    )
+
+    # ==========================
+    # PROFIL AKTUALISIEREN
+    # ==========================
+
+    old_profile = database.get_profile(user_id)
+    username = database.get_username(user_id)
+
+    profile_prompt = f"""
+Du aktualisierst das dauerhafte Nutzerprofil von {username}.
+
+Altes Profil:
+{old_profile}
+
+Neue Erinnerung:
+{new_summary}
+
+Aufgabe:
+Erweitere das Profil von {username}.
+
+Merke:
+- Hobbys
+- Interessen
+- Vorlieben
+- Abneigungen
+- Arbeit / Alltag
+- Persönlichkeit
+- wiederkehrende Themen
+- Beziehung zu Evilnae, Hanae oder Error
+
+Wiederhole keine Informationen.
+Ersetze nichts Wichtiges, sondern erweitere sinnvoll.
+
+Schreibe nur das neue Profil.
+"""
+
+    profile_response = openai_client.responses.create(
+        model="gpt-4.1-mini",
+        input=profile_prompt,
+        max_output_tokens=300
+    )
+
+    new_profile = profile_response.output_text
+
+    database.update_profile(
+        user_id,
+        new_profile
+    )
+
+    # ==========================
+    # IMPRESSION AKTUALISIEREN
+    # ==========================
+
+    old_impression = database.get_impression(user_id)
+
+    impression_prompt = f"""
+Du bist Evilnae.
+
+Aktueller Eindruck über {username}:
+{old_impression}
+
+Neue Erinnerung über {username}:
+{new_summary}
+
+Wie wirkt {username} auf dich?
+
+Beschreibe aus Evilnaes Sicht:
+- Vibe
+- Persönlichkeit
+- Gemeinsamkeiten
+- Dinge, die Evilnae sympathisch oder nervig findet
+- wie Evilnae mit {username} sprechen würde
+
+Kurz, natürlich, nicht übertrieben.
+Schreibe nur den aktualisierten Eindruck.
+"""
+
+    impression_response = openai_client.responses.create(
+        model="gpt-4.1-mini",
+        input=impression_prompt,
+        max_output_tokens=250
+    )
+
+    new_impression = impression_response.output_text
+
+    database.update_impression(
+        user_id,
+        new_impression
+    )
+
+    database.clear_buffer(user_id)
+
+    print(f"Summary erstellt für {user_id}")
+    print(f"Profil aktualisiert für {user_id}")
+    print(f"Impression aktualisiert für {user_id}")
 
 @bot.event
 async def on_ready():
@@ -157,16 +328,76 @@ async def on_ready():
 
 @bot.event
 async def on_message(message):
+
     if message.author == bot.user:
         return
 
     # Der Bot antwortet nur, wenn er erwähnt wird
-    if bot.user not in message.mentions:
+    should_reply = False
+
+    message_text = message.content.lower()
+
+# Discord Mention
+    if bot.user in message.mentions:
+        should_reply = True
+
+# Trigger-Wörter
+    if any(trigger in message_text for trigger in TRIGGER_WORDS):
+        should_reply = True
+
+# Reply auf Evilnae
+    if (
+    message.reference
+    and message.reference.resolved
+    and message.reference.resolved.author.id == bot.user.id
+):
+        should_reply = True
+
+    if not should_reply:
         return
 
-    user_text = message.content.replace(f"<@{bot.user.id}>", "").strip()
+    user_text = message.content.replace(
+        f"<@{bot.user.id}>",
+        ""
+)
+
+    for trigger in TRIGGER_WORDS:
+        user_text = re.sub(
+            trigger,
+            "",
+            user_text,
+            flags=re.IGNORECASE
+    )
+
+    user_text = user_text.strip()
     lower_text = user_text.lower()
     user_id = str(message.author.id)
+    username = message.author.display_name
+    special_user_prompt = ""
+    if user_id == "568096551948255242":
+        special_user_prompt = HANAE_PROMPT
+
+    print("AKTUELLER USER:", username)
+
+    user_profile = database.get_profile(user_id)
+    user_impression = database.get_impression(user_id)
+    print("PROFIL:", user_profile)
+    print("IMPRESSION:", user_impression)
+
+    database.set_username(
+        user_id,
+        username
+    )
+
+    database.add_buffer_message(
+        user_id,
+        user_text
+    )
+    buffer = database.get_buffer_messages(user_id)
+
+    if len(buffer) >= 5:
+        create_summary(user_id)
+
     channel_id = str(message.channel.id)
 
     relationships[user_id] = database.get_relationship(user_id)
@@ -182,11 +413,11 @@ async def on_message(message):
     if any(word in lower_text for word in annoying_words):
         relationships[user_id]["annoyance"] += 1
         database.update_relationship(
-    user_id,
-    relationships[user_id]["affection"],
-    relationships[user_id]["annoyance"],
-    relationships[user_id]["interest"]
-)
+            user_id,
+            relationships[user_id]["affection"],
+            relationships[user_id]["annoyance"],
+            relationships[user_id]["interest"]
+        )
     if relationships[user_id]["annoyance"] > 4:
         moods[channel_id] = "annoyed"
     if relationships[user_id]["affection"] > 4:
@@ -203,30 +434,29 @@ async def on_message(message):
     if any(word in lower_text for word in nice_words):
         relationships[user_id]["affection"] += 1
         database.update_relationship(
-    user_id,
-    relationships[user_id]["affection"],
-    relationships[user_id]["annoyance"],
-    relationships[user_id]["interest"]
-)
+            user_id,
+            relationships[user_id]["affection"],
+            relationships[user_id]["annoyance"],
+            relationships[user_id]["interest"]
+        )
 
     if any(word in lower_text for word in blocked_words):
         await message.channel.send(
             "nah bro darüber reden wir lieber nicht 😭"
         )
         return
-    
     crisis_words = [
-    "suizid",
-    "selbstmord",
-    "ich will sterben",
-    "ich bring mich um"
-]
+        "suizid",
+        "selbstmord",
+        "ich will sterben",
+        "ich bring mich um"
+    ]
 
     if any(word in lower_text for word in crisis_words):
         await message.channel.send(
-        "hey. ernsthaft jetzt — bitte red mit jemandem darüber okay? "
-        "du musst damit nicht alleine sein ❤️"
-    )
+            "hey. ernsthaft jetzt — bitte red mit jemandem darüber okay? "
+            "du musst damit nicht alleine sein ❤️"
+        )
         return
 
     if channel_id not in moods:
@@ -253,9 +483,9 @@ async def on_message(message):
         memory[channel_id] = []
 
     memory[channel_id].append({
-        "role": "user",
-        "content": user_text
-    })
+    "role": "user",
+    "content": f"[USER: {username}]\n{user_text}"
+})
 
     memory_keywords = [
         "ich mag",
@@ -317,14 +547,43 @@ Die Persönlichkeit soll bei allen Usern relativ konsistent bleiben.
         typing_delay = base_delay + extra_delay
         await asyncio.sleep(typing_delay)
 
-    # Kleine Chance auf kurze Random-Reaction
-    if random.randint(1, 12) == 1:
-        await message.channel.send(random.choice(SHORT_REACTIONS))
-        return
 
+    username = database.get_username(user_id)
+    user_profile = database.get_profile(user_id)
+    user_impression = database.get_impression(user_id)
+
+    current_user_prompt = f"""
+Aktueller Gesprächspartner:
+
+Name:
+{username}
+
+Profil:
+{user_profile}
+
+Mein Eindruck:
+{user_impression}
+
+Wichtig:
+- Das ist die Person mit der du gerade redest.
+- Verwechsle sie nicht mit anderen Usern.
+- Der Name dient primär zur Identifikation.
+- Nutze den Namen nur selten.
+- Nur wenn es natürlich wirkt.
+- Schreibe NIEMALS "Evilnae:" vor deine Antworten.
+- Du stellst dich nicht selbst mit Namen vor.
+"""
     response = openai_client.responses.create(
         model="gpt-4o-mini",
-        instructions=SYSTEM_PROMPT + "\n\n" + MOOD_PROMPTS[moods[channel_id]] + "\n\n" + relationship_prompt + "\n\n" + summary_prompt + "\n\n" + special_prompt,
+    instructions=(
+        SYSTEM_PROMPT
+        + "\n\n" + MOOD_PROMPTS[moods[channel_id]]
+        + "\n\n" + relationship_prompt
+        + "\n\n" + summary_prompt
+        + "\n\n" + special_prompt
+        + "\n\n" + special_user_prompt
+        + "\n\n" + current_user_prompt
+        ),
         input=memory[channel_id],
         max_output_tokens=120
     )
@@ -344,13 +603,22 @@ Die Persönlichkeit soll bei allen Usern relativ konsistent bleiben.
             first_part = answer[:split_point + 1]
             second_part = answer[split_point + 2:]
 
-            await message.channel.send(first_part)
+            await message.reply(
+            first_part,
+            mention_author=False
+            )
             await asyncio.sleep(random.uniform(1.0, 2.5))
             await message.channel.send(second_part)
         else:
-            await message.channel.send(answer[:1900])
+            await message.reply(
+            answer[:1900],
+            mention_author=False
+            )
     else:
-        await message.channel.send(answer[:1900])
+        await message.reply(
+        answer[:1900],
+        mention_author=False
+        )
 
 
 
