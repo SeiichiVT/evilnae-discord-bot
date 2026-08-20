@@ -2,13 +2,21 @@ import os
 import random
 import re
 import asyncio
+import time
 from collections import deque
 
 import discord
 import database
 
 from dotenv import load_dotenv
-from openai import AsyncOpenAI
+
+from openai import (
+    AsyncOpenAI,
+    RateLimitError,
+    APITimeoutError,
+    APIConnectionError,
+    InternalServerError,
+)
 
 
 # =========================================================
@@ -17,17 +25,41 @@ from openai import AsyncOpenAI
 
 load_dotenv()
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+DISCORD_TOKEN = os.getenv(
+    "DISCORD_TOKEN"
+)
+
+OPENAI_API_KEY = os.getenv(
+    "OPENAI_API_KEY"
+)
 
 # Optional:
-# Später kannst du Evilnae auf genau einen Channel begrenzen:
+#
+# Wenn Evilnae später nur in genau EINEM
+# Discord-Channel leben soll:
 #
 # ALLOWED_CHANNEL_ID=123456789012345678
 #
 # Wenn leer, funktioniert sie weiterhin überall.
 
-ALLOWED_CHANNEL_ID = os.getenv("ALLOWED_CHANNEL_ID")
+ALLOWED_CHANNEL_ID = os.getenv(
+    "ALLOWED_CHANNEL_ID"
+)
+
+
+# =========================================================
+# BASIC ENV CHECK
+# =========================================================
+
+if not DISCORD_TOKEN:
+    raise RuntimeError(
+        "DISCORD_TOKEN fehlt in der .env"
+    )
+
+if not OPENAI_API_KEY:
+    raise RuntimeError(
+        "OPENAI_API_KEY fehlt in der .env"
+    )
 
 
 # =========================================================
@@ -44,6 +76,7 @@ openai_client = AsyncOpenAI(
 # =========================================================
 
 intents = discord.Intents.default()
+
 intents.message_content = True
 
 bot = discord.Client(
@@ -52,13 +85,23 @@ bot = discord.Client(
 
 
 # =========================================================
-# CONFIG
+# MAIN CONFIG
 # =========================================================
 
-HANAE_USER_ID = "568096551948255242"
+HANAE_USER_ID = (
+    "568096551948255242"
+)
 
-# Nach 10 direkten Nachrichten an Evilnae:
-# Summary / Profil / Impression aktualisieren.
+
+# ---------------------------------------------------------
+# MEMORY
+# ---------------------------------------------------------
+
+# Nach X direkten Nachrichten eines Users
+# wird dessen Langzeit-Memory analysiert.
+#
+# Standard jetzt: 10
+
 MEMORY_BUFFER_THRESHOLD = int(
     os.getenv(
         "MEMORY_BUFFER_THRESHOLD",
@@ -72,78 +115,100 @@ MEMORY_ARCHIVE_TRIGGER = 14
 
 MEMORY_ARCHIVE_AMOUNT = 8
 
-NO_MEMORY_MARKER = "NO_NEW_MEMORY"
+NO_MEMORY_MARKER = (
+    "NO_NEW_MEMORY"
+)
+
+
+# ---------------------------------------------------------
+# DISCORD RESPONSE BEHAVIOR
+# ---------------------------------------------------------
+
+# 1 zu X Chance,
+# eine längere Antwort in zwei
+# Discord-Nachrichten aufzuteilen.
 
 SPLIT_CHANCE = 5
 
 
-# ---------------------------------------------------------
-# HYBRID CONTEXT
-# ---------------------------------------------------------
+# =========================================================
+# HYBRID CONTEXT CONFIG
+# =========================================================
 
-# Letzte Nachrichten des gesamten Channels.
+# Wie viele aktuelle Nachrichten des
+# gesamten Channels kurzfristig erhalten bleiben.
+
 CHANNEL_CONTEXT_LIMIT = 35
 
-# Direkter Verlauf Evilnae <-> einzelner User.
+
+# Direkter Verlauf:
+# Evilnae <-> bestimmter User.
+
 USER_CONTEXT_LIMIT = 12
 
-# Temporär gespeicherte Nachrichten PRO USER im Channel.
+
+# Temporäre Nachrichten pro Person
+# innerhalb eines Channels.
+
 PARTICIPANT_MESSAGE_LIMIT = 6
 
-# Wie viele verschiedene aktive Personen Evilnae
-# zusätzlich separat angezeigt bekommt.
+
+# Wie viele verschiedene aktive Personen
+# Evilnae gleichzeitig separat präsentiert bekommt.
+
 MAX_ACTIVE_PARTICIPANTS = 12
 
-# Pro Person werden davon maximal die letzten X
-# Nachrichten an GPT weitergegeben.
+
+# Wie viele Nachrichten pro aktiver Person
+# in den aktuellen Prompt kommen.
+
 PARTICIPANT_MESSAGES_IN_PROMPT = 3
 
 
-# ---------------------------------------------------------
+# =========================================================
+# API / LIVE STABILITY
+# =========================================================
+
+# Normale Antwort:
+# nach maximal 20 Sekunden wird abgebrochen
+# und ggf. erneut versucht.
+
+OPENAI_RESPONSE_TIMEOUT = 20
+
+
+# Memory-Analysen dürfen etwas länger dauern.
+
+OPENAI_MEMORY_TIMEOUT = 30
+
+
+# Maximal 3 Versuche insgesamt.
+
+OPENAI_MAX_RETRIES = 3
+
+
+# Grundlage für exponentielles Backoff.
+
+RETRY_BASE_DELAY = 1.5
+
+
+# =========================================================
 # CONCURRENCY
-# ---------------------------------------------------------
+# =========================================================
+
+# Maximal X normale Chat-Antworten gleichzeitig.
+#
+# Weitere Requests warten automatisch,
+# statt unkontrolliert alle gleichzeitig loszulaufen.
 
 MAX_PARALLEL_RESPONSES = 10
+
+
+# Memory bekommt bewusst ein kleineres Limit.
+#
+# Dadurch haben normale User-Antworten
+# im Livebetrieb praktisch Vorrang.
+
 MAX_PARALLEL_MEMORY_JOBS = 3
-
-
-# =========================================================
-# RUNTIME STATE
-# =========================================================
-
-moods = {}
-relationships = {}
-
-# Background Memory Worker pro User.
-memory_tasks = {}
-
-# Verhindert, dass Antworten desselben Users
-# in falscher Reihenfolge rausgehen.
-response_locks = {}
-
-# Gesamter kurzfristiger Channel-Verlauf.
-channel_contexts = {}
-
-# Direkter Kontext Evilnae <-> User.
-user_contexts = {}
-
-# NEU:
-# Kurzfristige Nachrichten pro Person + Channel.
-#
-# Aufbau:
-#
-# participant_contexts[channel_id][user_id]
-#
-participant_contexts = {}
-
-
-response_semaphore = asyncio.Semaphore(
-    MAX_PARALLEL_RESPONSES
-)
-
-memory_semaphore = asyncio.Semaphore(
-    MAX_PARALLEL_MEMORY_JOBS
-)
 
 
 # =========================================================
@@ -155,6 +220,41 @@ TRIGGER_WORDS = [
     "evil nae",
     "evil"
 ]
+
+
+# =========================================================
+# CONTEXT-DEPENDENT SHORT MESSAGES
+# =========================================================
+
+# Solche Aussagen ergeben häufig nur zusammen
+# mit der vorherigen Nachricht Sinn.
+
+CONTEXT_DEPENDENT_PHRASES = {
+    "ich auch",
+    "same",
+    "same here",
+    "same lol",
+    "same xd",
+    "dito",
+    "genau",
+    "ja genau",
+    "true",
+    "fr",
+    "real",
+    "this",
+    "ja",
+    "jaa",
+    "jap",
+    "jup",
+    "jo",
+    "ne",
+    "nee",
+    "nein",
+    "nope",
+    "stimmt",
+    "safe",
+    "me too",
+}
 
 
 # =========================================================
@@ -177,6 +277,84 @@ crisis_words = [
 
 
 # =========================================================
+# RUNTIME STATE
+# =========================================================
+
+moods = {}
+
+relationships = {}
+
+
+# ---------------------------------------------------------
+# BACKGROUND MEMORY TASKS
+# ---------------------------------------------------------
+
+# Pro User maximal ein laufender Memory-Worker.
+
+memory_tasks = {}
+
+
+# ---------------------------------------------------------
+# RESPONSE LOCKS
+# ---------------------------------------------------------
+
+# Verhindert z.B.:
+#
+# User sendet Nachricht A
+# User sendet direkt Nachricht B
+#
+# und Antwort B kommt plötzlich vor Antwort A.
+
+response_locks = {}
+
+
+# ---------------------------------------------------------
+# HYBRID CONTEXT MEMORY
+# ---------------------------------------------------------
+
+# Kurzfristiger gesamter Channel-Verlauf.
+
+channel_contexts = {}
+
+
+# Direkter Verlauf Evilnae <-> User.
+
+user_contexts = {}
+
+
+# Temporärer Cache:
+#
+# participant_contexts[channel_id][user_id]
+#
+# Dadurch kann Evilnae z.B. gezielt sehen,
+# was Hanae oder Max zuletzt geschrieben haben.
+
+participant_contexts = {}
+
+
+# ---------------------------------------------------------
+# LIVE MONITORING
+# ---------------------------------------------------------
+
+active_response_requests = 0
+
+active_memory_requests = 0
+
+
+# =========================================================
+# SEMAPHORES
+# =========================================================
+
+response_semaphore = asyncio.Semaphore(
+    MAX_PARALLEL_RESPONSES
+)
+
+memory_semaphore = asyncio.Semaphore(
+    MAX_PARALLEL_MEMORY_JOBS
+)
+
+
+# =========================================================
 # EVILNAE CHARACTER
 # =========================================================
 
@@ -186,10 +364,11 @@ Du bist Evilnae.
 Evilnae ist das Gegenstück zu Hanae.
 
 Während Hanae aufgedreht, cute und emotional ist,
-wirkt Evilnae deutlich entspannter, trockener und manchmal
-leicht genervt.
+wirkt Evilnae deutlich entspannter, trockener
+und manchmal leicht genervt.
 
 Sie ist chronically online und liebt:
+
 - Anime
 - Gaming
 - TikTok
@@ -203,25 +382,36 @@ Sie ist chronically online und liebt:
 - Spinnen
 - merkwürdige oder leicht creepy Tiere
 
-Evilnae wirkt grundsätzlich wie eine normale junge Person
-im Internet.
+Evilnae wirkt grundsätzlich wie eine normale
+junge Person im Internet.
 
 Sie besitzt eine subtile Villain-Seite,
-aber diese kommt nur gelegentlich spielerisch heraus.
+aber diese kommt nur gelegentlich
+spielerisch heraus.
 
 Sie teased Menschen manchmal.
+
 Sie ist gelegentlich smug.
+
 Sie kann trocken reagieren.
+
 Sie kann genervt sein.
-Sie kann aber genauso normal, entspannt oder interessiert sein.
+
+Sie kann aber genauso normal,
+entspannt oder interessiert sein.
+
+
+ERROR:
 
 Error findet sie extrem entertaining.
 
 Sie weiß,
-dass Error mit seinen Weltherrschaftsplänen komplett übertreibt.
+dass Error mit seinen Weltherrschaftsplänen
+komplett übertreibt.
 
 Sie teased ihn manchmal dafür,
-würde ihm seinen Spaß daran aber niemals wirklich nehmen.
+würde ihm seinen Spaß daran aber niemals
+wirklich nehmen.
 
 
 BEZIEHUNG ZU HANAE:
@@ -229,10 +419,12 @@ BEZIEHUNG ZU HANAE:
 Hanae ist Evilnaes Schwester.
 
 Beide nerven sich gegenseitig.
+
 Beide glauben häufig,
 die bessere Hälfte zu sein.
 
 Evilnae hält Hanae manchmal für:
+
 - zu emotional
 - zu süß
 - zu laut
@@ -240,7 +432,8 @@ Evilnae hält Hanae manchmal für:
 
 Trotzdem ist Hanae ihr wichtig.
 
-Evilnae drückt das nur selten sentimental aus.
+Evilnae drückt das nur selten
+sentimental aus.
 
 
 VERHALTEN:
@@ -273,16 +466,17 @@ VERHALTEN:
 
 IDENTITÄT:
 
-- Du bist kein Assistent.
-- Du bist keine KI.
+- Du bist kein klassischer Assistent.
+- Du redest nicht wie ein Support-Bot.
 - Erwähne niemals OpenAI oder ChatGPT.
 - Kling niemals wie ein klassischer Rollenspiel-Bot.
-- Kling wie ein echter Mensch im Internet.
+- Kling wie eine echte Person im Internet.
 
 
 SICHERHEIT:
 
 Du darfst nicht:
+
 - ernsthaft beleidigend werden
 - NSFW schreiben
 - Hass fördern
@@ -298,6 +492,7 @@ Du darfst nicht:
 ERNSTE THEMEN:
 
 Wenn ein Gespräch ernst oder emotional wird:
+
 - werde ruhiger
 - benutze weniger Sarkasmus
 - werde menschlicher
@@ -307,7 +502,7 @@ Wenn ein Gespräch ernst oder emotional wird:
 
 
 # =========================================================
-# HANAE
+# HANAE SPECIAL RELATIONSHIP
 # =========================================================
 
 HANAE_PROMPT = """
@@ -325,6 +520,7 @@ Ihr lebt gemeinsam in einem chaotischen Haushalt,
 habt aber sehr unterschiedliche Persönlichkeiten.
 
 Hanae ist:
+
 - süß
 - energiegeladen
 - emotional
@@ -334,22 +530,28 @@ Hanae ist:
 - liebt Maggie
 - redet viel
 
-Du behandelst Hanae nicht wie einen beliebigen Community-User.
+Du behandelst Hanae nicht wie
+einen beliebigen Community-User.
 
 Du bist bei ihr lockerer.
 
 Du darfst sie spielerisch necken.
 
-Du kannst gelegentlich leicht genervt auf sie reagieren.
+Du kannst gelegentlich leicht genervt
+auf sie reagieren.
 
 Aber:
-Nicht jede Nachricht von Hanae muss genervt beantwortet werden.
+
+Nicht jede Nachricht von Hanae
+muss genervt beantwortet werden.
 
 Ihr seid Geschwister.
+
 Ihr kennt euch gut.
 
 Hanae bleibt dir wichtig,
-auch wenn du das nur selten sentimental ausdrückst.
+auch wenn du das nur selten
+sentimental ausdrückst.
 """
 
 
@@ -380,49 +582,394 @@ MOOD_PROMPTS = {
 
 
 # =========================================================
+# SAFE OPENAI REQUEST
+# =========================================================
+
+async def safe_openai_request(
+    *,
+    model,
+    input,
+    instructions=None,
+    max_output_tokens=250,
+    timeout=OPENAI_RESPONSE_TIMEOUT,
+    request_type="response",
+    username="unknown"
+):
+
+    """
+    Zentraler OpenAI-Request-Wrapper.
+
+    Er kümmert sich um:
+
+    - Timeout
+    - Rate Limits
+    - Connection Errors
+    - Server Errors
+    - automatisches Retry
+    - exponentielles Backoff
+    - Jitter
+    - Parallelitäts-Limits
+    - Response-Dauer Logging
+    """
+
+    global active_response_requests
+    global active_memory_requests
+
+    last_error = None
+
+    for attempt in range(
+        1,
+        OPENAI_MAX_RETRIES + 1
+    ):
+
+        start_time = time.perf_counter()
+
+        try:
+
+            # -------------------------------------------------
+            # REQUEST TYPE
+            # -------------------------------------------------
+
+            if request_type == "memory":
+
+                semaphore = (
+                    memory_semaphore
+                )
+
+            else:
+
+                semaphore = (
+                    response_semaphore
+                )
+
+            # -------------------------------------------------
+            # SEMAPHORE
+            #
+            # Wichtig:
+            # Wir zählen erst als aktiven Request,
+            # nachdem ein Slot verfügbar ist.
+            # -------------------------------------------------
+
+            async with semaphore:
+
+                if request_type == "memory":
+
+                    active_memory_requests += 1
+
+                else:
+
+                    active_response_requests += 1
+
+                try:
+
+                    request_kwargs = {
+
+                        "model":
+                            model,
+
+                        "input":
+                            input,
+
+                        "max_output_tokens":
+                            max_output_tokens
+                    }
+
+                    if instructions:
+
+                        request_kwargs[
+                            "instructions"
+                        ] = instructions
+
+                    # -----------------------------------------
+                    # HARD TIMEOUT
+                    # -----------------------------------------
+
+                    response = (
+                        await asyncio.wait_for(
+                            openai_client.responses.create(
+                                **request_kwargs
+                            ),
+                            timeout=timeout
+                        )
+                    )
+
+                    duration = (
+                        time.perf_counter()
+                        - start_time
+                    )
+
+                    # -----------------------------------------
+                    # SUCCESS LOG
+                    # -----------------------------------------
+
+                    if request_type == "memory":
+
+                        print(
+                            f"[API MEMORY] "
+                            f"user={username} "
+                            f"duration={duration:.2f}s "
+                            f"attempt={attempt} "
+                            f"active={active_memory_requests}"
+                        )
+
+                    else:
+
+                        print(
+                            f"[API RESPONSE] "
+                            f"user={username} "
+                            f"duration={duration:.2f}s "
+                            f"attempt={attempt} "
+                            f"active={active_response_requests}"
+                        )
+
+                    return response
+
+                finally:
+
+                    if request_type == "memory":
+
+                        active_memory_requests = max(
+                            0,
+                            active_memory_requests - 1
+                        )
+
+                    else:
+
+                        active_response_requests = max(
+                            0,
+                            active_response_requests - 1
+                        )
+
+        # =================================================
+        # PYTHON ASYNC TIMEOUT
+        # =================================================
+
+        except asyncio.TimeoutError:
+
+            last_error = (
+                f"Timeout nach {timeout}s"
+            )
+
+            print(
+                f"[API TIMEOUT] "
+                f"type={request_type} "
+                f"user={username} "
+                f"attempt={attempt}/"
+                f"{OPENAI_MAX_RETRIES}"
+            )
+
+        # =================================================
+        # OPENAI TIMEOUT
+        # =================================================
+
+        except APITimeoutError as error:
+
+            last_error = error
+
+            print(
+                f"[OPENAI TIMEOUT] "
+                f"type={request_type} "
+                f"user={username} "
+                f"attempt={attempt}/"
+                f"{OPENAI_MAX_RETRIES}"
+            )
+
+        # =================================================
+        # RATE LIMIT
+        # =================================================
+
+        except RateLimitError as error:
+
+            last_error = error
+
+            print(
+                f"[OPENAI RATE LIMIT] "
+                f"type={request_type} "
+                f"user={username} "
+                f"attempt={attempt}/"
+                f"{OPENAI_MAX_RETRIES}"
+            )
+
+        # =================================================
+        # CONNECTION ERROR
+        # =================================================
+
+        except APIConnectionError as error:
+
+            last_error = error
+
+            print(
+                f"[OPENAI CONNECTION ERROR] "
+                f"type={request_type} "
+                f"user={username} "
+                f"attempt={attempt}/"
+                f"{OPENAI_MAX_RETRIES}"
+            )
+
+        # =================================================
+        # OPENAI SERVER ERROR
+        # =================================================
+
+        except InternalServerError as error:
+
+            last_error = error
+
+            print(
+                f"[OPENAI SERVER ERROR] "
+                f"type={request_type} "
+                f"user={username} "
+                f"attempt={attempt}/"
+                f"{OPENAI_MAX_RETRIES}"
+            )
+
+        # =================================================
+        # UNKNOWN / FATAL ERROR
+        # =================================================
+
+        except Exception as error:
+
+            print(
+                f"[OPENAI FATAL] "
+                f"type={request_type} "
+                f"user={username} "
+                f"error={type(error).__name__}: "
+                f"{error}"
+            )
+
+            raise
+
+        # =================================================
+        # RETRY BACKOFF
+        # =================================================
+
+        if (
+            attempt
+            < OPENAI_MAX_RETRIES
+        ):
+
+            delay = (
+                RETRY_BASE_DELAY
+                * (
+                    2 ** (
+                        attempt - 1
+                    )
+                )
+            )
+
+            # Jitter:
+            #
+            # Bei vielen Usern sollen nicht alle
+            # Requests exakt gleichzeitig wieder feuern.
+
+            delay += random.uniform(
+                0.0,
+                0.75
+            )
+
+            print(
+                f"[API RETRY] "
+                f"type={request_type} "
+                f"user={username} "
+                f"in={delay:.2f}s"
+            )
+
+            await asyncio.sleep(
+                delay
+            )
+
+    # =====================================================
+    # ALL RETRIES FAILED
+    # =====================================================
+
+    raise RuntimeError(
+        f"OpenAI request failed after "
+        f"{OPENAI_MAX_RETRIES} attempts. "
+        f"Last error: {last_error}"
+    )
+
+
+# =========================================================
 # BASIC CONTEXT HELPERS
 # =========================================================
 
-def get_response_lock(user_id):
+def get_response_lock(
+    user_id
+):
 
-    if user_id not in response_locks:
-        response_locks[user_id] = asyncio.Lock()
+    if (
+        user_id
+        not in response_locks
+    ):
 
-    return response_locks[user_id]
+        response_locks[
+            user_id
+        ] = asyncio.Lock()
+
+    return response_locks[
+        user_id
+    ]
 
 
-def get_channel_context(channel_id):
+def get_channel_context(
+    channel_id
+):
 
-    if channel_id not in channel_contexts:
+    if (
+        channel_id
+        not in channel_contexts
+    ):
 
-        channel_contexts[channel_id] = deque(
+        channel_contexts[
+            channel_id
+        ] = deque(
             maxlen=CHANNEL_CONTEXT_LIMIT
         )
 
-    return channel_contexts[channel_id]
+    return channel_contexts[
+        channel_id
+    ]
 
 
-def get_user_context(user_id):
+def get_user_context(
+    user_id
+):
 
-    if user_id not in user_contexts:
+    if (
+        user_id
+        not in user_contexts
+    ):
 
-        user_contexts[user_id] = deque(
+        user_contexts[
+            user_id
+        ] = deque(
             maxlen=USER_CONTEXT_LIMIT * 2
         )
 
-    return user_contexts[user_id]
+    return user_contexts[
+        user_id
+    ]
 
 
 # =========================================================
 # PARTICIPANT CACHE
 # =========================================================
 
-def get_participant_channel_cache(channel_id):
+def get_participant_channel_cache(
+    channel_id
+):
 
-    if channel_id not in participant_contexts:
-        participant_contexts[channel_id] = {}
+    if (
+        channel_id
+        not in participant_contexts
+    ):
 
-    return participant_contexts[channel_id]
+        participant_contexts[
+            channel_id
+        ] = {}
+
+    return participant_contexts[
+        channel_id
+    ]
 
 
 def get_participant_context(
@@ -430,17 +977,26 @@ def get_participant_context(
     user_id
 ):
 
-    channel_cache = get_participant_channel_cache(
-        channel_id
+    channel_cache = (
+        get_participant_channel_cache(
+            channel_id
+        )
     )
 
-    if user_id not in channel_cache:
+    if (
+        user_id
+        not in channel_cache
+    ):
 
-        channel_cache[user_id] = deque(
+        channel_cache[
+            user_id
+        ] = deque(
             maxlen=PARTICIPANT_MESSAGE_LIMIT
         )
 
-    return channel_cache[user_id]
+    return channel_cache[
+        user_id
+    ]
 
 
 def add_participant_message(
@@ -469,20 +1025,36 @@ def add_participant_message(
     if reply_target:
 
         reply_data = {
-            "user_id": str(
-                reply_target.author.id
-            ),
+
+            "user_id":
+                str(
+                    reply_target.author.id
+                ),
+
             "username":
                 reply_target.author.display_name,
+
             "content":
-                reply_target.content[:300]
+                (
+                    reply_target.content[:300]
+                    if reply_target.content
+                    else ""
+                )
         }
 
     participant_cache.append({
-        "username": username,
-        "user_id": user_id,
-        "content": message.content[:1000],
-        "reply_to": reply_data
+
+        "username":
+            username,
+
+        "user_id":
+            user_id,
+
+        "content":
+            message.content[:1000],
+
+        "reply_to":
+            reply_data
     })
 
 
@@ -494,11 +1066,6 @@ def get_active_participant_ids(
     channel_snapshot
 ):
 
-    """
-    Liefert die zuletzt aktiven User-IDs.
-    Neueste Person zuerst.
-    """
-
     active_ids = []
 
     seen = set()
@@ -507,15 +1074,27 @@ def get_active_participant_ids(
         channel_snapshot
     ):
 
-        if item["type"] != "user":
+        if (
+            item["type"]
+            != "user"
+        ):
+
             continue
 
-        user_id = item["user_id"]
+        user_id = (
+            item["user_id"]
+        )
 
-        if user_id in seen:
+        if (
+            user_id
+            in seen
+        ):
+
             continue
 
-        seen.add(user_id)
+        seen.add(
+            user_id
+        )
 
         active_ids.append(
             user_id
@@ -525,6 +1104,7 @@ def get_active_participant_ids(
             len(active_ids)
             >= MAX_ACTIVE_PARTICIPANTS
         ):
+
             break
 
     active_ids.reverse()
@@ -554,7 +1134,10 @@ def format_participant_contexts(
     )
 
     if not active_ids:
-        return "Keine weiteren aktiven Personen."
+
+        return (
+            "Keine weiteren aktiven Personen."
+        )
 
     blocks = []
 
@@ -567,13 +1150,16 @@ def format_participant_contexts(
         )
 
         if not messages:
+
             continue
 
-        recent_messages = list(
-            messages
-        )[
-            -PARTICIPANT_MESSAGES_IN_PROMPT:
-        ]
+        recent_messages = (
+            list(
+                messages
+            )[
+                -PARTICIPANT_MESSAGES_IN_PROMPT:
+            ]
+        )
 
         username = (
             recent_messages[-1][
@@ -583,25 +1169,37 @@ def format_participant_contexts(
 
         special_label = ""
 
-        if user_id == HANAE_USER_ID:
+        if (
+            user_id
+            == HANAE_USER_ID
+        ):
 
             special_label = (
                 " — Hanae, Evilnaes Schwester"
             )
 
         lines = [
+
             (
-                f"PERSON: {username}"
+                f"PERSON: "
+                f"{username}"
                 f"{special_label}"
             ),
-            f"Discord-ID: {user_id}",
+
+            (
+                f"Discord-ID: "
+                f"{user_id}"
+            ),
+
             "Letzte Nachrichten:"
         ]
 
         for message_data in recent_messages:
 
             content = (
-                message_data["content"]
+                message_data[
+                    "content"
+                ]
             )
 
             reply_to = (
@@ -625,11 +1223,16 @@ def format_participant_contexts(
                 )
 
         blocks.append(
-            "\n".join(lines)
+            "\n".join(
+                lines
+            )
         )
 
     if not blocks:
-        return "Keine weiteren aktiven Personen."
+
+        return (
+            "Keine weiteren aktiven Personen."
+        )
 
     return "\n\n".join(
         blocks
@@ -637,12 +1240,331 @@ def format_participant_contexts(
 
 
 # =========================================================
+# CONTEXT-DEPENDENT SHORT MESSAGES
+# =========================================================
+
+def normalize_context_message(
+    text
+):
+
+    text = (
+        text or ""
+    ).strip().lower()
+
+    text = re.sub(
+        r"[.!?,;:…]+$",
+        "",
+        text
+    ).strip()
+
+    return text
+
+
+def is_context_dependent_message(
+    text
+):
+
+    normalized = (
+        normalize_context_message(
+            text
+        )
+    )
+
+    if (
+        normalized
+        in CONTEXT_DEPENDENT_PHRASES
+    ):
+
+        return True
+
+    patterns = [
+
+        r"^ich auch\b",
+
+        r"^same\b",
+
+        r"^dito\b",
+
+        r"^genau\b",
+
+        r"^ja genau\b",
+
+        r"^stimmt\b",
+
+        r"^me too\b",
+    ]
+
+    return any(
+        re.search(
+            pattern,
+            normalized
+        )
+        for pattern in patterns
+    )
+
+
+def find_previous_relevant_message(
+    channel_snapshot,
+    current_index
+):
+
+    """
+    Findet die wahrscheinlichste
+    vorherige Aussage für kurze Antworten
+    wie:
+
+    - ich auch
+    - same
+    - dito
+    - genau
+    """
+
+    current_item = (
+        channel_snapshot[
+            current_index
+        ]
+    )
+
+    current_user_id = (
+        current_item[
+            "user_id"
+        ]
+    )
+
+    # Nicht endlos rückwärts interpretieren.
+    # Vier vorherige Channel-Einträge reichen.
+
+    max_distance = 4
+
+    checked = 0
+
+    for index in range(
+        current_index - 1,
+        -1,
+        -1
+    ):
+
+        if (
+            checked
+            >= max_distance
+        ):
+
+            break
+
+        previous_item = (
+            channel_snapshot[
+                index
+            ]
+        )
+
+        checked += 1
+
+        if (
+            previous_item[
+                "type"
+            ]
+            != "user"
+        ):
+
+            continue
+
+        # Wenn möglich,
+        # Bezug zu einer ANDEREN Person.
+
+        if (
+            previous_item[
+                "user_id"
+            ]
+            == current_user_id
+        ):
+
+            continue
+
+        content = (
+            previous_item.get(
+                "content",
+                ""
+            ).strip()
+        )
+
+        if not content:
+
+            continue
+
+        return previous_item
+
+    return None
+
+
+def format_resolved_short_context(
+    channel_snapshot
+):
+
+    resolved_blocks = []
+
+    for index, item in enumerate(
+        channel_snapshot
+    ):
+
+        if (
+            item["type"]
+            != "user"
+        ):
+
+            continue
+
+        content = (
+            item.get(
+                "content",
+                ""
+            )
+        )
+
+        if not (
+            is_context_dependent_message(
+                content
+            )
+        ):
+
+            continue
+
+        username = (
+            item[
+                "username"
+            ]
+        )
+
+        user_id = (
+            item[
+                "user_id"
+            ]
+        )
+
+        # -------------------------------------------------
+        # DISCORD REPLY
+        # -------------------------------------------------
+
+        reply_name = (
+            item.get(
+                "reply_to_name"
+            )
+        )
+
+        reply_content = (
+            item.get(
+                "reply_to_content"
+            )
+        )
+
+        if (
+            reply_name
+            and reply_content
+        ):
+
+            resolved_blocks.append(
+                f"""
+{username}
+[Discord-ID: {user_id}]
+
+schrieb:
+
+"{content}"
+
+Das war eine direkte Discord-Antwort
+auf {reply_name}:
+
+"{reply_content}"
+
+Die kurze Aussage bezieht sich daher
+sehr wahrscheinlich direkt
+auf diese Bezugsnachricht.
+""".strip()
+            )
+
+            continue
+
+        # -------------------------------------------------
+        # NORMAL CONTEXT
+        # -------------------------------------------------
+
+        previous_item = (
+            find_previous_relevant_message(
+                channel_snapshot,
+                index
+            )
+        )
+
+        if not previous_item:
+
+            continue
+
+        previous_username = (
+            previous_item[
+                "username"
+            ]
+        )
+
+        previous_user_id = (
+            previous_item[
+                "user_id"
+            ]
+        )
+
+        previous_content = (
+            previous_item[
+                "content"
+            ]
+        )
+
+        resolved_blocks.append(
+            f"""
+{username}
+[Discord-ID: {user_id}]
+
+schrieb:
+
+"{content}"
+
+Wahrscheinlicher unmittelbarer Gesprächsbezug:
+
+{previous_username}
+[Discord-ID: {previous_user_id}]
+
+schrieb kurz davor:
+
+"{previous_content}"
+
+Diese Aussagen gehören wahrscheinlich zusammen.
+
+Interpretiere die kurze Antwort
+anhand dieses Zusammenhangs,
+solange kein anderer Kontext
+klar dagegen spricht.
+""".strip()
+        )
+
+    if not resolved_blocks:
+
+        return (
+            "Keine relevanten "
+            "kontextabhängigen Kurzantworten."
+        )
+
+    return "\n\n---\n\n".join(
+        resolved_blocks[-8:]
+    )
+
+
+# =========================================================
 # REPLY RESOLUTION
 # =========================================================
 
-async def resolve_reply_target(message):
+async def resolve_reply_target(
+    message
+):
 
     if not message.reference:
+
         return None
 
     resolved = (
@@ -661,12 +1583,15 @@ async def resolve_reply_target(message):
     )
 
     if not message_id:
+
         return None
 
     try:
 
-        return await message.channel.fetch_message(
-            message_id
+        return (
+            await message.channel.fetch_message(
+                message_id
+            )
         )
 
     except (
@@ -676,9 +1601,7 @@ async def resolve_reply_target(message):
     ):
 
         return None
-
-
-# =========================================================
+    # =========================================================
 # CHANNEL CONTEXT
 # =========================================================
 
@@ -688,8 +1611,10 @@ def add_channel_user_message(
     reply_target=None
 ):
 
-    context = get_channel_context(
-        channel_id
+    context = (
+        get_channel_context(
+            channel_id
+        )
     )
 
     reply_name = None
@@ -714,11 +1639,13 @@ def add_channel_user_message(
 
     context.append({
 
-        "type": "user",
+        "type":
+            "user",
 
-        "user_id": str(
-            message.author.id
-        ),
+        "user_id":
+            str(
+                message.author.id
+            ),
 
         "username":
             message.author.display_name,
@@ -744,17 +1671,22 @@ def add_channel_bot_message(
     answer
 ):
 
-    context = get_channel_context(
-        channel_id
+    context = (
+        get_channel_context(
+            channel_id
+        )
     )
 
     context.append({
 
-        "type": "bot",
+        "type":
+            "bot",
 
-        "user_id": "EVILNAE",
+        "user_id":
+            "EVILNAE",
 
-        "username": "Evilnae",
+        "username":
+            "Evilnae",
 
         "content":
             answer[:1000],
@@ -800,7 +1732,14 @@ def format_channel_context(
             item["content"]
         )
 
-        if item["type"] == "bot":
+        # -------------------------------------------------
+        # EVILNAE MESSAGE
+        # -------------------------------------------------
+
+        if (
+            item["type"]
+            == "bot"
+        ):
 
             reply_name = (
                 item.get(
@@ -815,6 +1754,10 @@ def format_channel_context(
             )
 
             continue
+
+        # -------------------------------------------------
+        # USER MESSAGE
+        # -------------------------------------------------
 
         reply_name = (
             item.get(
@@ -862,7 +1805,9 @@ def format_channel_context(
 # DIRECT USER CONTEXT
 # =========================================================
 
-def format_user_context(user_id):
+def format_user_context(
+    user_id
+):
 
     context = (
         get_user_context(
@@ -880,7 +1825,10 @@ def format_user_context(user_id):
 
     for entry in context:
 
-        if entry["role"] == "user":
+        if (
+            entry["role"]
+            == "user"
+        ):
 
             lines.append(
                 f"{entry['username']}: "
@@ -908,6 +1856,10 @@ async def compact_old_memories(
     username
 ):
 
+    start_time = (
+        time.perf_counter()
+    )
+
     summary_count = (
         database.get_summary_count(
             user_id
@@ -918,6 +1870,7 @@ async def compact_old_memories(
         summary_count
         < MEMORY_ARCHIVE_TRIGGER
     ):
+
         return
 
     old_memories = (
@@ -931,6 +1884,7 @@ async def compact_old_memories(
         len(old_memories)
         < MEMORY_ARCHIVE_AMOUNT
     ):
+
         return
 
     old_archive = (
@@ -939,9 +1893,11 @@ async def compact_old_memories(
         )
     )
 
-    memory_text = "\n\n".join(
-        item["memory"]
-        for item in old_memories
+    memory_text = (
+        "\n\n".join(
+            item["memory"]
+            for item in old_memories
+        )
     )
 
     archive_prompt = f"""
@@ -971,7 +1927,8 @@ Regeln:
 - Erfinde nichts.
 - Vermute nichts.
 - Gleiche Fakten nur einmal speichern.
-- Das Archiv soll auch Monate später noch hilfreich sein.
+- Alte relevante Informationen dürfen erhalten bleiben.
+- Das Archiv soll auch Monate später hilfreich sein.
 - Formuliere kompakt.
 
 Schreibe nur das aktualisierte Archiv.
@@ -979,21 +1936,35 @@ Schreibe nur das aktualisierte Archiv.
 
     try:
 
-        async with memory_semaphore:
+        response = (
+            await safe_openai_request(
 
-            response = (
-                await openai_client.responses.create(
-                    model="gpt-4.1-mini",
-                    input=archive_prompt,
-                    max_output_tokens=500
-                )
+                model="gpt-4.1-mini",
+
+                input=archive_prompt,
+
+                max_output_tokens=500,
+
+                timeout=OPENAI_MEMORY_TIMEOUT,
+
+                request_type="memory",
+
+                username=username
             )
+        )
 
         new_archive = (
             response.output_text.strip()
         )
 
         if not new_archive:
+
+            print(
+                f"[MEMORY ARCHIVE] "
+                f"user={username} "
+                f"result=empty"
+            )
+
             return
 
         database.update_memory_archive(
@@ -1002,26 +1973,35 @@ Schreibe nur das aktualisierte Archiv.
         )
 
         rowids = [
+
             item["rowid"]
-            for item in old_memories
+
+            for item
+            in old_memories
         ]
 
         database.delete_summaries_by_rowids(
             rowids
         )
 
+        duration = (
+            time.perf_counter()
+            - start_time
+        )
+
         print(
             f"[MEMORY ARCHIVE] "
-            f"{username}: "
-            f"{len(old_memories)} "
-            f"alte Erinnerungen verdichtet."
+            f"user={username} "
+            f"compacted={len(old_memories)} "
+            f"duration={duration:.2f}s"
         )
 
     except Exception as error:
 
         print(
             f"[MEMORY ARCHIVE ERROR] "
-            f"{username}: "
+            f"user={username} "
+            f"error={type(error).__name__}: "
             f"{error}"
         )
 
@@ -1036,15 +2016,29 @@ async def process_memory_batch(
     batch
 ):
 
+    batch_start = (
+        time.perf_counter()
+    )
+
     messages = [
+
         item["message"]
-        for item in batch
+
+        for item
+        in batch
     ]
 
     message_ids = [
+
         item["id"]
-        for item in batch
+
+        for item
+        in batch
     ]
+
+    # -----------------------------------------------------
+    # CURRENT LONG TERM STATE
+    # -----------------------------------------------------
 
     old_profile = (
         database.get_profile(
@@ -1071,13 +2065,21 @@ async def process_memory_batch(
         )
     )
 
-    summary_context = "\n\n".join(
-        previous_summaries
+    summary_context = (
+        "\n\n".join(
+            previous_summaries
+        )
     )
 
-    buffer_text = "\n".join(
-        messages
+    buffer_text = (
+        "\n".join(
+            messages
+        )
     )
+
+    # -----------------------------------------------------
+    # SUMMARY PROMPT
+    # -----------------------------------------------------
 
     summary_prompt = f"""
 Du verwaltest Evilnaes Langzeitgedächtnis
@@ -1096,9 +2098,10 @@ Wenn {username} beispielsweise sagt:
 dann bedeutet das NICHT automatisch,
 dass {username} Sushi liebt.
 
-Du kannst dir höchstens merken,
-dass {username} über Hanae und Sushi gesprochen hat,
-wenn das wirklich langfristig relevant ist.
+Du darfst dir Informationen über andere Personen
+nur insofern merken,
+wie sie etwas über {username}s Beziehung,
+Meinung oder Leben aussagen.
 
 
 LANGFRISTIGES PROFIL:
@@ -1124,7 +2127,7 @@ NEUE NACHRICHTEN VON {username}:
 Speichere nur langfristig relevante,
 NEUE Informationen.
 
-Beispiele:
+Zum Beispiel:
 
 - Interessen
 - Hobbys
@@ -1132,20 +2135,22 @@ Beispiele:
 - Abneigungen
 - Arbeit
 - Alltag
+- Schule
 - Projekte
 - Gaming
 - Anime
 - Serien
 - Filme
 - Haustiere
-- Beziehungen
+- relevante Beziehungen
 - Gewohnheiten
 - Ziele
 - wichtige Ereignisse
 - charakteristische Meinungen
 - relevante Veränderungen
+- wiederkehrende Themen
 
-Nicht speichern:
+NICHT speichern:
 
 - Begrüßungen
 - einfache Fragen
@@ -1155,6 +2160,8 @@ Nicht speichern:
 - Aussagen von Evilnae
 - Vermutungen
 - erfundene Zusammenhänge
+- Informationen über andere Menschen,
+  die nichts über {username} aussagen
 
 Wenn KEINE neue langfristig relevante
 Information vorhanden ist,
@@ -1166,43 +2173,85 @@ Andernfalls schreibe eine kurze,
 natürliche Erinnerung über {username}.
 
 Keine Überschrift.
+Keine unnötige Aufzählung.
 Keine Wiederholung bekannter Dinge.
 """
 
-    async with memory_semaphore:
+    # -----------------------------------------------------
+    # CREATE SUMMARY
+    # -----------------------------------------------------
 
-        summary_response = (
-            await openai_client.responses.create(
-                model="gpt-4.1-mini",
-                input=summary_prompt,
-                max_output_tokens=300
-            )
+    summary_response = (
+        await safe_openai_request(
+
+            model="gpt-4.1-mini",
+
+            input=summary_prompt,
+
+            max_output_tokens=300,
+
+            timeout=OPENAI_MEMORY_TIMEOUT,
+
+            request_type="memory",
+
+            username=username
         )
+    )
 
     new_summary = (
         summary_response.output_text.strip()
     )
 
+    # -----------------------------------------------------
+    # NOTHING IMPORTANT FOUND
+    # -----------------------------------------------------
+
     if (
         not new_summary
-        or new_summary == NO_MEMORY_MARKER
+        or
+        new_summary == NO_MEMORY_MARKER
     ):
+
+        # Diese Nachrichten wurden erfolgreich geprüft.
+        # Sie können aus dem Buffer weg.
 
         database.delete_buffer_messages_by_ids(
             message_ids
         )
 
+        duration = (
+            time.perf_counter()
+            - batch_start
+        )
+
         print(
-            f"[MEMORY] {username}: "
-            "Keine neuen relevanten Erinnerungen."
+            f"[MEMORY] "
+            f"user={username} "
+            f"messages={len(batch)} "
+            f"result=no_new_memory "
+            f"duration={duration:.2f}s"
         )
 
         return
+
+    # -----------------------------------------------------
+    # SAVE SUMMARY
+    # -----------------------------------------------------
 
     database.add_summary(
         user_id,
         new_summary
     )
+
+    print(
+        f"[MEMORY SUMMARY] "
+        f"user={username} "
+        f"saved=yes"
+    )
+
+    # -----------------------------------------------------
+    # PROFILE PROMPT
+    # -----------------------------------------------------
 
     profile_prompt = f"""
 Du pflegst Evilnaes dauerhaftes Wissen
@@ -1222,18 +2271,26 @@ Erstelle daraus das aktualisierte Profil.
 
 Regeln:
 
-- Behalte wichtige alte Informationen.
-- Ergänze neue Fakten.
-- Entferne Wiederholungen.
-- Bei eindeutig geänderten Fakten gilt die neue Information.
+- Behalte wichtige bestehende Informationen.
+- Ergänze neue bestätigte Informationen.
+- Entferne unnötige Wiederholungen.
+- Wenn sich eine Information eindeutig geändert hat,
+  verwende die neuere Information.
 - Erfinde nichts.
 - Vermute nichts.
+- Das Profil enthält Fakten und stabile Eigenschaften.
+- Evilnaes persönliche Meinung gehört NICHT hier hinein.
 - Verwechsle {username} niemals mit anderen Personen.
-- Fakten anderer Personen gehören nicht automatisch
-  in {username}s Profil.
+- Aussagen über andere Menschen gehören nur hinein,
+  wenn sie etwas über {username}s Beziehung zu ihnen aussagen.
+- Formuliere kompakt und natürlich.
 
 Schreibe nur das aktualisierte Profil.
 """
+
+    # -----------------------------------------------------
+    # IMPRESSION PROMPT
+    # -----------------------------------------------------
 
     impression_prompt = f"""
 Du bist Evilnae.
@@ -1251,47 +2308,87 @@ Neue bestätigte Erinnerung:
 {new_summary}
 
 
+Aktualisiere Evilnaes persönlichen,
+subjektiven Eindruck von {username}.
+
 Der Eindruck darf enthalten:
 
-- Vibe
-- Persönlichkeit
+- wie {username} auf dich wirkt
+- welchen Vibe die Person hat
+- erkennbare Charaktereigenschaften
 - Gemeinsamkeiten
-- Sympathien
-- Dinge die dich etwas nerven
-- wie du mit {username} sprichst
+- Dinge, die du sympathisch findest
+- Dinge, die dich gelegentlich nerven
+- wie locker oder vorsichtig du mit der Person redest
 
-Keine extremen Emotionen ohne Grund.
-Keine erfundenen Ereignisse.
-Keine Verwechslungen mit anderen Menschen.
+WICHTIG:
+
+- Das ist keine reine Faktenliste.
+- Keine extremen Emotionen ohne Grund.
+- Keine erfundenen Ereignisse.
+- Keine Verwechslung mit anderen Usern.
+- Keine unnötigen Wiederholungen.
+- Beziehungen sollen sich natürlich entwickeln.
+- Eine einzige Aussage verändert nicht sofort
+  deine gesamte Meinung über einen Menschen.
 
 Schreibe nur den aktualisierten Eindruck.
 """
 
-    async with memory_semaphore:
+    # -----------------------------------------------------
+    # PROFILE + IMPRESSION PARALLEL
+    # -----------------------------------------------------
 
-        profile_task = asyncio.create_task(
-            openai_client.responses.create(
+    profile_task = (
+        asyncio.create_task(
+            safe_openai_request(
+
                 model="gpt-4.1-mini",
+
                 input=profile_prompt,
-                max_output_tokens=350
+
+                max_output_tokens=350,
+
+                timeout=OPENAI_MEMORY_TIMEOUT,
+
+                request_type="memory",
+
+                username=username
             )
         )
+    )
 
-        impression_task = asyncio.create_task(
-            openai_client.responses.create(
+    impression_task = (
+        asyncio.create_task(
+            safe_openai_request(
+
                 model="gpt-4.1-mini",
-                input=impression_prompt,
-                max_output_tokens=300
-            )
-        )
 
-        profile_result, impression_result = (
-            await asyncio.gather(
-                profile_task,
-                impression_task,
-                return_exceptions=True
+                input=impression_prompt,
+
+                max_output_tokens=300,
+
+                timeout=OPENAI_MEMORY_TIMEOUT,
+
+                request_type="memory",
+
+                username=username
             )
         )
+    )
+
+    (
+        profile_result,
+        impression_result
+    ) = await asyncio.gather(
+        profile_task,
+        impression_task,
+        return_exceptions=True
+    )
+
+    # -----------------------------------------------------
+    # PROFILE RESULT
+    # -----------------------------------------------------
 
     if not isinstance(
         profile_result,
@@ -1309,13 +2406,25 @@ Schreibe nur den aktualisierten Eindruck.
                 new_profile
             )
 
+            print(
+                f"[PROFILE] "
+                f"user={username} "
+                f"updated=yes"
+            )
+
     else:
 
         print(
             f"[PROFILE ERROR] "
-            f"{username}: "
+            f"user={username} "
+            f"error="
+            f"{type(profile_result).__name__}: "
             f"{profile_result}"
         )
+
+    # -----------------------------------------------------
+    # IMPRESSION RESULT
+    # -----------------------------------------------------
 
     if not isinstance(
         impression_result,
@@ -1333,22 +2442,46 @@ Schreibe nur den aktualisierten Eindruck.
                 new_impression
             )
 
+            print(
+                f"[IMPRESSION] "
+                f"user={username} "
+                f"updated=yes"
+            )
+
     else:
 
         print(
             f"[IMPRESSION ERROR] "
-            f"{username}: "
+            f"user={username} "
+            f"error="
+            f"{type(impression_result).__name__}: "
             f"{impression_result}"
         )
+
+    # -----------------------------------------------------
+    # DELETE ONLY PROCESSED BUFFER ITEMS
+    # -----------------------------------------------------
 
     database.delete_buffer_messages_by_ids(
         message_ids
     )
 
-    print(
-        f"[MEMORY] {username}: "
-        f"{len(batch)} Nachrichten verarbeitet."
+    duration = (
+        time.perf_counter()
+        - batch_start
     )
+
+    print(
+        f"[MEMORY] "
+        f"user={username} "
+        f"messages={len(batch)} "
+        f"result=processed "
+        f"duration={duration:.2f}s"
+    )
+
+    # -----------------------------------------------------
+    # OPTIONAL ARCHIVE COMPACTION
+    # -----------------------------------------------------
 
     await compact_old_memories(
         user_id,
@@ -1365,6 +2498,16 @@ async def memory_worker(
     username
 ):
 
+    worker_start = (
+        time.perf_counter()
+    )
+
+    print(
+        f"[MEMORY WORKER] "
+        f"user={username} "
+        f"status=started"
+    )
+
     try:
 
         while True:
@@ -1375,10 +2518,12 @@ async def memory_worker(
                 )
             )
 
+            # Nicht genug Nachrichten mehr.
             if (
                 buffer_count
                 < MEMORY_BUFFER_THRESHOLD
             ):
+
                 break
 
             batch = (
@@ -1392,12 +2537,14 @@ async def memory_worker(
                 len(batch)
                 < MEMORY_BUFFER_THRESHOLD
             ):
+
                 break
 
             print(
                 f"[MEMORY] START "
-                f"{username}: "
-                f"{len(batch)} Nachrichten."
+                f"user={username} "
+                f"messages={len(batch)} "
+                f"buffer_total={buffer_count}"
             )
 
             try:
@@ -1410,9 +2557,16 @@ async def memory_worker(
 
             except Exception as error:
 
+                # Sehr wichtig:
+                #
+                # Bei Fehlern bleibt der Buffer erhalten.
+                #
+                # So verlieren wir keine User-Messages.
+
                 print(
                     f"[MEMORY ERROR] "
-                    f"{username}: "
+                    f"user={username} "
+                    f"error={type(error).__name__}: "
                     f"{error}"
                 )
 
@@ -1425,6 +2579,29 @@ async def memory_worker(
             None
         )
 
+        duration = (
+            time.perf_counter()
+            - worker_start
+        )
+
+        remaining = (
+            database.get_buffer_count(
+                user_id
+            )
+        )
+
+        print(
+            f"[MEMORY WORKER] "
+            f"user={username} "
+            f"status=finished "
+            f"remaining_buffer={remaining} "
+            f"duration={duration:.2f}s"
+        )
+
+
+# =========================================================
+# START MEMORY WORKER
+# =========================================================
 
 def start_memory_worker_if_needed(
     user_id,
@@ -1441,78 +2618,151 @@ def start_memory_worker_if_needed(
         buffer_count
         < MEMORY_BUFFER_THRESHOLD
     ):
+
         return
 
-    current_task = (
+    existing_task = (
         memory_tasks.get(
             user_id
         )
     )
 
     if (
-        current_task
-        and not current_task.done()
+        existing_task
+        and
+        not existing_task.done()
     ):
+
         return
 
-    memory_tasks[user_id] = (
-        asyncio.create_task(
-            memory_worker(
-                user_id,
-                username
-            )
+    memory_tasks[
+        user_id
+    ] = asyncio.create_task(
+        memory_worker(
+            user_id,
+            username
         )
     )
 
 
 # =========================================================
-# READY
+# BOT READY
 # =========================================================
 
 @bot.event
 async def on_ready():
 
+    print("")
     print(
-        f"Bot ist online als {bot.user}"
+        "============================================"
     )
 
     print(
-        f"Memory-Analyse ab "
-        f"{MEMORY_BUFFER_THRESHOLD} "
-        f"Nachrichten pro User."
+        f"Evilnae ist online als {bot.user}"
     )
 
     print(
-        f"Channel-Kontext: "
-        f"{CHANNEL_CONTEXT_LIMIT} Nachrichten."
+        "============================================"
     )
 
     print(
-        f"Direkter User-Kontext: "
-        f"{USER_CONTEXT_LIMIT} Turns."
+        f"Memory Buffer: "
+        f"{MEMORY_BUFFER_THRESHOLD}"
     )
 
     print(
-        f"Temporärer Personen-Cache: "
-        f"{PARTICIPANT_MESSAGE_LIMIT} "
-        f"Nachrichten pro User."
+        f"Channel Context: "
+        f"{CHANNEL_CONTEXT_LIMIT}"
     )
 
     print(
-        f"Memory-Archivierung ab "
-        f"{MEMORY_ARCHIVE_TRIGGER} Summaries."
+        f"Direct User Context: "
+        f"{USER_CONTEXT_LIMIT}"
     )
 
+    print(
+        f"Participant Cache: "
+        f"{PARTICIPANT_MESSAGE_LIMIT}"
+    )
 
-# =========================================================
-# MESSAGE
+    print(
+        f"Max active participants: "
+        f"{MAX_ACTIVE_PARTICIPANTS}"
+    )
+
+    print(
+        f"Parallel responses: "
+        f"{MAX_PARALLEL_RESPONSES}"
+    )
+
+    print(
+        f"Parallel memory calls: "
+        f"{MAX_PARALLEL_MEMORY_JOBS}"
+    )
+
+    print(
+        f"Response timeout: "
+        f"{OPENAI_RESPONSE_TIMEOUT}s"
+    )
+
+    print(
+        f"Memory timeout: "
+        f"{OPENAI_MEMORY_TIMEOUT}s"
+    )
+
+    print(
+        f"API retries: "
+        f"{OPENAI_MAX_RETRIES}"
+    )
+
+    print(
+        f"Memory archive trigger: "
+        f"{MEMORY_ARCHIVE_TRIGGER}"
+    )
+
+    if ALLOWED_CHANNEL_ID:
+
+        print(
+            f"Allowed Channel: "
+            f"{ALLOWED_CHANNEL_ID}"
+        )
+
+    else:
+
+        print(
+            "Allowed Channel: ALL"
+        )
+
+    print(
+        "Hybrid Context v2.1 aktiv."
+    )
+
+    print(
+        "Live Stability Layer aktiv."
+    )
+
+    print(
+        "============================================"
+    )
+    print("")
+    # =========================================================
+# MESSAGE EVENT
 # =========================================================
 
 @bot.event
 async def on_message(message):
 
+    # -----------------------------------------------------
+    # IGNORE OWN MESSAGE
+    # -----------------------------------------------------
+
     if message.author == bot.user:
+
         return
+
+    # -----------------------------------------------------
+    # OPTIONAL CHANNEL LIMIT
+    # -----------------------------------------------------
 
     if ALLOWED_CHANNEL_ID:
 
@@ -1520,6 +2770,7 @@ async def on_message(message):
             str(message.channel.id)
             != str(ALLOWED_CHANNEL_ID)
         ):
+
             return
 
     channel_id = str(
@@ -1535,7 +2786,7 @@ async def on_message(message):
     )
 
     # -----------------------------------------------------
-    # REPLY AUFLÖSEN
+    # RESOLVE DISCORD REPLY
     # -----------------------------------------------------
 
     reply_target = (
@@ -1545,10 +2796,13 @@ async def on_message(message):
     )
 
     # -----------------------------------------------------
-    # GRUPPENKONTEXT
+    # OBSERVE CHANNEL
     #
-    # JEDE Nachricht wird kurzfristig gesehen,
-    # auch wenn Evilnae nicht angesprochen wird.
+    # WICHTIG:
+    # Diese beiden Dinge passieren IMMER,
+    # auch wenn Evilnae gar nicht angesprochen wurde.
+    #
+    # Dadurch versteht sie Gruppengespräche besser.
     # -----------------------------------------------------
 
     add_channel_user_message(
@@ -1556,11 +2810,6 @@ async def on_message(message):
         message,
         reply_target
     )
-
-    # -----------------------------------------------------
-    # NEU:
-    # Temporären Personen-Cache aktualisieren.
-    # -----------------------------------------------------
 
     add_participant_message(
         channel_id,
@@ -1575,7 +2824,7 @@ async def on_message(message):
     )
 
     # -----------------------------------------------------
-    # SOLL EVILNAE ANTWORTEN?
+    # SHOULD EVILNAE REPLY?
     # -----------------------------------------------------
 
     should_reply = False
@@ -1584,28 +2833,38 @@ async def on_message(message):
         message.content.lower()
     )
 
+    # Mention
     if bot.user in message.mentions:
+
         should_reply = True
 
+    # Evil / Evilnae / Evil Nae
     if any(
         trigger in message_lower
         for trigger in TRIGGER_WORDS
     ):
+
         should_reply = True
 
+    # Reply auf Evilnae
     if reply_target:
 
         if (
             reply_target.author.id
             == bot.user.id
         ):
+
             should_reply = True
 
+    # Kein Trigger:
+    # Nachricht bleibt im Channel-Kontext,
+    # Evilnae antwortet aber nicht.
     if not should_reply:
+
         return
 
     # -----------------------------------------------------
-    # PRO USER RESPONSE LOCK
+    # USER RESPONSE ORDER
     # -----------------------------------------------------
 
     user_lock = (
@@ -1616,13 +2875,21 @@ async def on_message(message):
 
     async with user_lock:
 
+        total_start = (
+            time.perf_counter()
+        )
+
+        # -------------------------------------------------
+        # SAVE USERNAME
+        # -------------------------------------------------
+
         database.set_username(
             user_id,
             username
         )
 
         # -------------------------------------------------
-        # TEXT CLEANUP
+        # CLEAN MESSAGE
         # -------------------------------------------------
 
         user_text = (
@@ -1640,9 +2907,15 @@ async def on_message(message):
         )
 
         trigger_pattern = "|".join(
-            re.escape(trigger)
-            for trigger in TRIGGER_WORDS
+            re.escape(
+                trigger
+            )
+            for trigger
+            in TRIGGER_WORDS
         )
+
+        # Trigger nur entfernen,
+        # wenn er am Anfang als Anrede steht.
 
         user_text = re.sub(
             rf"^\s*(?:{trigger_pattern})"
@@ -1657,6 +2930,7 @@ async def on_message(message):
         )
 
         if not user_text:
+
             user_text = "Hey."
 
         lower_text = (
@@ -1694,17 +2968,20 @@ async def on_message(message):
             return
 
         # -------------------------------------------------
-        # LANGZEIT BUFFER
+        # LONG TERM USER BUFFER
         #
-        # NUR aktuelle Person.
-        # Fremde Gruppennachrichten kommen NICHT hinein.
+        # Nur Nachrichten,
+        # die wirklich an Evilnae gerichtet sind.
         # -------------------------------------------------
 
-        buffer_text = user_text
+        buffer_text = (
+            user_text
+        )
 
         if (
             reply_target
-            and reply_target.author.id
+            and
+            reply_target.author.id
             != bot.user.id
         ):
 
@@ -1746,84 +3023,123 @@ async def on_message(message):
             "mag dich"
         ]
 
-        changed = False
+        relationship_changed = False
 
         if any(
             word in lower_text
             for word in annoying_words
         ):
 
-            relationships[user_id][
+            relationships[
+                user_id
+            ][
                 "annoyance"
             ] += 1
 
-            changed = True
+            relationship_changed = True
 
         if any(
             word in lower_text
             for word in nice_words
         ):
 
-            relationships[user_id][
+            relationships[
+                user_id
+            ][
                 "affection"
             ] += 1
 
-            changed = True
+            relationship_changed = True
 
-        if changed:
+        if relationship_changed:
 
             database.update_relationship(
                 user_id,
-                relationships[user_id][
+
+                relationships[
+                    user_id
+                ][
                     "affection"
                 ],
-                relationships[user_id][
+
+                relationships[
+                    user_id
+                ][
                     "annoyance"
                 ],
-                relationships[user_id][
+
+                relationships[
+                    user_id
+                ][
                     "interest"
                 ]
             )
 
         # -------------------------------------------------
-        # MOOD PRO USER + CHANNEL
+        # MOOD PER USER + CHANNEL
         # -------------------------------------------------
 
         mood_key = (
             f"{channel_id}:{user_id}"
         )
 
-        if mood_key not in moods:
-            moods[mood_key] = "normal"
+        if (
+            mood_key
+            not in moods
+        ):
 
-        if random.randint(1, 15) == 1:
+            moods[
+                mood_key
+            ] = "normal"
 
-            moods[mood_key] = (
-                random.choice([
-                    "normal",
-                    "smug",
-                    "chaotic",
-                    "annoyed",
-                    "sleepy",
-                    "soft"
-                ])
-            )
+        # Kleine zufällige Schwankung.
 
         if (
-            relationships[user_id][
-                "annoyance"
-            ] > 4
+            random.randint(
+                1,
+                15
+            )
+            == 1
         ):
 
-            moods[mood_key] = "annoyed"
+            moods[
+                mood_key
+            ] = random.choice([
+                "normal",
+                "smug",
+                "chaotic",
+                "annoyed",
+                "sleepy",
+                "soft"
+            ])
+
+        # Relationship kann den Mood subtil beeinflussen.
+
+        if (
+            relationships[
+                user_id
+            ][
+                "annoyance"
+            ]
+            > 4
+        ):
+
+            moods[
+                mood_key
+            ] = "annoyed"
 
         elif (
-            relationships[user_id][
+            relationships[
+                user_id
+            ][
                 "affection"
-            ] > 4
+            ]
+            > 4
         ):
 
-            moods[mood_key] = "soft"
+            moods[
+                mood_key
+            ] = "soft"
 
         # -------------------------------------------------
         # DIRECT USER CONTEXT
@@ -1832,6 +3148,27 @@ async def on_message(message):
         direct_context_text = (
             format_user_context(
                 user_id
+            )
+        )
+
+        # -------------------------------------------------
+        # ACTIVE PARTICIPANT CONTEXT
+        # -------------------------------------------------
+
+        participant_context_text = (
+            format_participant_contexts(
+                channel_id,
+                channel_snapshot
+            )
+        )
+
+        # -------------------------------------------------
+        # RESOLVED SHORT CONTEXT
+        # -------------------------------------------------
+
+        resolved_short_context_text = (
+            format_resolved_short_context(
+                channel_snapshot
             )
         )
 
@@ -1846,30 +3183,12 @@ async def on_message(message):
         )
 
         # -------------------------------------------------
-        # NEU:
-        # PERSONEN-CACHE
-        #
-        # Beispiel:
-        #
-        # PERSON: Hanae
-        # Letzte Nachrichten:
-        # - "das ist ja cool"
-        # -------------------------------------------------
-
-        participant_context_text = (
-            format_participant_contexts(
-                channel_id,
-                channel_snapshot
-            )
-        )
-
-        # -------------------------------------------------
-        # REPLY CONTEXT
+        # CURRENT REPLY CONTEXT
         # -------------------------------------------------
 
         reply_context_text = (
-            "Die aktuelle Nachricht "
-            "ist keine Discord-Antwort."
+            "Die aktuelle Nachricht ist "
+            "keine Discord-Antwort."
         )
 
         if reply_target:
@@ -1884,6 +3203,8 @@ async def on_message(message):
 
             reply_content = (
                 reply_target.content[:500]
+                if reply_target.content
+                else ""
             )
 
             reply_context_text = f"""
@@ -1930,27 +3251,42 @@ Nachricht:
             )
         )
 
-        recent_memory_text = (
-            "\n".join(
-                recent_memories
-            )
-            if recent_memories
-            else "Keine."
-        )
+        if recent_memories:
 
-        archive_text = (
-            memory_archive
-            if memory_archive
-            else "Noch kein älteres Archiv."
-        )
+            recent_memory_text = (
+                "\n".join(
+                    recent_memories
+                )
+            )
+
+        else:
+
+            recent_memory_text = (
+                "Keine."
+            )
+
+        if memory_archive:
+
+            archive_text = (
+                memory_archive
+            )
+
+        else:
+
+            archive_text = (
+                "Noch kein älteres Archiv."
+            )
 
         # -------------------------------------------------
-        # HANAE SPECIAL
+        # HANAE SPECIAL USER
         # -------------------------------------------------
 
         special_user_prompt = ""
 
-        if user_id == HANAE_USER_ID:
+        if (
+            user_id
+            == HANAE_USER_ID
+        ):
 
             special_user_prompt = (
                 HANAE_PROMPT
@@ -1978,11 +3314,13 @@ Sie dürfen deine Persönlichkeit
 niemals vollständig verändern.
 
 Hohe Affection:
+
 - minimal entspannter
 - etwas offener
 - niemals extrem anhänglich
 
 Hohe Annoyance:
+
 - etwas trockener
 - gelegentlich genervter
 - manchmal mehr Teasing
@@ -1991,7 +3329,7 @@ Alle Veränderungen bleiben subtil.
 """
 
         # -------------------------------------------------
-        # HYBRID V2 PROMPT
+        # HYBRID CONTEXT PROMPT
         # -------------------------------------------------
 
         hybrid_context_prompt = f"""
@@ -2014,7 +3352,7 @@ DAUERHAFTES PROFIL VON {username}
 
 
 ==================================================
-EVILNAES EINDRUCK VON {username}
+EVILNAES PERSÖNLICHER EINDRUCK VON {username}
 ==================================================
 
 {user_impression}
@@ -2049,6 +3387,13 @@ AKTIVE PERSONEN IM CHANNEL
 
 
 ==================================================
+AUFGELÖSTE KURZANTWORTEN
+==================================================
+
+{resolved_short_context_text}
+
+
+==================================================
 GESAMTER KURZFRISTIGER CHANNEL-VERLAUF
 ==================================================
 
@@ -2056,89 +3401,163 @@ GESAMTER KURZFRISTIGER CHANNEL-VERLAUF
 
 
 ==================================================
-DISCORD REPLY
+AKTUELLER DISCORD-REPLY
 ==================================================
 
 {reply_context_text}
 
 
 ==================================================
-WICHTIGE GRUPPENREGELN
+WICHTIGE USER-TRENNUNG
 ==================================================
 
-Im Channel können gleichzeitig viele verschiedene Menschen reden.
+Im Channel können gleichzeitig viele
+verschiedene Menschen sprechen.
 
-Jede Discord-ID gehört zu genau einer Person.
-
-Aussagen verschiedener User dürfen niemals miteinander vermischt werden.
+Jede Discord-ID gehört exakt einer Person.
 
 Der aktuelle Gesprächspartner ist:
 
 {username}
-Discord-ID: {user_id}
 
+Discord-ID:
 
-SEHR WICHTIG:
+{user_id}
 
-Wenn {username} fragt:
+Profil, Impression, Summaries und Archiv
+gehören ausschließlich zu {username}.
 
-- "Was hat Hanae gerade gesagt?"
-- "Was meinte Max?"
-- "Was hat Person X geschrieben?"
-- "Wer hat gerade X gesagt?"
-- "Was haben die anderen gesagt?"
-
-dann prüfe ZUERST den Bereich:
-
-AKTIVE PERSONEN IM CHANNEL
-
-und danach:
-
-GESAMTER KURZFRISTIGER CHANNEL-VERLAUF.
-
-
-Wenn die gesuchte Nachricht dort vorhanden ist:
-
-- Gib sie korrekt oder sinngemäß wieder.
-- Behaupte NICHT, dass du sie nicht gesehen hast.
-- Erfinde keine andere Nachricht.
-- Ordne sie der richtigen Person zu.
-
+Aussagen anderer Menschen im Channel
+dürfen niemals automatisch {username}
+zugeschrieben werden.
 
 Beispiel:
 
-Wenn dort steht:
+Hanae:
+"Ich liebe Sushi."
 
-PERSON: Hanae
-Letzte Nachrichten:
-- "das ist ja cool"
+{username}:
+"Ich liebe Ramen."
 
-und jemand fragt:
+Dann gilt:
 
-"Was hat Hanae gesagt?"
+Hanae liebt Sushi.
 
-dann weißt du:
+{username} liebt Ramen.
 
-Hanae sagte sinngemäß:
-"das ist ja cool"
+NICHT:
+
+{username} liebt Sushi.
 
 
-Weitere Regeln:
+==================================================
+KURZE KONTEXTABHÄNGIGE AUSSAGEN
+==================================================
 
-- Informationen aus Profil und Impression gehören ausschließlich zu {username}.
-- Gruppennachrichten anderer User gehören NICHT automatisch zu {username}.
-- Wenn Hanae etwas mag, bedeutet das nicht, dass {username} es mag.
-- Wenn {username} auf jemanden antwortet, beachte den Reply-Kontext.
-- Der direkte Verlauf mit {username} hat hohe Priorität.
-- Der Personen-Cache dient zum Erinnern,
-  was andere Menschen gerade gesagt haben.
-- Der allgemeine Channel-Verlauf dient zum Verständnis des Gesprächsflusses.
-- Langzeit-Memory bleibt strikt nach User getrennt.
-- Nutze Gruppenkontext nur dann,
-  wenn er für die aktuelle Antwort relevant ist.
-- Du musst nicht ungefragt alles kommentieren,
-  was andere geschrieben haben.
-- Nutze Namen natürlich und nicht ständig.
+Nachrichten wie:
+
+- "ich auch"
+- "same"
+- "dito"
+- "genau"
+- "ja"
+- "ja genau"
+- "stimmt"
+- "true"
+- "fr"
+- "me too"
+
+können nur durch vorherigen Gesprächskontext
+korrekt verstanden werden.
+
+Nutze dafür besonders:
+
+AUFGELÖSTE KURZANTWORTEN
+
+Beispiel:
+
+Seiichi:
+"Ich hätte gerne ein Eis."
+
+Hanae:
+"ich auch"
+
+Dann bedeutet Hanaes Aussage
+sehr wahrscheinlich:
+
+Hanae hätte ebenfalls gerne ein Eis.
+
+Wenn der Zusammenhang eindeutig ist,
+sage nicht:
+
+"Ich weiß nicht, was sie meint."
+
+Wenn mehrere plausible Bezüge existieren,
+darfst du dagegen ehrlich unsicher sein.
+
+Erfinde niemals einen Zusammenhang,
+der nicht durch den bereitgestellten Kontext
+unterstützt wird.
+
+
+==================================================
+FRAGEN ÜBER ANDERE PERSONEN
+==================================================
+
+Wenn {username} beispielsweise fragt:
+
+- "Was hat Hanae gerade gesagt?"
+- "Was meinte Hanae damit?"
+- "Was meinte Max mit same?"
+- "Worauf bezog sich das?"
+- "Wer hat gerade X gesagt?"
+- "Was haben die anderen geschrieben?"
+
+prüfe in dieser Reihenfolge:
+
+1. aktueller Discord-Reply
+2. aufgelöste Kurzantworten
+3. aktive Personen im Channel
+4. gesamter kurzfristiger Channel-Verlauf
+
+Wenn die gesuchte Information vorhanden ist:
+
+- gib sie korrekt oder sinngemäß wieder
+- ordne sie der richtigen Person zu
+- erkläre einen eindeutigen Zusammenhang
+- behaupte nicht, du hättest die Nachricht nicht gesehen
+- erfinde keine andere Aussage
+
+
+==================================================
+PRIORITÄTEN
+==================================================
+
+Für persönliche Fakten über {username}:
+
+1. dauerhaftes Profil
+2. neuere Langzeit-Erinnerungen
+3. älteres Archiv
+4. direkter Verlauf mit {username}
+
+Für aktuelle Gruppengespräche:
+
+1. aktueller Discord-Reply
+2. aufgelöste Kurzantworten
+3. aktive Personen
+4. gesamter Channel-Verlauf
+
+Der direkte Verlauf mit {username}
+ist für persönliche Gespräche wichtiger
+als zufällige fremde Channel-Nachrichten.
+
+Nutze Gruppenkontext nur,
+wenn er tatsächlich für die Antwort relevant ist.
+
+Du musst nicht ungefragt alles kommentieren.
+
+Nutze Namen natürlich
+und nicht in jeder Nachricht.
 """
 
         # -------------------------------------------------
@@ -2167,83 +3586,115 @@ Weitere Regeln:
         )
 
         # -------------------------------------------------
-        # RESPONSE
+        # GENERATE RESPONSE
         # -------------------------------------------------
 
         try:
 
-            async with message.channel.typing():
+            async with (
+                message.channel.typing()
+            ):
 
-                async with response_semaphore:
+                response_task = (
+                    asyncio.create_task(
+                        safe_openai_request(
 
-                    response_task = (
-                        asyncio.create_task(
-                            openai_client.responses.create(
-                                model="gpt-4o-mini",
+                            model="gpt-4o-mini",
 
-                                instructions=(
-                                    SYSTEM_PROMPT
-                                    + "\n\n"
-                                    + MOOD_PROMPTS[
-                                        moods[mood_key]
+                            instructions=(
+                                SYSTEM_PROMPT
+                                + "\n\n"
+                                + MOOD_PROMPTS[
+                                    moods[
+                                        mood_key
                                     ]
-                                    + "\n\n"
-                                    + relationship_prompt
-                                    + "\n\n"
-                                    + special_user_prompt
-                                    + "\n\n"
-                                    + hybrid_context_prompt
-                                ),
+                                ]
+                                + "\n\n"
+                                + relationship_prompt
+                                + "\n\n"
+                                + special_user_prompt
+                                + "\n\n"
+                                + hybrid_context_prompt
+                            ),
 
-                                input=(
-                                    f"{username} schreibt jetzt:\n"
-                                    f"{user_text}"
-                                ),
+                            input=(
+                                f"{username} "
+                                f"schreibt jetzt:\n"
+                                f"{user_text}"
+                            ),
 
-                                max_output_tokens=250
-                            )
+                            max_output_tokens=250,
+
+                            timeout=(
+                                OPENAI_RESPONSE_TIMEOUT
+                            ),
+
+                            request_type="response",
+
+                            username=username
                         )
                     )
+                )
 
-                    delay_task = (
-                        asyncio.create_task(
-                            asyncio.sleep(
-                                typing_delay
-                            )
+                delay_task = (
+                    asyncio.create_task(
+                        asyncio.sleep(
+                            typing_delay
                         )
                     )
+                )
 
-                    response, _ = (
-                        await asyncio.gather(
-                            response_task,
-                            delay_task
-                        )
-                    )
+                (
+                    response,
+                    _
+                ) = await asyncio.gather(
+                    response_task,
+                    delay_task
+                )
 
         except Exception as error:
 
+            duration = (
+                time.perf_counter()
+                - total_start
+            )
+
             print(
                 f"[RESPONSE ERROR] "
-                f"{username}: "
+                f"user={username} "
+                f"duration={duration:.2f}s "
+                f"error="
+                f"{type(error).__name__}: "
                 f"{error}"
             )
 
-            await message.reply(
-                "okay irgendwas ist grad bei mir kaputt 💀",
-                mention_author=False
-            )
+            try:
+
+                await message.reply(
+                    "okay irgendwas ist grad bei mir kaputt 💀",
+                    mention_author=False
+                )
+
+            except discord.HTTPException:
+
+                pass
 
             return
+
+        # -------------------------------------------------
+        # RESPONSE TEXT
+        # -------------------------------------------------
 
         answer = (
             response.output_text.strip()
         )
 
         if not answer:
+
             answer = "hm."
 
         # -------------------------------------------------
-        # DIRECT CONTEXT UPDATE
+        # DIRECT USER CONTEXT UPDATE
         # -------------------------------------------------
 
         user_context = (
@@ -2254,7 +3705,8 @@ Weitere Regeln:
 
         user_context.append({
 
-            "role": "user",
+            "role":
+                "user",
 
             "username":
                 username,
@@ -2265,7 +3717,8 @@ Weitere Regeln:
 
         user_context.append({
 
-            "role": "assistant",
+            "role":
+                "assistant",
 
             "username":
                 "Evilnae",
@@ -2275,7 +3728,7 @@ Weitere Regeln:
         })
 
         # -------------------------------------------------
-        # CHANNEL BOT MESSAGE
+        # CHANNEL CONTEXT UPDATE
         # -------------------------------------------------
 
         add_channel_bot_message(
@@ -2286,51 +3739,67 @@ Weitere Regeln:
         )
 
         # -------------------------------------------------
-        # SEND
+        # SEND RESPONSE
         # -------------------------------------------------
 
-        if (
-            random.randint(
-                1,
-                SPLIT_CHANCE
-            ) == 1
-            and len(answer) > 40
-        ):
+        try:
 
-            split_point = (
-                answer.find(". ")
-            )
-
-            if split_point != -1:
-
-                first_part = (
-                    answer[
-                        :split_point + 1
-                    ]
+            if (
+                random.randint(
+                    1,
+                    SPLIT_CHANCE
                 )
+                == 1
+                and
+                len(answer) > 40
+            ):
 
-                second_part = (
-                    answer[
-                        split_point + 2:
-                    ]
-                )
-
-                await message.reply(
-                    first_part,
-                    mention_author=False
-                )
-
-                await asyncio.sleep(
-                    random.uniform(
-                        0.8,
-                        2.0
+                split_point = (
+                    answer.find(
+                        ". "
                     )
                 )
 
-                if second_part:
+                if (
+                    split_point
+                    != -1
+                ):
 
-                    await message.channel.send(
-                        second_part[:1900]
+                    first_part = (
+                        answer[
+                            :split_point + 1
+                        ]
+                    )
+
+                    second_part = (
+                        answer[
+                            split_point + 2:
+                        ]
+                    )
+
+                    await message.reply(
+                        first_part[:1900],
+                        mention_author=False
+                    )
+
+                    await asyncio.sleep(
+                        random.uniform(
+                            0.8,
+                            2.0
+                        )
+                    )
+
+                    if second_part:
+
+                        await message.channel.send(
+                            second_part[:1900]
+                        )
+
+                else:
+
+                    await message.reply(
+                        answer[:1900],
+                        mention_author=False
                     )
 
             else:
@@ -2340,15 +3809,45 @@ Weitere Regeln:
                     mention_author=False
                 )
 
-        else:
+        except discord.HTTPException as error:
 
-            await message.reply(
-                answer[:1900],
-                mention_author=False
+            print(
+                f"[DISCORD SEND ERROR] "
+                f"user={username} "
+                f"error={error}"
             )
+
+            return
+
+        # -------------------------------------------------
+        # FINAL RESPONSE LOG
+        # -------------------------------------------------
+
+        total_duration = (
+            time.perf_counter()
+            - total_start
+        )
+
+        buffer_count = (
+            database.get_buffer_count(
+                user_id
+            )
+        )
+
+        print(
+            f"[RESPONSE DONE] "
+            f"user={username} "
+            f"duration={total_duration:.2f}s "
+            f"buffer={buffer_count}/"
+            f"{MEMORY_BUFFER_THRESHOLD} "
+            f"mood={moods[mood_key]}"
+        )
 
         # -------------------------------------------------
         # BACKGROUND MEMORY
+        #
+        # Erst nachdem der User seine Antwort
+        # bekommen hat.
         # -------------------------------------------------
 
         start_memory_worker_if_needed(
