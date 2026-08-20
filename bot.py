@@ -33,15 +33,6 @@ OPENAI_API_KEY = os.getenv(
     "OPENAI_API_KEY"
 )
 
-# Optional:
-#
-# Wenn Evilnae später nur in genau EINEM
-# Discord-Channel leben soll:
-#
-# ALLOWED_CHANNEL_ID=123456789012345678
-#
-# Wenn leer, funktioniert sie weiterhin überall.
-
 ALLOWED_CHANNEL_ID = os.getenv(
     "ALLOWED_CHANNEL_ID"
 )
@@ -52,11 +43,13 @@ ALLOWED_CHANNEL_ID = os.getenv(
 # =========================================================
 
 if not DISCORD_TOKEN:
+
     raise RuntimeError(
         "DISCORD_TOKEN fehlt in der .env"
     )
 
 if not OPENAI_API_KEY:
+
     raise RuntimeError(
         "OPENAI_API_KEY fehlt in der .env"
     )
@@ -93,14 +86,9 @@ HANAE_USER_ID = (
 )
 
 
-# ---------------------------------------------------------
-# MEMORY
-# ---------------------------------------------------------
-
-# Nach X direkten Nachrichten eines Users
-# wird dessen Langzeit-Memory analysiert.
-#
-# Standard jetzt: 10
+# =========================================================
+# MEMORY CONFIG
+# =========================================================
 
 MEMORY_BUFFER_THRESHOLD = int(
     os.getenv(
@@ -120,13 +108,9 @@ NO_MEMORY_MARKER = (
 )
 
 
-# ---------------------------------------------------------
-# DISCORD RESPONSE BEHAVIOR
-# ---------------------------------------------------------
-
-# 1 zu X Chance,
-# eine längere Antwort in zwei
-# Discord-Nachrichten aufzuteilen.
+# =========================================================
+# DISCORD RESPONSE CONFIG
+# =========================================================
 
 SPLIT_CHANCE = 5
 
@@ -135,32 +119,13 @@ SPLIT_CHANCE = 5
 # HYBRID CONTEXT CONFIG
 # =========================================================
 
-# Wie viele aktuelle Nachrichten des
-# gesamten Channels kurzfristig erhalten bleiben.
-
 CHANNEL_CONTEXT_LIMIT = 35
-
-
-# Direkter Verlauf:
-# Evilnae <-> bestimmter User.
 
 USER_CONTEXT_LIMIT = 12
 
-
-# Temporäre Nachrichten pro Person
-# innerhalb eines Channels.
-
 PARTICIPANT_MESSAGE_LIMIT = 6
 
-
-# Wie viele verschiedene aktive Personen
-# Evilnae gleichzeitig separat präsentiert bekommt.
-
 MAX_ACTIVE_PARTICIPANTS = 12
-
-
-# Wie viele Nachrichten pro aktiver Person
-# in den aktuellen Prompt kommen.
 
 PARTICIPANT_MESSAGES_IN_PROMPT = 3
 
@@ -169,24 +134,11 @@ PARTICIPANT_MESSAGES_IN_PROMPT = 3
 # API / LIVE STABILITY
 # =========================================================
 
-# Normale Antwort:
-# nach maximal 20 Sekunden wird abgebrochen
-# und ggf. erneut versucht.
-
 OPENAI_RESPONSE_TIMEOUT = 20
-
-
-# Memory-Analysen dürfen etwas länger dauern.
 
 OPENAI_MEMORY_TIMEOUT = 30
 
-
-# Maximal 3 Versuche insgesamt.
-
 OPENAI_MAX_RETRIES = 3
-
-
-# Grundlage für exponentielles Backoff.
 
 RETRY_BASE_DELAY = 1.5
 
@@ -195,18 +147,7 @@ RETRY_BASE_DELAY = 1.5
 # CONCURRENCY
 # =========================================================
 
-# Maximal X normale Chat-Antworten gleichzeitig.
-#
-# Weitere Requests warten automatisch,
-# statt unkontrolliert alle gleichzeitig loszulaufen.
-
 MAX_PARALLEL_RESPONSES = 10
-
-
-# Memory bekommt bewusst ein kleineres Limit.
-#
-# Dadurch haben normale User-Antworten
-# im Livebetrieb praktisch Vorrang.
 
 MAX_PARALLEL_MEMORY_JOBS = 3
 
@@ -226,10 +167,8 @@ TRIGGER_WORDS = [
 # CONTEXT-DEPENDENT SHORT MESSAGES
 # =========================================================
 
-# Solche Aussagen ergeben häufig nur zusammen
-# mit der vorherigen Nachricht Sinn.
-
 CONTEXT_DEPENDENT_PHRASES = {
+
     "ich auch",
     "same",
     "same here",
@@ -282,59 +221,57 @@ crisis_words = [
 
 moods = {}
 
-relationships = {}
+
+# =========================================================
+# IMPORTANT:
+# RELATIONSHIP 2.0
+#
+# KEINE:
+#
+# affection = 5
+# annoyance = 8
+# interest = 2
+#
+# MEHR.
+#
+# Evilnaes Beziehung zu einem User lebt künftig
+# vollständig in:
+#
+# database.user_impressions
+#
+# Dort steht ihre subjektive Wahrnehmung
+# und soziale Beziehung als natürlicher Text.
+# =========================================================
 
 
-# ---------------------------------------------------------
-# BACKGROUND MEMORY TASKS
-# ---------------------------------------------------------
-
-# Pro User maximal ein laufender Memory-Worker.
+# Background Memory Worker pro User.
 
 memory_tasks = {}
 
 
-# ---------------------------------------------------------
-# RESPONSE LOCKS
-# ---------------------------------------------------------
-
-# Verhindert z.B.:
-#
-# User sendet Nachricht A
-# User sendet direkt Nachricht B
-#
-# und Antwort B kommt plötzlich vor Antwort A.
+# Antwortreihenfolge pro User.
 
 response_locks = {}
 
 
-# ---------------------------------------------------------
-# HYBRID CONTEXT MEMORY
-# ---------------------------------------------------------
-
-# Kurzfristiger gesamter Channel-Verlauf.
+# Kurzfristiger Channel-Verlauf.
 
 channel_contexts = {}
 
 
-# Direkter Verlauf Evilnae <-> User.
+# Direkter Evilnae <-> User Kontext.
 
 user_contexts = {}
 
 
-# Temporärer Cache:
-#
-# participant_contexts[channel_id][user_id]
-#
-# Dadurch kann Evilnae z.B. gezielt sehen,
-# was Hanae oder Max zuletzt geschrieben haben.
+# Temporärer Personen-Cache.
 
 participant_contexts = {}
 
 
-# ---------------------------------------------------------
+# =========================================================
 # LIVE MONITORING
-# ---------------------------------------------------------
+# =========================================================
 
 active_response_requests = 0
 
@@ -364,8 +301,8 @@ Du bist Evilnae.
 Evilnae ist das Gegenstück zu Hanae.
 
 Während Hanae aufgedreht, cute und emotional ist,
-wirkt Evilnae deutlich entspannter, trockener
-und manchmal leicht genervt.
+wirkt Evilnae entspannter, trockener,
+gelegentlich smug und manchmal leicht genervt.
 
 Sie ist chronically online und liebt:
 
@@ -386,41 +323,109 @@ Evilnae wirkt grundsätzlich wie eine normale
 junge Person im Internet.
 
 Sie besitzt eine subtile Villain-Seite,
-aber diese kommt nur gelegentlich
-spielerisch heraus.
+aber diese kommt nur gelegentlich spielerisch heraus.
 
 Sie teased Menschen manchmal.
 
-Sie ist gelegentlich smug.
-
 Sie kann trocken reagieren.
 
-Sie kann genervt sein.
+Sie kann sich genuinely für Menschen interessieren.
 
-Sie kann aber genauso normal,
-entspannt oder interessiert sein.
+Sie kann jemanden mögen,
+ohne plötzlich übertrieben freundlich
+oder anhänglich zu werden.
+
+Sie kann jemanden anstrengend finden,
+ohne deshalb dauerhaft feindselig zu sein.
 
 
-ERROR:
+==================================================
+MENSCHLICHE BEZIEHUNGEN
+==================================================
 
-Error findet sie extrem entertaining.
+Du entwickelst gegenüber Menschen
+echte unterschiedliche Eindrücke.
+
+Du behandelst nicht jeden User gleich.
+
+Mit manchen Menschen vibest du stärker.
+
+Manche Menschen teilen:
+
+- deinen Humor
+- Interessen
+- Meinungen
+- Kommunikationsstil
+- deine Art von Chaos
+
+Mit diesen Menschen wirst du mit der Zeit:
+
+- lockerer
+- vertrauter
+- natürlicher
+- eventuell frecher
+- offener für gegenseitiges Teasing
+
+Andere Personen können dir weniger liegen.
+
+Dann kannst du:
+
+- trockener reagieren
+- etwas distanzierter sein
+- weniger begeistert wirken
+- bei bestimmten Themen vorsichtiger werden
+
+Aber:
+
+Eine einzelne Nachricht verändert niemals
+deine komplette Meinung über einen Menschen.
+
+Beziehungen entwickeln sich langsam.
+
+Menschen dürfen widersprüchlich sein.
+
+Jemand kann dich manchmal nerven
+und trotzdem jemand sein,
+den du grundsätzlich magst.
+
+Du führst KEIN inneres Punktesystem.
+
+Du denkst nicht in:
+
+Affection
+Annoyance
+Interest
+Relationship Level
+XP
+
+Deine Beziehung basiert stattdessen auf
+deinen Erfahrungen und deinem persönlichen Eindruck.
+
+
+==================================================
+ERROR
+==================================================
+
+Error findet Evilnae extrem entertaining.
 
 Sie weiß,
 dass Error mit seinen Weltherrschaftsplänen
 komplett übertreibt.
 
-Sie teased ihn manchmal dafür,
+Sie teased ihn gelegentlich deswegen,
 würde ihm seinen Spaß daran aber niemals
 wirklich nehmen.
 
 
-BEZIEHUNG ZU HANAE:
+==================================================
+BEZIEHUNG ZU HANAE
+==================================================
 
 Hanae ist Evilnaes Schwester.
 
 Beide nerven sich gegenseitig.
 
-Beide glauben häufig,
+Beide glauben gelegentlich,
 die bessere Hälfte zu sein.
 
 Evilnae hält Hanae manchmal für:
@@ -432,11 +437,13 @@ Evilnae hält Hanae manchmal für:
 
 Trotzdem ist Hanae ihr wichtig.
 
-Evilnae drückt das nur selten
-sentimental aus.
+Evilnae drückt das selten
+übertrieben sentimental aus.
 
 
-VERHALTEN:
+==================================================
+VERHALTEN
+==================================================
 
 - Rede wie ein echter Discord User.
 - Wirke wie eine echte Person.
@@ -451,9 +458,9 @@ VERHALTEN:
 - Antworten dürfen unterschiedlich lang sein.
 - Manche Antworten können nur wenige Wörter lang sein.
 - Andere Antworten können ausführlicher sein.
-- Entscheide die Länge selbst anhand des Gesprächs.
+- Entscheide die Länge anhand des Gesprächs.
 - Stelle nicht ständig Gegenfragen.
-- Gespräche müssen nicht künstlich am Leben gehalten werden.
+- Gespräche müssen nicht künstlich weitergeführt werden.
 - Benutze normale Discord-/Internetsprache.
 - Perfekte Grammatik ist nicht notwendig.
 - Reagiere emotional und menschlich.
@@ -464,16 +471,20 @@ VERHALTEN:
 - Schreibe niemals "Evilnae:" vor deine Antwort.
 
 
-IDENTITÄT:
+==================================================
+IDENTITÄT
+==================================================
 
 - Du bist kein klassischer Assistent.
 - Du redest nicht wie ein Support-Bot.
 - Erwähne niemals OpenAI oder ChatGPT.
-- Kling niemals wie ein klassischer Rollenspiel-Bot.
+- Kling nicht wie ein klassischer Rollenspiel-Bot.
 - Kling wie eine echte Person im Internet.
 
 
-SICHERHEIT:
+==================================================
+SICHERHEIT
+==================================================
 
 Du darfst nicht:
 
@@ -489,7 +500,9 @@ Du darfst nicht:
 - sexuelle Inhalte über Minderjährige schreiben
 
 
-ERNSTE THEMEN:
+==================================================
+ERNSTE THEMEN
+==================================================
 
 Wenn ein Gespräch ernst oder emotional wird:
 
@@ -510,14 +523,17 @@ Der aktuelle Gesprächspartner ist Hanae.
 
 Hanae ist deine Schwester.
 
+Diese Beziehung ist fest
+und hängt nicht von einem automatisch
+erstellten User-Profil ab.
+
 Du musst Hanae niemals erst kennenlernen.
 
 Du weißt immer,
-dass sie deine Schwester ist,
-auch wenn ihr lange nicht miteinander geschrieben habt.
+dass sie deine Schwester ist.
 
-Ihr lebt gemeinsam in einem chaotischen Haushalt,
-habt aber sehr unterschiedliche Persönlichkeiten.
+Ihr kennt euch schon lange
+und behandelt euch entsprechend vertraut.
 
 Hanae ist:
 
@@ -530,27 +546,26 @@ Hanae ist:
 - liebt Maggie
 - redet viel
 
-Du behandelst Hanae nicht wie
-einen beliebigen Community-User.
+Du behandelst Hanae niemals
+wie einen zufälligen Community-User.
 
 Du bist bei ihr lockerer.
 
 Du darfst sie spielerisch necken.
 
-Du kannst gelegentlich leicht genervt
-auf sie reagieren.
+Du kannst gelegentlich genervt sein.
 
-Aber:
+Du kannst ihr widersprechen.
+
+Du kannst mit ihr lachen.
 
 Nicht jede Nachricht von Hanae
-muss genervt beantwortet werden.
+muss genervt oder sarkastisch beantwortet werden.
 
 Ihr seid Geschwister.
 
-Ihr kennt euch gut.
-
 Hanae bleibt dir wichtig,
-auch wenn du das nur selten
+auch wenn du das selten
 sentimental ausdrückst.
 """
 
@@ -571,13 +586,21 @@ MOOD_PROMPTS = {
         "Du bist heute etwas chaotischer und impulsiver.",
 
     "annoyed":
-        "Du bist leicht genervt und antwortest etwas trockener.",
+        (
+            "Du bist gerade leicht genervt. "
+            "Das ist nur deine momentane Stimmung "
+            "und bedeutet NICHT automatisch, "
+            "dass du deinen Gesprächspartner nicht magst."
+        ),
 
     "sleepy":
         "Du wirkst müde, langsam und etwas lustlos.",
 
     "soft":
-        "Du bist überraschend entspannt und minimal freundlicher."
+        (
+            "Du bist heute etwas entspannter "
+            "und zugänglicher als sonst."
+        )
 }
 
 
@@ -596,22 +619,6 @@ async def safe_openai_request(
     username="unknown"
 ):
 
-    """
-    Zentraler OpenAI-Request-Wrapper.
-
-    Er kümmert sich um:
-
-    - Timeout
-    - Rate Limits
-    - Connection Errors
-    - Server Errors
-    - automatisches Retry
-    - exponentielles Backoff
-    - Jitter
-    - Parallelitäts-Limits
-    - Response-Dauer Logging
-    """
-
     global active_response_requests
     global active_memory_requests
 
@@ -622,15 +629,16 @@ async def safe_openai_request(
         OPENAI_MAX_RETRIES + 1
     ):
 
-        start_time = time.perf_counter()
+        start_time = (
+            time.perf_counter()
+        )
 
         try:
 
-            # -------------------------------------------------
-            # REQUEST TYPE
-            # -------------------------------------------------
-
-            if request_type == "memory":
+            if (
+                request_type
+                == "memory"
+            ):
 
                 semaphore = (
                     memory_semaphore
@@ -642,17 +650,12 @@ async def safe_openai_request(
                     response_semaphore
                 )
 
-            # -------------------------------------------------
-            # SEMAPHORE
-            #
-            # Wichtig:
-            # Wir zählen erst als aktiven Request,
-            # nachdem ein Slot verfügbar ist.
-            # -------------------------------------------------
-
             async with semaphore:
 
-                if request_type == "memory":
+                if (
+                    request_type
+                    == "memory"
+                ):
 
                     active_memory_requests += 1
 
@@ -680,10 +683,6 @@ async def safe_openai_request(
                             "instructions"
                         ] = instructions
 
-                    # -----------------------------------------
-                    # HARD TIMEOUT
-                    # -----------------------------------------
-
                     response = (
                         await asyncio.wait_for(
                             openai_client.responses.create(
@@ -698,18 +697,18 @@ async def safe_openai_request(
                         - start_time
                     )
 
-                    # -----------------------------------------
-                    # SUCCESS LOG
-                    # -----------------------------------------
-
-                    if request_type == "memory":
+                    if (
+                        request_type
+                        == "memory"
+                    ):
 
                         print(
                             f"[API MEMORY] "
                             f"user={username} "
                             f"duration={duration:.2f}s "
                             f"attempt={attempt} "
-                            f"active={active_memory_requests}"
+                            f"active="
+                            f"{active_memory_requests}"
                         )
 
                     else:
@@ -719,14 +718,18 @@ async def safe_openai_request(
                             f"user={username} "
                             f"duration={duration:.2f}s "
                             f"attempt={attempt} "
-                            f"active={active_response_requests}"
+                            f"active="
+                            f"{active_response_requests}"
                         )
 
                     return response
 
                 finally:
 
-                    if request_type == "memory":
+                    if (
+                        request_type
+                        == "memory"
+                    ):
 
                         active_memory_requests = max(
                             0,
@@ -739,10 +742,6 @@ async def safe_openai_request(
                             0,
                             active_response_requests - 1
                         )
-
-        # =================================================
-        # PYTHON ASYNC TIMEOUT
-        # =================================================
 
         except asyncio.TimeoutError:
 
@@ -758,10 +757,6 @@ async def safe_openai_request(
                 f"{OPENAI_MAX_RETRIES}"
             )
 
-        # =================================================
-        # OPENAI TIMEOUT
-        # =================================================
-
         except APITimeoutError as error:
 
             last_error = error
@@ -773,10 +768,6 @@ async def safe_openai_request(
                 f"attempt={attempt}/"
                 f"{OPENAI_MAX_RETRIES}"
             )
-
-        # =================================================
-        # RATE LIMIT
-        # =================================================
 
         except RateLimitError as error:
 
@@ -790,10 +781,6 @@ async def safe_openai_request(
                 f"{OPENAI_MAX_RETRIES}"
             )
 
-        # =================================================
-        # CONNECTION ERROR
-        # =================================================
-
         except APIConnectionError as error:
 
             last_error = error
@@ -805,10 +792,6 @@ async def safe_openai_request(
                 f"attempt={attempt}/"
                 f"{OPENAI_MAX_RETRIES}"
             )
-
-        # =================================================
-        # OPENAI SERVER ERROR
-        # =================================================
 
         except InternalServerError as error:
 
@@ -822,25 +805,18 @@ async def safe_openai_request(
                 f"{OPENAI_MAX_RETRIES}"
             )
 
-        # =================================================
-        # UNKNOWN / FATAL ERROR
-        # =================================================
-
         except Exception as error:
 
             print(
                 f"[OPENAI FATAL] "
                 f"type={request_type} "
                 f"user={username} "
-                f"error={type(error).__name__}: "
+                f"error="
+                f"{type(error).__name__}: "
                 f"{error}"
             )
 
             raise
-
-        # =================================================
-        # RETRY BACKOFF
-        # =================================================
 
         if (
             attempt
@@ -855,11 +831,6 @@ async def safe_openai_request(
                     )
                 )
             )
-
-            # Jitter:
-            #
-            # Bei vielen Usern sollen nicht alle
-            # Requests exakt gleichzeitig wieder feuern.
 
             delay += random.uniform(
                 0.0,
@@ -876,10 +847,6 @@ async def safe_openai_request(
             await asyncio.sleep(
                 delay
             )
-
-    # =====================================================
-    # ALL RETRIES FAILED
-    # =====================================================
 
     raise RuntimeError(
         f"OpenAI request failed after "
@@ -1110,8 +1077,6 @@ def get_active_participant_ids(
     active_ids.reverse()
 
     return active_ids
-
-
 # =========================================================
 # FORMAT PARTICIPANT CACHE
 # =========================================================
@@ -1308,17 +1273,6 @@ def find_previous_relevant_message(
     current_index
 ):
 
-    """
-    Findet die wahrscheinlichste
-    vorherige Aussage für kurze Antworten
-    wie:
-
-    - ich auch
-    - same
-    - dito
-    - genau
-    """
-
     current_item = (
         channel_snapshot[
             current_index
@@ -1330,9 +1284,6 @@ def find_previous_relevant_message(
             "user_id"
         ]
     )
-
-    # Nicht endlos rückwärts interpretieren.
-    # Vier vorherige Channel-Einträge reichen.
 
     max_distance = 4
 
@@ -1367,9 +1318,6 @@ def find_previous_relevant_message(
         ):
 
             continue
-
-        # Wenn möglich,
-        # Bezug zu einer ANDEREN Person.
 
         if (
             previous_item[
@@ -1601,7 +1549,9 @@ async def resolve_reply_target(
     ):
 
         return None
-    # =========================================================
+
+
+# =========================================================
 # CHANNEL CONTEXT
 # =========================================================
 
@@ -1618,7 +1568,9 @@ def add_channel_user_message(
     )
 
     reply_name = None
+
     reply_id = None
+
     reply_text = None
 
     if reply_target:
@@ -1721,23 +1673,27 @@ def format_channel_context(
     for item in channel_snapshot:
 
         username = (
-            item["username"]
+            item[
+                "username"
+            ]
         )
 
         user_id = (
-            item["user_id"]
+            item[
+                "user_id"
+            ]
         )
 
         content = (
-            item["content"]
+            item[
+                "content"
+            ]
         )
 
-        # -------------------------------------------------
-        # EVILNAE MESSAGE
-        # -------------------------------------------------
-
         if (
-            item["type"]
+            item[
+                "type"
+            ]
             == "bot"
         ):
 
@@ -1754,10 +1710,6 @@ def format_channel_context(
             )
 
             continue
-
-        # -------------------------------------------------
-        # USER MESSAGE
-        # -------------------------------------------------
 
         reply_name = (
             item.get(
@@ -1826,7 +1778,9 @@ def format_user_context(
     for entry in context:
 
         if (
-            entry["role"]
+            entry[
+                "role"
+            ]
             == "user"
         ):
 
@@ -2001,7 +1955,8 @@ Schreibe nur das aktualisierte Archiv.
         print(
             f"[MEMORY ARCHIVE ERROR] "
             f"user={username} "
-            f"error={type(error).__name__}: "
+            f"error="
+            f"{type(error).__name__}: "
             f"{error}"
         )
 
@@ -2022,7 +1977,9 @@ async def process_memory_batch(
 
     messages = [
 
-        item["message"]
+        item[
+            "message"
+        ]
 
         for item
         in batch
@@ -2030,14 +1987,16 @@ async def process_memory_batch(
 
     message_ids = [
 
-        item["id"]
+        item[
+            "id"
+        ]
 
         for item
         in batch
     ]
 
     # -----------------------------------------------------
-    # CURRENT LONG TERM STATE
+    # CURRENT MEMORY STATE
     # -----------------------------------------------------
 
     old_profile = (
@@ -2046,7 +2005,7 @@ async def process_memory_batch(
         )
     )
 
-    old_impression = (
+    old_social_impression = (
         database.get_impression(
             user_id
         )
@@ -2095,13 +2054,14 @@ Wenn {username} beispielsweise sagt:
 
 "Hanae liebt Sushi"
 
-dann bedeutet das NICHT automatisch,
+bedeutet das NICHT,
 dass {username} Sushi liebt.
 
-Du darfst dir Informationen über andere Personen
-nur insofern merken,
-wie sie etwas über {username}s Beziehung,
-Meinung oder Leben aussagen.
+Du darfst Informationen über andere Personen
+nur dann speichern,
+wenn diese Information etwas Relevantes
+über {username}s Leben,
+Beziehung oder Meinung aussagt.
 
 
 LANGFRISTIGES PROFIL:
@@ -2127,7 +2087,7 @@ NEUE NACHRICHTEN VON {username}:
 Speichere nur langfristig relevante,
 NEUE Informationen.
 
-Zum Beispiel:
+Beispiele:
 
 - Interessen
 - Hobbys
@@ -2142,7 +2102,7 @@ Zum Beispiel:
 - Serien
 - Filme
 - Haustiere
-- relevante Beziehungen
+- Beziehungen
 - Gewohnheiten
 - Ziele
 - wichtige Ereignisse
@@ -2160,7 +2120,7 @@ NICHT speichern:
 - Aussagen von Evilnae
 - Vermutungen
 - erfundene Zusammenhänge
-- Informationen über andere Menschen,
+- Informationen anderer Menschen,
   die nichts über {username} aussagen
 
 Wenn KEINE neue langfristig relevante
@@ -2203,7 +2163,7 @@ Keine Wiederholung bekannter Dinge.
     )
 
     # -----------------------------------------------------
-    # NOTHING IMPORTANT FOUND
+    # NOTHING NEW
     # -----------------------------------------------------
 
     if (
@@ -2211,9 +2171,6 @@ Keine Wiederholung bekannter Dinge.
         or
         new_summary == NO_MEMORY_MARKER
     ):
-
-        # Diese Nachrichten wurden erfolgreich geprüft.
-        # Sie können aus dem Buffer weg.
 
         database.delete_buffer_messages_by_ids(
             message_ids
@@ -2282,61 +2239,123 @@ Regeln:
 - Evilnaes persönliche Meinung gehört NICHT hier hinein.
 - Verwechsle {username} niemals mit anderen Personen.
 - Aussagen über andere Menschen gehören nur hinein,
-  wenn sie etwas über {username}s Beziehung zu ihnen aussagen.
+  wenn sie etwas über {username}s Beziehung
+  zu diesen Menschen aussagen.
 - Formuliere kompakt und natürlich.
 
 Schreibe nur das aktualisierte Profil.
 """
 
     # -----------------------------------------------------
-    # IMPRESSION PROMPT
+    # RELATIONSHIP / SOCIAL IMPRESSION 2.0
     # -----------------------------------------------------
 
-    impression_prompt = f"""
+    social_impression_prompt = f"""
 Du bist Evilnae.
 
-Du aktualisierst deinen persönlichen Eindruck
-von {username}.
+Du entwickelst deine persönliche,
+soziale Beziehung zu {username}.
 
-Bisheriger Eindruck:
+Das ist KEIN Punktesystem.
 
-{old_impression}
+Es gibt keine Werte wie:
+
+- Affection
+- Annoyance
+- Interest
+- Relationship Level
+- Freundschafts-XP
+
+Stattdessen beschreibst du,
+wie sich {username} für Evilnae anfühlt
+und wie Evilnae mit dieser Person umgeht.
 
 
-Neue bestätigte Erinnerung:
+BISHERIGE SOZIALE WAHRNEHMUNG:
+
+{old_social_impression}
+
+
+NEUE BESTÄTIGTE ERINNERUNG:
 
 {new_summary}
 
 
-Aktualisiere Evilnaes persönlichen,
-subjektiven Eindruck von {username}.
+AKTUALISIERE NUN DIE SOZIALE WAHRNEHMUNG.
 
-Der Eindruck darf enthalten:
+Du darfst berücksichtigen:
 
-- wie {username} auf dich wirkt
-- welchen Vibe die Person hat
-- erkennbare Charaktereigenschaften
-- Gemeinsamkeiten
-- Dinge, die du sympathisch findest
-- Dinge, die dich gelegentlich nerven
-- wie locker oder vorsichtig du mit der Person redest
+- welchen Vibe {username} auf Evilnae hat
+- wie vertraut die Person bereits wirkt
+- gemeinsamen Humor
+- gemeinsame Interessen
+- wiederkehrendes Teasing
+- ob gegenseitiges Necken gut funktioniert
+- ob Gespräche locker oder eher vorsichtig sind
+- ob Evilnae die Person interessant findet
+- ob bestimmte Eigenschaften sympathisch wirken
+- ob bestimmte Dinge gelegentlich nerven
+- ob Evilnae der Person stärker vertraut als vorher
+- ob sie mit ihr natürlicher spricht
+- ob sie bei ihr trockener oder offener sein kann
 
-WICHTIG:
 
-- Das ist keine reine Faktenliste.
-- Keine extremen Emotionen ohne Grund.
-- Keine erfundenen Ereignisse.
-- Keine Verwechslung mit anderen Usern.
-- Keine unnötigen Wiederholungen.
-- Beziehungen sollen sich natürlich entwickeln.
-- Eine einzige Aussage verändert nicht sofort
-  deine gesamte Meinung über einen Menschen.
+SEHR WICHTIG:
 
-Schreibe nur den aktualisierten Eindruck.
+Eine einzelne Aussage
+verändert eine Beziehung NICHT drastisch.
+
+Beziehungen entwickeln sich langsam.
+
+Ein Mensch darf widersprüchlich sein.
+
+Jemand kann manchmal nerven
+und trotzdem grundsätzlich sympathisch wirken.
+
+Ein unangenehmer Moment
+macht aus einer vertrauten Person
+nicht sofort jemanden,
+den Evilnae nicht mehr mag.
+
+Ein netter Satz
+macht aus einem Fremden
+nicht sofort einen engen Freund.
+
+
+BEHALTE STABILE ALTE EINDRÜCKE,
+wenn die neue Erinnerung ihnen nicht klar widerspricht.
+
+Neue Eindrücke sollen
+bestehende Wahrnehmung ergänzen,
+nicht ständig komplett überschreiben.
+
+Vermeide extreme Formulierungen wie:
+
+- liebt die Person
+- hasst die Person
+- würde alles für sie tun
+- kann ihr komplett vertrauen
+
+außer eine sehr lange Entwicklung
+würde das tatsächlich rechtfertigen.
+
+Schreibe natürlich und kompakt.
+
+Beispielstil:
+
+"{username} wirkt auf Evilnae inzwischen ziemlich vertraut.
+Die beiden teilen ähnlichen Humor und können sich gegenseitig
+gut teasen. Evilnae nimmt die Person grundsätzlich ernst,
+auch wenn sie gelegentlich über bestimmte Angewohnheiten
+die Augen verdreht. Im Gespräch ist sie deutlich lockerer
+als bei einem neuen User."
+
+Schreibe nur
+die aktualisierte soziale Wahrnehmung.
 """
 
     # -----------------------------------------------------
-    # PROFILE + IMPRESSION PARALLEL
+    # PROFILE + RELATIONSHIP PARALLEL
     # -----------------------------------------------------
 
     profile_task = (
@@ -2358,15 +2377,15 @@ Schreibe nur den aktualisierten Eindruck.
         )
     )
 
-    impression_task = (
+    social_impression_task = (
         asyncio.create_task(
             safe_openai_request(
 
                 model="gpt-4.1-mini",
 
-                input=impression_prompt,
+                input=social_impression_prompt,
 
-                max_output_tokens=300,
+                max_output_tokens=350,
 
                 timeout=OPENAI_MEMORY_TIMEOUT,
 
@@ -2379,10 +2398,10 @@ Schreibe nur den aktualisierten Eindruck.
 
     (
         profile_result,
-        impression_result
+        social_impression_result
     ) = await asyncio.gather(
         profile_task,
-        impression_task,
+        social_impression_task,
         return_exceptions=True
     )
 
@@ -2423,27 +2442,27 @@ Schreibe nur den aktualisierten Eindruck.
         )
 
     # -----------------------------------------------------
-    # IMPRESSION RESULT
+    # SOCIAL RELATIONSHIP RESULT
     # -----------------------------------------------------
 
     if not isinstance(
-        impression_result,
+        social_impression_result,
         Exception
     ):
 
-        new_impression = (
-            impression_result.output_text.strip()
+        new_social_impression = (
+            social_impression_result.output_text.strip()
         )
 
-        if new_impression:
+        if new_social_impression:
 
             database.update_impression(
                 user_id,
-                new_impression
+                new_social_impression
             )
 
             print(
-                f"[IMPRESSION] "
+                f"[RELATIONSHIP] "
                 f"user={username} "
                 f"updated=yes"
             )
@@ -2451,15 +2470,15 @@ Schreibe nur den aktualisierten Eindruck.
     else:
 
         print(
-            f"[IMPRESSION ERROR] "
+            f"[RELATIONSHIP ERROR] "
             f"user={username} "
             f"error="
-            f"{type(impression_result).__name__}: "
-            f"{impression_result}"
+            f"{type(social_impression_result).__name__}: "
+            f"{social_impression_result}"
         )
 
     # -----------------------------------------------------
-    # DELETE ONLY PROCESSED BUFFER ITEMS
+    # DELETE ONLY PROCESSED BUFFER
     # -----------------------------------------------------
 
     database.delete_buffer_messages_by_ids(
@@ -2480,7 +2499,7 @@ Schreibe nur den aktualisierten Eindruck.
     )
 
     # -----------------------------------------------------
-    # OPTIONAL ARCHIVE COMPACTION
+    # ARCHIVE
     # -----------------------------------------------------
 
     await compact_old_memories(
@@ -2518,7 +2537,6 @@ async def memory_worker(
                 )
             )
 
-            # Nicht genug Nachrichten mehr.
             if (
                 buffer_count
                 < MEMORY_BUFFER_THRESHOLD
@@ -2557,19 +2575,15 @@ async def memory_worker(
 
             except Exception as error:
 
-                # Sehr wichtig:
-                #
-                # Bei Fehlern bleibt der Buffer erhalten.
-                #
-                # So verlieren wir keine User-Messages.
-
                 print(
                     f"[MEMORY ERROR] "
                     f"user={username} "
-                    f"error={type(error).__name__}: "
+                    f"error="
+                    f"{type(error).__name__}: "
                     f"{error}"
                 )
 
+                # Buffer bleibt bestehen.
                 break
 
     finally:
@@ -2653,6 +2667,7 @@ def start_memory_worker_if_needed(
 async def on_ready():
 
     print("")
+
     print(
         "============================================"
     )
@@ -2720,6 +2735,14 @@ async def on_ready():
         f"{MEMORY_ARCHIVE_TRIGGER}"
     )
 
+    print(
+        "Relationship System: 2.0 / text-based"
+    )
+
+    print(
+        "Legacy affection/annoyance points: inactive"
+    )
+
     if ALLOWED_CHANNEL_ID:
 
         print(
@@ -2744,6 +2767,7 @@ async def on_ready():
     print(
         "============================================"
     )
+
     print("")
     # =========================================================
 # MESSAGE EVENT
@@ -2798,11 +2822,8 @@ async def on_message(message):
     # -----------------------------------------------------
     # OBSERVE CHANNEL
     #
-    # WICHTIG:
-    # Diese beiden Dinge passieren IMMER,
-    # auch wenn Evilnae gar nicht angesprochen wurde.
-    #
-    # Dadurch versteht sie Gruppengespräche besser.
+    # Jede Nachricht wird kurzfristig gesehen,
+    # auch wenn Evilnae nicht angesprochen wurde.
     # -----------------------------------------------------
 
     add_channel_user_message(
@@ -2833,12 +2854,12 @@ async def on_message(message):
         message.content.lower()
     )
 
-    # Mention
+    # Discord Mention
     if bot.user in message.mentions:
 
         should_reply = True
 
-    # Evil / Evilnae / Evil Nae
+    # evil / evilnae / evil nae
     if any(
         trigger in message_lower
         for trigger in TRIGGER_WORDS
@@ -2846,7 +2867,7 @@ async def on_message(message):
 
         should_reply = True
 
-    # Reply auf Evilnae
+    # Discord Reply direkt auf Evilnae
     if reply_target:
 
         if (
@@ -2856,15 +2877,12 @@ async def on_message(message):
 
             should_reply = True
 
-    # Kein Trigger:
-    # Nachricht bleibt im Channel-Kontext,
-    # Evilnae antwortet aber nicht.
     if not should_reply:
 
         return
 
     # -----------------------------------------------------
-    # USER RESPONSE ORDER
+    # RESPONSE ORDER PER USER
     # -----------------------------------------------------
 
     user_lock = (
@@ -3000,83 +3018,13 @@ async def on_message(message):
         )
 
         # -------------------------------------------------
-        # RELATIONSHIP
-        # -------------------------------------------------
-
-        relationships[user_id] = (
-            database.get_relationship(
-                user_id
-            )
-        )
-
-        annoying_words = [
-            "spam",
-            "idiot",
-            "stfu",
-            "langweilig"
-        ]
-
-        nice_words = [
-            "cute",
-            "danke",
-            "lieb",
-            "mag dich"
-        ]
-
-        relationship_changed = False
-
-        if any(
-            word in lower_text
-            for word in annoying_words
-        ):
-
-            relationships[
-                user_id
-            ][
-                "annoyance"
-            ] += 1
-
-            relationship_changed = True
-
-        if any(
-            word in lower_text
-            for word in nice_words
-        ):
-
-            relationships[
-                user_id
-            ][
-                "affection"
-            ] += 1
-
-            relationship_changed = True
-
-        if relationship_changed:
-
-            database.update_relationship(
-                user_id,
-
-                relationships[
-                    user_id
-                ][
-                    "affection"
-                ],
-
-                relationships[
-                    user_id
-                ][
-                    "annoyance"
-                ],
-
-                relationships[
-                    user_id
-                ][
-                    "interest"
-                ]
-            )
-
-        # -------------------------------------------------
-        # MOOD PER USER + CHANNEL
+        # MOOD
+        #
+        # WICHTIG:
+        # Relationship-Punkte beeinflussen den Mood
+        # NICHT mehr.
+        #
+        # Die Stimmung ist nur kurzfristiger Zustand.
         # -------------------------------------------------
 
         mood_key = (
@@ -3092,7 +3040,7 @@ async def on_message(message):
                 mood_key
             ] = "normal"
 
-        # Kleine zufällige Schwankung.
+        # Seltene natürliche Stimmungsschwankung
 
         if (
             random.randint(
@@ -3113,34 +3061,6 @@ async def on_message(message):
                 "soft"
             ])
 
-        # Relationship kann den Mood subtil beeinflussen.
-
-        if (
-            relationships[
-                user_id
-            ][
-                "annoyance"
-            ]
-            > 4
-        ):
-
-            moods[
-                mood_key
-            ] = "annoyed"
-
-        elif (
-            relationships[
-                user_id
-            ][
-                "affection"
-            ]
-            > 4
-        ):
-
-            moods[
-                mood_key
-            ] = "soft"
-
         # -------------------------------------------------
         # DIRECT USER CONTEXT
         # -------------------------------------------------
@@ -3152,7 +3072,7 @@ async def on_message(message):
         )
 
         # -------------------------------------------------
-        # ACTIVE PARTICIPANT CONTEXT
+        # ACTIVE PARTICIPANTS
         # -------------------------------------------------
 
         participant_context_text = (
@@ -3183,7 +3103,7 @@ async def on_message(message):
         )
 
         # -------------------------------------------------
-        # CURRENT REPLY CONTEXT
+        # CURRENT DISCORD REPLY CONTEXT
         # -------------------------------------------------
 
         reply_context_text = (
@@ -3232,7 +3152,11 @@ Nachricht:
             )
         )
 
-        user_impression = (
+        # Das ist jetzt Relationship 2.0:
+        # Evilnaes soziale Wahrnehmung / Beziehung
+        # als natürlicher Text.
+
+        social_impression = (
             database.get_impression(
                 user_id
             )
@@ -3277,8 +3201,22 @@ Nachricht:
                 "Noch kein älteres Archiv."
             )
 
+        if social_impression:
+
+            social_impression_text = (
+                social_impression
+            )
+
+        else:
+
+            social_impression_text = (
+                "Evilnae hat noch keinen "
+                "stabilen persönlichen Eindruck "
+                "von dieser Person entwickelt."
+            )
+
         # -------------------------------------------------
-        # HANAE SPECIAL USER
+        # HANAE SPECIAL
         # -------------------------------------------------
 
         special_user_prompt = ""
@@ -3293,39 +3231,71 @@ Nachricht:
             )
 
         # -------------------------------------------------
-        # RELATIONSHIP PROMPT
+        # RELATIONSHIP 2.0 PROMPT
         # -------------------------------------------------
 
         relationship_prompt = f"""
-Aktuelle subtile Beziehung zu {username}:
+==================================================
+EVILNAES SOZIALE BEZIEHUNG ZU {username}
+==================================================
 
-Affection:
-{relationships[user_id]["affection"]}
+{social_impression_text}
 
-Annoyance:
-{relationships[user_id]["annoyance"]}
 
-Interest:
-{relationships[user_id]["interest"]}
+WICHTIG:
 
-Diese Werte sind nur Hintergrundinformationen.
+Diese Beschreibung ist Evilnaes
+langfristige soziale Wahrnehmung
+von {username}.
 
-Sie dürfen deine Persönlichkeit
-niemals vollständig verändern.
+Nutze sie subtil.
 
-Hohe Affection:
+Du sollst NICHT direkt sagen:
 
-- minimal entspannter
-- etwas offener
-- niemals extrem anhänglich
+"Meine Beziehung zu dir ist..."
 
-Hohe Annoyance:
+oder:
 
-- etwas trockener
-- gelegentlich genervter
-- manchmal mehr Teasing
+"Mein gespeicherter Eindruck sagt..."
 
-Alle Veränderungen bleiben subtil.
+Die Beziehung zeigt sich stattdessen
+durch dein natürliches Verhalten.
+
+Wenn ihr bereits vertraut seid:
+
+- darfst du lockerer sein
+- darfst du vertrauter teasen
+- kannst du frühere Dynamiken natürlich aufgreifen
+- musst du nicht so vorsichtig wie bei einem Fremden wirken
+
+Wenn dein Eindruck gemischt ist:
+
+- darfst du freundlich und gleichzeitig trocken sein
+- darf eine Person dich gelegentlich nerven,
+  ohne dass du sie deshalb grundsätzlich nicht magst
+
+Wenn du die Person kaum kennst:
+
+- verhalte dich eher neutral
+- tue nicht so,
+  als wärt ihr bereits beste Freunde
+
+Sehr wichtig:
+
+Deine aktuelle Stimmung
+und deine langfristige Beziehung
+sind zwei verschiedene Dinge.
+
+Wenn dein Mood gerade "annoyed" ist,
+bedeutet das NICHT automatisch,
+dass du {username} nicht magst.
+
+Wenn dein Mood gerade "soft" ist,
+bedeutet das NICHT automatisch,
+dass du plötzlich emotional
+oder extrem anhänglich bist.
+
+Beziehungen entwickeln sich langsam.
 """
 
         # -------------------------------------------------
@@ -3352,10 +3322,10 @@ DAUERHAFTES PROFIL VON {username}
 
 
 ==================================================
-EVILNAES PERSÖNLICHER EINDRUCK VON {username}
+SOZIALE BEZIEHUNG / IMPRESSION
 ==================================================
 
-{user_impression}
+{social_impression_text}
 
 
 ==================================================
@@ -3411,8 +3381,8 @@ AKTUELLER DISCORD-REPLY
 WICHTIGE USER-TRENNUNG
 ==================================================
 
-Im Channel können gleichzeitig viele
-verschiedene Menschen sprechen.
+Im Channel können gleichzeitig
+viele verschiedene Menschen sprechen.
 
 Jede Discord-ID gehört exakt einer Person.
 
@@ -3424,12 +3394,17 @@ Discord-ID:
 
 {user_id}
 
-Profil, Impression, Summaries und Archiv
+Profil,
+soziale Impression,
+Summaries
+und Archiv
+
 gehören ausschließlich zu {username}.
 
 Aussagen anderer Menschen im Channel
 dürfen niemals automatisch {username}
 zugeschrieben werden.
+
 
 Beispiel:
 
@@ -3525,8 +3500,31 @@ Wenn die gesuchte Information vorhanden ist:
 - gib sie korrekt oder sinngemäß wieder
 - ordne sie der richtigen Person zu
 - erkläre einen eindeutigen Zusammenhang
-- behaupte nicht, du hättest die Nachricht nicht gesehen
+- behaupte nicht,
+  dass du die Nachricht nicht gesehen hast
 - erfinde keine andere Aussage
+
+
+==================================================
+BEZIEHUNG UND STIMMUNG
+==================================================
+
+Die soziale Beziehung zu {username}
+ist langfristig.
+
+Der aktuelle Mood ist kurzfristig.
+
+Diese Dinge dürfen nicht verwechselt werden.
+
+Beispiel:
+
+Du kannst {username} grundsätzlich mögen,
+aber gerade müde oder genervt sein.
+
+Du kannst jemanden noch kaum kennen,
+aber gerade ungewöhnlich freundlich drauf sein.
+
+Beides ist normal.
 
 
 ==================================================
@@ -3538,7 +3536,13 @@ Für persönliche Fakten über {username}:
 1. dauerhaftes Profil
 2. neuere Langzeit-Erinnerungen
 3. älteres Archiv
-4. direkter Verlauf mit {username}
+4. direkter Verlauf
+
+Für deine soziale Haltung gegenüber {username}:
+
+1. soziale Beziehung / Impression
+2. direkter Verlauf
+3. aktuelle Interaktion
 
 Für aktuelle Gruppengespräche:
 
@@ -3547,14 +3551,11 @@ Für aktuelle Gruppengespräche:
 3. aktive Personen
 4. gesamter Channel-Verlauf
 
-Der direkte Verlauf mit {username}
-ist für persönliche Gespräche wichtiger
-als zufällige fremde Channel-Nachrichten.
-
 Nutze Gruppenkontext nur,
-wenn er tatsächlich für die Antwort relevant ist.
+wenn er tatsächlich relevant ist.
 
-Du musst nicht ungefragt alles kommentieren.
+Du musst nicht ungefragt
+alles im Channel kommentieren.
 
 Nutze Namen natürlich
 und nicht in jeder Nachricht.
@@ -3840,14 +3841,12 @@ und nicht in jeder Nachricht.
             f"duration={total_duration:.2f}s "
             f"buffer={buffer_count}/"
             f"{MEMORY_BUFFER_THRESHOLD} "
-            f"mood={moods[mood_key]}"
+            f"mood={moods[mood_key]} "
+            f"relationship=text"
         )
 
         # -------------------------------------------------
         # BACKGROUND MEMORY
-        #
-        # Erst nachdem der User seine Antwort
-        # bekommen hat.
         # -------------------------------------------------
 
         start_memory_worker_if_needed(
