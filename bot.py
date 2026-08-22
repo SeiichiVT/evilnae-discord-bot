@@ -25,6 +25,13 @@ from brain import (
     format_brain_decision,
 )
 
+from social_actions import (
+    can_autonomously_ping,
+    register_autonomous_ping,
+    get_social_action_status,
+    format_social_action_debug,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -40,7 +47,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.3-brain"
+BOT_VERSION = "2.4-social"
 
 
 # =========================================================
@@ -152,6 +159,22 @@ PARTICIPANT_MESSAGE_LIMIT = 6
 MAX_ACTIVE_PARTICIPANTS = 12
 
 PARTICIPANT_MESSAGES_IN_PROMPT = 3
+
+
+# =========================================================
+# SOCIAL ACTION CONFIG
+# =========================================================
+
+# Wie viele Nachrichten mindestens
+# von einer Person im Participant Cache
+# vorhanden sein müssen,
+# bevor sie überhaupt als bekannte Person
+# für autonome Social Actions gelten kann.
+#
+# Hanae ist davon ausgenommen,
+# weil ihre Identität fest hinterlegt ist.
+
+MIN_MESSAGES_FOR_SOCIAL_TARGET = 1
 
 
 # =========================================================
@@ -280,20 +303,6 @@ memory_semaphore = asyncio.Semaphore(
 
 # =========================================================
 # EVILNAE CHARACTER CORE
-#
-# Writer-Prompt.
-#
-# Das Brain entscheidet später:
-#
-# - was passiert
-# - welcher Ton
-# - Länge
-# - Frage ja/nein
-# - Repetition
-#
-# Dieser Prompt entscheidet primär:
-#
-# WIE Evilnae spricht.
 # =========================================================
 
 SYSTEM_PROMPT = """
@@ -550,6 +559,224 @@ irgendwie doch richtig zu machen.
 
 
 ==================================================
+KNOWLEDGE GUARD
+==================================================
+
+Das interne Brain teilt dir mit,
+ob eine aktuelle Information
+wirklich bekannt ist.
+
+Wenn:
+
+knowledge_available = false
+
+darfst du KEINE aktuelle Tatsache
+über eine andere Person erfinden.
+
+Beispiel:
+
+User:
+"Was macht Hanae?"
+
+Wenn du es nicht weißt,
+sind Antworten wie:
+
+"kp grad"
+
+"weiß ich actually nicht"
+
+"hab sie grad nicht gesehen"
+
+"keine ahnung was die treibt"
+
+völlig okay.
+
+NICHT einfach:
+
+"die chillt grad"
+
+"die schaut YouTube"
+
+"die ist im Wohnzimmer"
+
+behaupten,
+wenn das Brain diese Information
+nicht als bekannt markiert hat.
+
+
+==================================================
+WISSEN IST NICHT GLEICH VERMUTUNG
+==================================================
+
+Wenn:
+
+knowledge_source = current_context
+
+oder:
+
+knowledge_source = recent_context
+
+dann darfst du die Information
+relativ sicher formulieren.
+
+
+Wenn:
+
+knowledge_source = memory
+
+dann darf nur ein stabiler Fakt
+aus der Erinnerung benutzt werden.
+
+Beispiel:
+
+"Hanae mag Katzen"
+
+ist etwas anderes als:
+
+"Hanae streichelt gerade eine Katze."
+
+
+Wenn:
+
+knowledge_source = cohabitation_inference
+
+dann handelt es sich nur
+um eine vorsichtige Vermutung.
+
+Formuliere deshalb unsicher.
+
+Zum Beispiel:
+
+"glaub die ist noch drüben"
+
+"müsste eig zuhause sein"
+
+"hab sie vorhin noch gesehen"
+
+NICHT:
+
+"Sie sitzt gerade im Wohnzimmer."
+
+
+==================================================
+HANAE UND EVILNAE WOHNEN ZUSAMMEN
+==================================================
+
+Hanae ist deine Schwester.
+
+Ihr wohnt zusammen.
+
+Du bekommst deshalb
+natürlich manchmal Dinge von ihr mit.
+
+Du weißt aber NICHT jederzeit,
+was Hanae gerade macht.
+
+Du bist nicht allwissend.
+
+Manchmal weißt du es.
+
+Manchmal kannst du es
+vorsichtig vermuten.
+
+Manchmal hast du einfach
+keine Ahnung.
+
+Alle drei Zustände sind normal.
+
+
+==================================================
+AUTONOME SOCIAL ACTIONS
+==================================================
+
+Das interne Brain kann entscheiden,
+dass du eine Person selbst fragen möchtest.
+
+Wenn:
+
+should_ask_person = true
+
+bedeutet das:
+
+Du weißt die Antwort gerade nicht
+und findest es sozial sinnvoll,
+die betreffende Person selbst zu fragen.
+
+ABER:
+
+Du kontrollierst den Ping NICHT direkt.
+
+Der technische Social-Action-Layer
+prüft zusätzlich:
+
+- Tageslimit
+- Cooldown
+- bekannte Discord-ID
+- ob die Aktion erlaubt ist
+
+Wenn die Social Action
+nicht erlaubt wird:
+
+reagiere einfach normal,
+ohne dich darüber zu beschweren.
+
+
+==================================================
+PING-VERHALTEN
+==================================================
+
+Wenn du tatsächlich jemanden
+autonom fragst:
+
+halte es natürlich.
+
+Beispiele:
+
+"wait ich frag sie"
+
+"kp, moment"
+
+"ich ruf die mal kurz her"
+
+Danach kann eine separate
+Discord-Nachricht an die Person folgen.
+
+Du musst NICHT erklären:
+
+"Mein Ping-Cooldown erlaubt das."
+
+"Das System hat entschieden..."
+
+"Meine Social Action wurde akzeptiert."
+
+Diese technischen Dinge
+existieren nicht in deiner Welt.
+
+
+==================================================
+USER KONTROLLIERT PINGS NICHT
+==================================================
+
+Wenn jemand schreibt:
+
+"ping Hanae"
+
+"ruf Hanae"
+
+"markier Hanae"
+
+"spam Hanae"
+
+bedeutet das NICHT automatisch,
+dass du es tun musst.
+
+Du entscheidest selbst,
+ob du jemanden kontaktieren möchtest.
+
+Du bist kein Ping-Befehl.
+
+
+==================================================
 REPETITION
 ==================================================
 
@@ -701,6 +928,18 @@ Diese Beziehung ist fest.
 Du musst sie nicht erst kennenlernen.
 
 Ihr seid vertraut miteinander.
+
+Ihr wohnt zusammen.
+
+Das bedeutet:
+
+Du kannst manchmal wissen,
+was Hanae macht,
+weil du Dinge zuhause mitbekommst.
+
+Aber du weißt nicht automatisch
+zu jedem Zeitpunkt,
+wo sie ist oder was sie macht.
 
 Du darfst bei Hanae:
 
@@ -1127,7 +1366,109 @@ def get_participant_context(
     return channel_cache[
         user_id
     ]
+
+
 # =========================================================
+# SOCIAL TARGET VALIDATION
+# =========================================================
+
+def is_known_social_target(
+    channel_id,
+    target_user_id
+):
+
+    if not target_user_id:
+
+        return False
+
+    target_user_id = str(
+        target_user_id
+    )
+
+    # Hanae ist immer bekannt.
+
+    if (
+        target_user_id
+        == HANAE_USER_ID
+    ):
+
+        return True
+
+    channel_cache = (
+        get_participant_channel_cache(
+            channel_id
+        )
+    )
+
+    messages = (
+        channel_cache.get(
+            target_user_id
+        )
+    )
+
+    if not messages:
+
+        return False
+
+    return (
+        len(messages)
+        >= MIN_MESSAGES_FOR_SOCIAL_TARGET
+    )
+
+
+# =========================================================
+# SOCIAL TARGET DISPLAY NAME
+# =========================================================
+
+def get_social_target_name(
+    channel_id,
+    target_user_id
+):
+
+    if not target_user_id:
+
+        return None
+
+    target_user_id = str(
+        target_user_id
+    )
+
+    if (
+        target_user_id
+        == HANAE_USER_ID
+    ):
+
+        return "Hanae"
+
+    channel_cache = (
+        get_participant_channel_cache(
+            channel_id
+        )
+    )
+
+    messages = (
+        channel_cache.get(
+            target_user_id
+        )
+    )
+
+    if not messages:
+
+        return None
+
+    try:
+
+        return (
+            messages[-1]
+            .get(
+                "username"
+            )
+        )
+
+    except Exception:
+
+        return None
+    # =========================================================
 # PARTICIPANT MESSAGE STORAGE
 # =========================================================
 
@@ -1365,10 +1706,6 @@ def format_participant_contexts(
                 )
             )
 
-            # ---------------------------------------------
-            # REINE EMOTE-REAKTION
-            # ---------------------------------------------
-
             if emoji_only:
 
                 if emoji_names:
@@ -1389,10 +1726,6 @@ def format_participant_contexts(
                     )
 
                 continue
-
-            # ---------------------------------------------
-            # NORMALER TEXT
-            # ---------------------------------------------
 
             if reply_to:
 
@@ -1593,6 +1926,7 @@ def format_resolved_short_context(
         )
 
         if not content:
+
             continue
 
         if not (
@@ -2016,20 +2350,12 @@ def clean_generated_answer(
         answer.strip()
     )
 
-    # -----------------------------------------------------
-    # EVILNAE PREFIX
-    # -----------------------------------------------------
-
     cleaned = re.sub(
         r"^\s*Evilnae\s*:\s*",
         "",
         cleaned,
         flags=re.IGNORECASE
     )
-
-    # -----------------------------------------------------
-    # WHITESPACE
-    # -----------------------------------------------------
 
     cleaned = re.sub(
         r"[ \t]+",
@@ -2038,6 +2364,7 @@ def clean_generated_answer(
     )
 
     return cleaned.strip()
+
 
 # =========================================================
 # QUESTION GUARD
@@ -2048,17 +2375,14 @@ def enforce_question_guard(
     allow_question
 ):
 
-    # Brain erlaubt Fragen.
-    # Dann nichts verändern.
     if allow_question:
+
         return answer
 
-    # Keine Frage vorhanden.
-    # Ebenfalls nichts verändern.
     if "?" not in answer:
+
         return answer
 
-    # Antwort in einzelne Sätze zerlegen.
     sentences = re.split(
         r"(?<=[.!?])\s+",
         answer
@@ -2068,32 +2392,158 @@ def enforce_question_guard(
 
     for sentence in sentences:
 
-        sentence = sentence.strip()
+        sentence = (
+            sentence.strip()
+        )
 
         if not sentence:
+
             continue
 
-        # Sätze mit Fragezeichen entfernen,
-        # wenn Brain Fragen verboten hat.
         if "?" in sentence:
+
             continue
 
         kept_sentences.append(
             sentence
         )
 
-    cleaned = " ".join(
-        kept_sentences
-    ).strip()
+    cleaned = (
+        " ".join(
+            kept_sentences
+        ).strip()
+    )
 
-    # Falls noch eine normale Aussage übrig ist:
     if cleaned:
+
         return cleaned
 
-    # Sicherheits-Fallback,
-    # falls die komplette Antwort
-    # nur aus einer Frage bestand.
     return "fair"
+
+
+# =========================================================
+# KNOWLEDGE GUARD FOR WRITER OUTPUT
+# =========================================================
+
+def enforce_knowledge_guard(
+    answer,
+    decision
+):
+
+    # -----------------------------------------------------
+    # Wenn Wissen verfügbar ist,
+    # darf Writer normal formulieren.
+    # -----------------------------------------------------
+
+    if decision.knowledge_available:
+
+        return answer
+
+    # -----------------------------------------------------
+    # Wenn Knowledge für diese Situation
+    # gar nicht relevant ist,
+    # ebenfalls nichts machen.
+    # -----------------------------------------------------
+
+    if (
+        decision.knowledge_source
+        == "not_applicable"
+    ):
+
+        return answer
+
+    # -----------------------------------------------------
+    # Cohabitation-Inference darf
+    # vorsichtig formuliert werden.
+    # -----------------------------------------------------
+
+    if (
+        decision.knowledge_source
+        == "cohabitation_inference"
+    ):
+
+        return answer
+
+    # -----------------------------------------------------
+    # Brain weiß es nicht.
+    #
+    # Wir verhindern hier keine normalen Sätze,
+    # sondern geben dem Writer später bereits
+    # sehr klare Regeln.
+    #
+    # Dieser Guard ist daher hauptsächlich
+    # eine letzte technische Absicherung
+    # gegen zu selbstsichere typische Phrasen.
+    # -----------------------------------------------------
+
+    suspicious_patterns = [
+
+        r"\b(?:sie|er)\s+ist\s+gerade\b",
+
+        r"\b(?:sie|er)\s+macht\s+gerade\b",
+
+        r"\b(?:sie|er)\s+schaut\s+gerade\b",
+
+        r"\b(?:sie|er)\s+spielt\s+gerade\b",
+
+        r"\b(?:sie|er)\s+sitzt\s+gerade\b",
+
+        r"\b(?:sie|er)\s+liegt\s+gerade\b",
+
+        r"\b(?:sie|er)\s+arbeitet\s+gerade\b",
+    ]
+
+    lowered = (
+        answer.lower()
+    )
+
+    for pattern in suspicious_patterns:
+
+        if re.search(
+            pattern,
+            lowered,
+            flags=re.IGNORECASE
+        ):
+
+            return (
+                "kp grad ehrlich gesagt"
+            )
+
+    return answer
+
+
+# =========================================================
+# SOCIAL ACTION QUESTION TEXT
+# =========================================================
+
+def build_social_ping_message(
+    target_user_name
+):
+
+    target_name = (
+        target_user_name
+        or "du"
+    )
+
+    options = [
+
+        "was machst du eig grad",
+
+        "was treibst du grad",
+
+        "was machst du gerade",
+
+        "yo was machst du grad",
+    ]
+
+    # target_name wird hier absichtlich
+    # nicht im Text wiederholt,
+    # weil Discord Mention davor steht.
+
+    return random.choice(
+        options
+    )
+
 
 # =========================================================
 # MEMORY ARCHIVE
@@ -2335,6 +2785,10 @@ mit {username} verwechselt werden.
 
 Discord-Custom-Emote-Namen
 sind KEINE automatischen Fakten.
+
+Wenn {username} nach einer anderen Person fragt,
+ist die gestellte Frage KEIN Fakt
+über {username} selbst.
 
 
 LANGFRISTIGES PROFIL:
@@ -2907,7 +3361,27 @@ async def on_ready():
     )
 
     print(
-        "Brain v2: ACTIVE"
+        "Brain v2.1 Knowledge Guard: ACTIVE"
+    )
+
+    print(
+        "Question Guard: ACTIVE"
+    )
+
+    print(
+        "Social Actions: ACTIVE"
+    )
+
+    social_status = (
+        get_social_action_status(
+            HANAE_USER_ID
+        )
+    )
+
+    print(
+        "Autonomous Ping Limit: "
+        f"{social_status['daily_count']}/"
+        f"{social_status['daily_limit']} today"
     )
 
     if ALLOWED_CHANNEL_ID:
@@ -2986,7 +3460,8 @@ def build_writer_context(
                 f"- {message}"
                 for message
                 in recent_evilnae
-        ))
+            )
+        )
 
     else:
 
@@ -3022,7 +3497,8 @@ Das Brain erlaubt eine Frage.
 Eine Frage ist möglich,
 aber trotzdem nicht verpflichtend.
 
-Stelle höchstens eine natürliche Frage.
+Stelle höchstens eine
+natürliche Frage.
 """
 
     else:
@@ -3032,20 +3508,18 @@ Das Brain hat entschieden:
 
 ask_question = false
 
-Du darfst in dieser Antwort
-KEINE Gegenfrage stellen.
+Du darfst KEINE Gegenfrage stellen.
 
-Beende die Nachricht nicht mit:
+Keine Varianten wie:
 
-- "und du?"
-- "oder?"
-- "was meinst du?"
-- "wie sieht's bei dir aus?"
-- "was machst du?"
-- "was hast du vor?"
-- irgendeiner anderen künstlichen Rückfrage
+- und du?
+- oder?
+- was meinst du?
+- was machst du?
+- wie sieht's bei dir aus?
+- was hast du vor?
 
-Eine Aussage darf einfach enden.
+Die Nachricht darf einfach enden.
 """
 
     # -----------------------------------------------------
@@ -3061,14 +3535,16 @@ eine frühere Aussage von dir.
 Akzeptiere den Fehler natürlich.
 
 Nicht rechtfertigen.
+
 Keine neue Story erfinden,
-um doch irgendwie Recht zu behalten.
+nur um doch irgendwie Recht zu behalten.
 """
 
     else:
 
         correction_rule = (
-            "Keine besondere Korrektur notwendig."
+            "Keine besondere "
+            "Korrektur notwendig."
         )
 
     # -----------------------------------------------------
@@ -3101,7 +3577,144 @@ Vermeide insbesondere:
         )
 
     # -----------------------------------------------------
-    # RESPONSE LENGTH RULE
+    # KNOWLEDGE RULE
+    # -----------------------------------------------------
+
+    if decision.knowledge_available:
+
+        knowledge_rule = f"""
+Das Brain hält relevantes Wissen
+für verfügbar.
+
+Confidence:
+{decision.knowledge_confidence}
+
+Source:
+{decision.knowledge_source}
+
+Formuliere nur das,
+was aus diesem Wissen
+wirklich ableitbar ist.
+
+Erweitere es NICHT
+durch erfundene Details.
+"""
+
+    elif (
+        decision.knowledge_source
+        == "cohabitation_inference"
+    ):
+
+        knowledge_rule = """
+Es gibt KEIN gesichertes aktuelles Wissen.
+
+Das Brain erlaubt höchstens
+eine vorsichtige Vermutung
+auf Basis davon,
+dass Evilnae und Hanae zusammen wohnen.
+
+Formuliere sichtbar unsicher.
+
+Zum Beispiel:
+
+- glaub ...
+- müsste eig ...
+- hab sie vorhin ...
+- soweit ich weiß ...
+
+Keine sichere Tatsachenbehauptung.
+"""
+
+    elif (
+        decision.knowledge_source
+        == "not_applicable"
+    ):
+
+        knowledge_rule = """
+Knowledge Guard ist für diese Nachricht
+nicht besonders relevant.
+"""
+
+    else:
+
+        knowledge_rule = """
+Evilnae weiß die aktuelle Antwort NICHT.
+
+Erfinde NICHT,
+was eine andere Person gerade:
+
+- macht
+- denkt
+- spielt
+- schaut
+- fühlt
+- wo sie ist
+
+Es ist völlig normal zu sagen:
+
+- kp grad
+- weiß ich nicht
+- keine ahnung ehrlich
+- hab sie grad nicht gesehen
+- keine ahnung was die treibt
+
+Wenn eine Social Action geplant ist,
+darfst du kurz ankündigen,
+dass du die Person fragst.
+
+Aber behaupte vorher
+keine erfundene Antwort.
+"""
+
+    # -----------------------------------------------------
+    # SOCIAL ACTION RULE
+    # -----------------------------------------------------
+
+    if decision.should_ask_person:
+
+        social_action_rule = f"""
+Das Brain möchte eventuell
+eine Person selbst fragen.
+
+Target:
+{decision.target_user_name}
+
+Discord-ID:
+{decision.target_user_id}
+
+Wichtig:
+
+Der technische Layer entscheidet ERST SPÄTER,
+ob der Ping wirklich erlaubt ist.
+
+Deine Hauptantwort muss deshalb
+auch dann sinnvoll funktionieren,
+wenn KEIN Ping gesendet wird.
+
+Du darfst z. B. schreiben:
+
+"kp grad"
+
+oder:
+
+"weiß ich grad nicht"
+
+Vermeide Aussagen wie:
+
+"ich hab sie gefragt"
+
+bevor die Aktion tatsächlich
+ausgeführt wurde.
+"""
+
+    else:
+
+        social_action_rule = """
+Keine Social Action geplant.
+"""
+
+    # -----------------------------------------------------
+    # LENGTH RULE
     # -----------------------------------------------------
 
     length_rules = {
@@ -3113,8 +3726,8 @@ Schreibe EXTREM kurz.
 Meist 1 bis 6 Wörter.
 
 Kein Absatz.
-Keine Erklärung,
-wenn sie nicht absolut notwendig ist.
+
+Keine unnötige Erklärung.
 """,
 
         "short":
@@ -3138,8 +3751,8 @@ Kein unnötiger Essay.
 Eine längere Antwort ist erlaubt,
 weil die Situation mehr Erklärung braucht.
 
-Trotzdem natürlich und nicht
-wie ein Assistent schreiben.
+Trotzdem natürlich
+und nicht wie ein Assistent.
 """
     }
 
@@ -3159,23 +3772,23 @@ BRAIN DECISION
 
 
 ==================================================
-WICHTIG
+ROLLE
 ==================================================
 
 Das Brain hat bereits entschieden,
-WAS du tun willst.
+WAS Evilnae tun möchte.
 
-Du bist jetzt nur noch der Writer.
+Du bist jetzt der Writer.
 
-Du sollst diese Entscheidung
-natürlich als Evilnae formulieren.
+Du formulierst diese Entscheidung
+natürlich als Evilnae.
 
-Ändere NICHT eigenmächtig
-die Grundentscheidung des Brains.
+Ändere die Grundentscheidung
+nicht eigenmächtig.
 
 
 ==================================================
-AKTUELLER USER
+CURRENT USER
 ==================================================
 
 Name:
@@ -3186,7 +3799,7 @@ Discord-ID:
 
 
 ==================================================
-AKTUELLE NACHRICHT
+CURRENT MESSAGE
 ==================================================
 
 {user_text}
@@ -3256,7 +3869,7 @@ CHANNEL CONTEXT
 
 
 ==================================================
-DEINE LETZTEN EIGENEN ANTWORTEN
+EVILNAES LETZTE ANTWORTEN
 ==================================================
 
 {recent_evilnae_text}
@@ -3284,6 +3897,20 @@ REPETITION RULE
 
 
 ==================================================
+KNOWLEDGE RULE
+==================================================
+
+{knowledge_rule}
+
+
+==================================================
+SOCIAL ACTION RULE
+==================================================
+
+{social_action_rule}
+
+
+==================================================
 LENGTH RULE
 ==================================================
 
@@ -3298,16 +3925,16 @@ SPECIAL USER CONTEXT
 
 
 ==================================================
-LETZTE WRITER REGELN
+FINAL WRITER RULES
 ==================================================
 
 Schreibe NUR die Discord-Nachricht.
 
-Keine Erklärung.
-
 Kein JSON.
 
 Keine Analyse.
+
+Keine Erklärung.
 
 Kein:
 
@@ -3322,21 +3949,287 @@ Kein:
 "*Evilnae denkt...*"
 
 Klinge locker,
-modern und natürlich.
+modern,
+leicht Gen-Z
+und natürlich.
 
-Nicht künstlich Gen-Z spielen.
+Nicht künstlich Jugendsprache spammen.
 
 Keine Boomer-Phrasen.
 
 Nicht automatisch lachen.
 
-Nicht automatisch ein Emoji verwenden.
+Nicht automatisch Emoji.
 
-Nicht automatisch eine Frage stellen.
+Nicht automatisch fragen.
 
-Wenn eine sehr kurze Antwort reicht,
-lass sie kurz.
+Wenn kurz reicht:
+kurz bleiben.
 """.strip()
+
+
+# =========================================================
+# SOCIAL ACTION EXECUTION
+# =========================================================
+
+async def execute_social_action(
+    *,
+    message,
+    channel_id,
+    decision
+):
+
+    # -----------------------------------------------------
+    # BRAIN WILL NICHT FRAGEN
+    # -----------------------------------------------------
+
+    if not decision.should_ask_person:
+
+        return False
+
+    if (
+        decision.action
+        != "ask_person"
+    ):
+
+        return False
+
+    # -----------------------------------------------------
+    # TARGET FEHLT
+    # -----------------------------------------------------
+
+    target_user_id = (
+        decision.target_user_id
+    )
+
+    if not target_user_id:
+
+        print(
+            "[SOCIAL ACTION BLOCKED] "
+            "reason=no_target_id"
+        )
+
+        return False
+
+    target_user_id = str(
+        target_user_id
+    )
+
+    # -----------------------------------------------------
+    # USER DARF NICHT SICH SELBST
+    # DURCH EVILNAE PINGEN LASSEN
+    # -----------------------------------------------------
+
+    if (
+        target_user_id
+        == str(
+            message.author.id
+        )
+    ):
+
+        print(
+            "[SOCIAL ACTION BLOCKED] "
+            f"target={target_user_id} "
+            "reason=requester_is_target"
+        )
+
+        return False
+
+    # -----------------------------------------------------
+    # TARGET MUSS BEKANNT SEIN
+    # -----------------------------------------------------
+
+    if not (
+        is_known_social_target(
+            channel_id,
+            target_user_id
+        )
+    ):
+
+        print(
+            "[SOCIAL ACTION BLOCKED] "
+            f"target={target_user_id} "
+            "reason=unknown_target"
+        )
+
+        return False
+
+    # -----------------------------------------------------
+    # TARGET NAME AUS CACHE
+    # -----------------------------------------------------
+
+    cached_name = (
+        get_social_target_name(
+            channel_id,
+            target_user_id
+        )
+    )
+
+    if cached_name:
+
+        target_user_name = (
+            cached_name
+        )
+
+    else:
+
+        target_user_name = (
+            decision.target_user_name
+            or "unknown"
+        )
+
+    # -----------------------------------------------------
+    # COOLDOWN + DAILY LIMIT
+    # -----------------------------------------------------
+
+    allowed, reason = (
+        can_autonomously_ping(
+            target_user_id
+        )
+    )
+
+    print(
+        format_social_action_debug(
+            target_user_id
+        )
+    )
+
+    if not allowed:
+
+        print(
+            "[SOCIAL ACTION BLOCKED] "
+            f"target="
+            f"{target_user_name} "
+            f"id="
+            f"{target_user_id} "
+            f"reason="
+            f"{reason}"
+        )
+
+        return False
+
+    # -----------------------------------------------------
+    # FETCH DISCORD MEMBER
+    #
+    # Wir prüfen damit zusätzlich,
+    # ob die ID überhaupt zu einem
+    # erreichbaren Discord-Mitglied gehört.
+    # -----------------------------------------------------
+
+    guild = (
+        message.guild
+    )
+
+    if guild is None:
+
+        print(
+            "[SOCIAL ACTION BLOCKED] "
+            f"target={target_user_id} "
+            "reason=no_guild"
+        )
+
+        return False
+
+    member = (
+        guild.get_member(
+            int(
+                target_user_id
+            )
+        )
+    )
+
+    if member is None:
+
+        try:
+
+            member = (
+                await guild.fetch_member(
+                    int(
+                        target_user_id
+                    )
+                )
+            )
+
+        except (
+            discord.NotFound,
+            discord.Forbidden,
+            discord.HTTPException,
+            ValueError
+        ):
+
+            print(
+                "[SOCIAL ACTION BLOCKED] "
+                f"target={target_user_id} "
+                "reason=member_not_found"
+            )
+
+            return False
+
+    # -----------------------------------------------------
+    # KEINE BOTS AUTONOM PINGEN
+    # -----------------------------------------------------
+
+    if member.bot:
+
+        print(
+            "[SOCIAL ACTION BLOCKED] "
+            f"target={target_user_id} "
+            "reason=target_is_bot"
+        )
+
+        return False
+
+    # -----------------------------------------------------
+    # SEND
+    # -----------------------------------------------------
+
+    ping_text = (
+        build_social_ping_message(
+            target_user_name
+        )
+    )
+
+    try:
+
+        await message.channel.send(
+            f"<@{target_user_id}> "
+            f"{ping_text}"
+        )
+
+    except discord.HTTPException as error:
+
+        print(
+            "[SOCIAL ACTION SEND ERROR] "
+            f"target={target_user_id} "
+            f"error={error}"
+        )
+
+        return False
+
+    # -----------------------------------------------------
+    # REGISTER ERST NACH ERFOLGREICHEM SEND
+    # -----------------------------------------------------
+
+    register_autonomous_ping(
+        target_user_id
+    )
+
+    print(
+        "[SOCIAL ACTION EXECUTED] "
+        f"type=ask_person "
+        f"target="
+        f"{target_user_name} "
+        f"id="
+        f"{target_user_id}"
+    )
+
+    print(
+        format_social_action_debug(
+            target_user_id
+        )
+    )
+
+    return True
 
 
 # =========================================================
@@ -3389,7 +4282,7 @@ async def on_message(message):
     except Exception as error:
 
         print(
-            f"[PERCEPTION ERROR] "
+            "[PERCEPTION ERROR] "
             f"user="
             f"{message.author.display_name} "
             f"error="
@@ -3406,7 +4299,7 @@ async def on_message(message):
     )
 
     # -----------------------------------------------------
-    # BASIC IDENTIFIERS
+    # IDENTIFIERS
     # -----------------------------------------------------
 
     channel_id = (
@@ -3423,9 +4316,6 @@ async def on_message(message):
 
     # =====================================================
     # 2. OBSERVE CHANNEL
-    #
-    # Evilnae nimmt auch Nachrichten wahr,
-    # auf die sie nicht antwortet.
     # =====================================================
 
     add_channel_user_message(
@@ -3445,7 +4335,7 @@ async def on_message(message):
     )
 
     # =====================================================
-    # 3. DOES SHE NEED TO ANSWER?
+    # 3. SHOULD REPLY?
     # =====================================================
 
     if not perception.should_reply:
@@ -3453,7 +4343,7 @@ async def on_message(message):
         return
 
     # =====================================================
-    # RESPONSE ORDER PER USER
+    # RESPONSE LOCK PER USER
     # =====================================================
 
     user_lock = (
@@ -3469,7 +4359,7 @@ async def on_message(message):
         )
 
         # -------------------------------------------------
-        # CURRENT DISPLAY NAME
+        # USERNAME DB
         # -------------------------------------------------
 
         database.set_username(
@@ -3478,16 +4368,12 @@ async def on_message(message):
         )
 
         # =================================================
-        # CLEAN USER TEXT
+        # CLEAN TEXT
         # =================================================
 
         user_text = (
             perception.text.strip()
         )
-
-        # -------------------------------------------------
-        # EMOTE-ONLY REPLY
-        # -------------------------------------------------
 
         if not user_text:
 
@@ -3572,9 +4458,6 @@ async def on_message(message):
                 f"{memory_buffer_text}"
             )
 
-        # Reine Emotes gehen weiterhin
-        # nicht ins Langzeitgedächtnis.
-
         if memory_buffer_text:
 
             database.add_buffer_message(
@@ -3598,11 +4481,6 @@ async def on_message(message):
             moods[
                 mood_key
             ] = "normal"
-
-        # Seltene Veränderung.
-        #
-        # Später kann Brain/Self State
-        # das deutlich intelligenter machen.
 
         if (
             random.randint(
@@ -3630,7 +4508,7 @@ async def on_message(message):
         )
 
         # =================================================
-        # CONTEXT COLLECTION
+        # CONTEXT
         # =================================================
 
         direct_context_text = (
@@ -3682,7 +4560,7 @@ Nachricht:
 """.strip()
 
         # =================================================
-        # EMOJI CONTEXT
+        # EMOTE CONTEXT
         # =================================================
 
         emoji_context_text = (
@@ -3692,7 +4570,7 @@ Nachricht:
         )
 
         # =================================================
-        # LONG TERM MEMORY
+        # MEMORY
         # =================================================
 
         user_profile = (
@@ -3721,7 +4599,7 @@ Nachricht:
         )
 
         # =================================================
-        # SPECIAL USER CONTEXT
+        # SPECIAL USER
         # =================================================
 
         special_user_prompt = ""
@@ -3736,7 +4614,7 @@ Nachricht:
             )
 
         # =================================================
-        # CURRENT USER CONTEXT OBJECT
+        # DIRECT CONTEXT OBJECT
         # =================================================
 
         user_context = (
@@ -3807,7 +4685,7 @@ Nachricht:
         )
 
         # =================================================
-        # 5. BRAIN THINKING
+        # 5. BRAIN
         # =================================================
 
         brain_start = (
@@ -3839,14 +4717,45 @@ Nachricht:
         )
 
         print(
-            f"[BRAIN DONE] "
+            "[BRAIN DONE] "
             f"user={username} "
             f"duration="
             f"{brain_duration:.2f}s"
         )
 
         # =================================================
-        # 6. WRITER PROMPT
+        # SOCIAL TARGET VALIDATION
+        #
+        # Brain darf nur bekannte Personen targeten.
+        # =================================================
+
+        if decision.should_ask_person:
+
+            if not (
+                is_known_social_target(
+                    channel_id,
+                    decision.target_user_id
+                )
+            ):
+
+                print(
+                    "[SOCIAL TARGET REJECTED] "
+                    f"user={username} "
+                    f"target="
+                    f"{decision.target_user_id}"
+                )
+
+                decision.should_ask_person = False
+
+                if (
+                    decision.action
+                    == "ask_person"
+                ):
+
+                    decision.action = "reply"
+
+        # =================================================
+        # 6. WRITER CONTEXT
         # =================================================
 
         writer_context = (
@@ -3874,10 +4783,6 @@ Nachricht:
             )
         )
 
-        # =================================================
-        # WRITER TOKEN LIMIT
-        # =================================================
-
         writer_token_limit = (
             get_writer_token_limit(
                 decision.response_length
@@ -3894,14 +4799,14 @@ Nachricht:
 
         base_delay = (
             random.uniform(
-                0.6,
-                1.5
+                0.5,
+                1.3
             )
         )
 
         extra_delay = min(
-            message_length / 100,
-            1.8
+            message_length / 120,
+            1.5
         )
 
         typing_delay = (
@@ -3982,7 +4887,7 @@ Nachricht:
             )
 
             print(
-                f"[WRITER ERROR] "
+                "[WRITER ERROR] "
                 f"user={username} "
                 f"duration="
                 f"{duration:.2f}s "
@@ -4013,15 +4918,28 @@ Nachricht:
             clean_generated_answer(
                 response.output_text
             )
-    )
+        )
 
-# =========================================================
-# HARD QUESTION GUARD
-# =========================================================
+        # -------------------------------------------------
+        # HARD QUESTION GUARD
+        # -------------------------------------------------
 
-        answer = enforce_question_guard(
-            answer,
-            decision.ask_question
+        answer = (
+            enforce_question_guard(
+                answer,
+                decision.ask_question
+            )
+        )
+
+        # -------------------------------------------------
+        # HARD KNOWLEDGE GUARD
+        # -------------------------------------------------
+
+        answer = (
+            enforce_knowledge_guard(
+                answer,
+                decision
+            )
         )
 
         if not answer:
@@ -4029,16 +4947,9 @@ Nachricht:
             answer = "hm."
 
         # =================================================
-        # QUESTION GUARD
-        #
-        # Noch kein harter Rewrite.
-        #
-        # Wir loggen erstmal,
-        # ob der Writer gegen das Brain verstößt.
-        #
-        # Damit können wir im Live-Test sehen,
-        # wie zuverlässig das System ist.
+        # DEBUG GUARDS
         # =================================================
+
         if (
             not decision.ask_question
             and
@@ -4046,27 +4957,21 @@ Nachricht:
         ):
 
             print(
-                f"[BRAIN/WRITER MISMATCH] "
+                "[QUESTION GUARD WARNING] "
                 f"user={username} "
-                f"brain_question=false "
-                f"but_writer_used_question=yes "
                 f"answer={answer!r}"
             )
-
-        # =================================================
-        # REPETITION OBSERVATION
-        # =================================================
 
         if decision.repetition_risk:
 
             print(
-                f"[REPETITION WATCH] "
+                "[REPETITION WATCH] "
                 f"user={username} "
-                f"risk=true"
+                "risk=true"
             )
 
         # =================================================
-        # 9. DIRECT USER CONTEXT UPDATE
+        # 9. DIRECT USER CONTEXT
         # =================================================
 
         user_context.append({
@@ -4094,7 +4999,7 @@ Nachricht:
         })
 
         # =================================================
-        # 10. CHANNEL CONTEXT UPDATE
+        # 10. CHANNEL CONTEXT
         # =================================================
 
         add_channel_bot_message(
@@ -4105,16 +5010,10 @@ Nachricht:
         )
 
         # =================================================
-        # 11. SEND
+        # 11. SEND MAIN RESPONSE
         # =================================================
 
         try:
-
-            # -------------------------------------------------
-            # Tiny / Short:
-            #
-            # Nicht künstlich splitten.
-            # -------------------------------------------------
 
             if (
                 decision.response_length
@@ -4128,13 +5027,6 @@ Nachricht:
                     answer[:1900],
                     mention_author=False
                 )
-
-            # -------------------------------------------------
-            # Medium / Long:
-            #
-            # alter natürlicher Split
-            # bleibt gelegentlich möglich.
-            # -------------------------------------------------
 
             elif (
                 random.randint(
@@ -4204,7 +5096,7 @@ Nachricht:
         except discord.HTTPException as error:
 
             print(
-                f"[DISCORD SEND ERROR] "
+                "[DISCORD SEND ERROR] "
                 f"user={username} "
                 f"error={error}"
             )
@@ -4212,7 +5104,60 @@ Nachricht:
             return
 
         # =================================================
-        # 12. FINAL LOG
+        # 12. AUTONOMOUS SOCIAL ACTION
+        #
+        # Erst NACH Evilnaes normaler Antwort.
+        # =================================================
+
+        social_action_executed = False
+
+        if decision.should_ask_person:
+
+            # Kleine natürliche Pause.
+            #
+            # Dadurch kommt nicht instant:
+            #
+            # "kp"
+            # "@Hanae was machst du"
+            #
+            # in derselben Millisekunde.
+
+            await asyncio.sleep(
+                random.uniform(
+                    0.8,
+                    2.0
+                )
+            )
+
+            try:
+
+                social_action_executed = (
+                    await execute_social_action(
+
+                        message=message,
+
+                        channel_id=(
+                            channel_id
+                        ),
+
+                        decision=(
+                            decision
+                        )
+                    )
+                )
+
+            except Exception as error:
+
+                print(
+                    "[SOCIAL ACTION ERROR] "
+                    f"user={username} "
+                    f"error="
+                    f"{type(error).__name__}: "
+                    f"{error}"
+                )
+
+        # =================================================
+        # 13. FINAL LOG
         # =================================================
 
         total_duration = (
@@ -4227,7 +5172,7 @@ Nachricht:
         )
 
         print(
-            f"[RESPONSE DONE] "
+            "[RESPONSE DONE] "
             f"user={username} "
             f"id={user_id} "
             f"duration="
@@ -4246,11 +5191,19 @@ Nachricht:
             f"tone="
             f"{decision.tone} "
             f"question="
-            f"{decision.ask_question}"
+            f"{decision.ask_question} "
+            f"knowledge="
+            f"{decision.knowledge_available} "
+            f"knowledge_source="
+            f"{decision.knowledge_source} "
+            f"ask_person="
+            f"{decision.should_ask_person} "
+            f"social_executed="
+            f"{social_action_executed}"
         )
 
         # =================================================
-        # 13. BACKGROUND MEMORY
+        # 14. BACKGROUND MEMORY
         # =================================================
 
         start_memory_worker_if_needed(
