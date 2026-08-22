@@ -1,90 +1,242 @@
+import json
+import os
 import time
-from datetime import datetime, timezone
-from collections import defaultdict
+from datetime import datetime
 
 
 # =========================================================
 # VERSION
 # =========================================================
 
-SOCIAL_ACTIONS_VERSION = "1.0"
+SOCIAL_ACTIONS_VERSION = "1.1"
 
 
 # =========================================================
-# LIMITS
+# CONFIG
 # =========================================================
 
 MAX_AUTONOMOUS_PINGS_PER_DAY = 5
 
-MIN_SECONDS_BETWEEN_PINGS = (
+MIN_SECONDS_BETWEEN_AUTONOMOUS_PINGS = (
     2 * 60 * 60
 )
+
+STATE_FILE = (
+    "social_actions_state.json"
+)
+
+
+# =========================================================
+# DEFAULT STATE
+# =========================================================
+
+def default_state():
+
+    return {
+        "date": "",
+        "daily_ping_count": 0,
+        "last_global_ping": None,
+        "last_target_pings": {}
+    }
+
+
+# =========================================================
+# LOAD STATE
+# =========================================================
+
+def load_state():
+
+    if not os.path.exists(
+        STATE_FILE
+    ):
+
+        return default_state()
+
+    try:
+
+        with open(
+            STATE_FILE,
+            "r",
+            encoding="utf-8"
+        ) as file:
+
+            data = json.load(
+                file
+            )
+
+        if not isinstance(
+            data,
+            dict
+        ):
+
+            return default_state()
+
+        state = default_state()
+
+        state.update(
+            data
+        )
+
+        return state
+
+    except Exception as error:
+
+        print(
+            "[SOCIAL STATE ERROR] "
+            f"load="
+            f"{type(error).__name__}: "
+            f"{error}"
+        )
+
+        return default_state()
+
+
+# =========================================================
+# SAVE STATE
+# =========================================================
+
+def save_state():
+
+    try:
+
+        with open(
+            STATE_FILE,
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            json.dump(
+                social_state,
+                file,
+                ensure_ascii=False,
+                indent=2
+            )
+
+    except Exception as error:
+
+        print(
+            "[SOCIAL STATE ERROR] "
+            f"save="
+            f"{type(error).__name__}: "
+            f"{error}"
+        )
 
 
 # =========================================================
 # RUNTIME STATE
 # =========================================================
 
-daily_ping_counts = defaultdict(
-    int
+social_state = (
+    load_state()
 )
 
-last_ping_timestamp = {}
-
 
 # =========================================================
-# DATE KEY
+# CURRENT DATE
 # =========================================================
 
-def get_day_key():
-
-    now = datetime.now(
-        timezone.utc
-    )
-
-    return now.strftime(
-        "%Y-%m-%d"
-    )
-
-
-# =========================================================
-# INTERNAL KEY
-# =========================================================
-
-def make_daily_key(
-    target_user_id
-):
+def current_date_key():
 
     return (
-        get_day_key(),
-        str(target_user_id)
-    )
-
-
-# =========================================================
-# GET COUNT
-# =========================================================
-
-def get_daily_ping_count(
-    target_user_id
-):
-
-    key = (
-        make_daily_key(
-            target_user_id
+        datetime.now()
+        .astimezone()
+        .strftime(
+            "%Y-%m-%d"
         )
     )
 
-    return daily_ping_counts[
-        key
-    ]
+
+# =========================================================
+# RESET DAILY COUNTER
+# =========================================================
+
+def refresh_daily_state():
+
+    today = (
+        current_date_key()
+    )
+
+    stored_date = (
+        social_state.get(
+            "date",
+            ""
+        )
+    )
+
+    if stored_date == today:
+
+        return
+
+    social_state[
+        "date"
+    ] = today
+
+    social_state[
+        "daily_ping_count"
+    ] = 0
+
+    # Letzte Ping-Zeit behalten wir.
+    #
+    # Dadurch kann ein Neustart / Tageswechsel
+    # den 2h-Cooldown nicht umgehen.
+
+    save_state()
 
 
 # =========================================================
-# TIME SINCE LAST PING
+# DAILY COUNT
 # =========================================================
 
-def seconds_since_last_ping(
+def get_daily_ping_count():
+
+    refresh_daily_state()
+
+    return int(
+        social_state.get(
+            "daily_ping_count",
+            0
+        )
+    )
+
+
+# =========================================================
+# GLOBAL LAST PING
+# =========================================================
+
+def seconds_since_last_global_ping():
+
+    last_ping = (
+        social_state.get(
+            "last_global_ping"
+        )
+    )
+
+    if last_ping is None:
+
+        return None
+
+    try:
+
+        return (
+            time.time()
+            - float(
+                last_ping
+            )
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return None
+
+
+# =========================================================
+# TARGET LAST PING
+# =========================================================
+
+def seconds_since_target_ping(
     target_user_id
 ):
 
@@ -92,37 +244,64 @@ def seconds_since_last_ping(
         target_user_id
     )
 
+    target_data = (
+        social_state.get(
+            "last_target_pings",
+            {}
+        )
+    )
+
     last_ping = (
-        last_ping_timestamp.get(
+        target_data.get(
             target_user_id
         )
     )
 
     if last_ping is None:
+
         return None
 
-    return (
-        time.time()
-        - last_ping
-    )
+    try:
+
+        return (
+            time.time()
+            - float(
+                last_ping
+            )
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return None
 
 
 # =========================================================
-# CAN PING?
+# CAN AUTONOMOUSLY PING?
 # =========================================================
 
 def can_autonomously_ping(
     target_user_id
 ):
 
-    count = (
-        get_daily_ping_count(
-            target_user_id
-        )
+    refresh_daily_state()
+
+    target_user_id = str(
+        target_user_id
+    )
+
+    # -----------------------------------------------------
+    # DAILY GLOBAL LIMIT
+    # -----------------------------------------------------
+
+    daily_count = (
+        get_daily_ping_count()
     )
 
     if (
-        count
+        daily_count
         >= MAX_AUTONOMOUS_PINGS_PER_DAY
     ):
 
@@ -131,22 +310,28 @@ def can_autonomously_ping(
             "daily_limit"
         )
 
-    seconds_since = (
-        seconds_since_last_ping(
-            target_user_id
-        )
+    # -----------------------------------------------------
+    # GLOBAL 2H COOLDOWN
+    #
+    # Evilnae darf insgesamt nur etwa
+    # alle 2 Stunden jemanden autonom pingen.
+    # -----------------------------------------------------
+
+    since_global = (
+        seconds_since_last_global_ping()
     )
 
     if (
-        seconds_since is not None
+        since_global is not None
         and
-        seconds_since
-        < MIN_SECONDS_BETWEEN_PINGS
+        since_global
+        <
+        MIN_SECONDS_BETWEEN_AUTONOMOUS_PINGS
     ):
 
         return (
             False,
-            "cooldown"
+            "global_cooldown"
         )
 
     return (
@@ -156,30 +341,112 @@ def can_autonomously_ping(
 
 
 # =========================================================
-# REGISTER PING
+# REGISTER AUTONOMOUS PING
 # =========================================================
 
 def register_autonomous_ping(
     target_user_id
 ):
 
+    refresh_daily_state()
+
     target_user_id = str(
         target_user_id
     )
 
-    key = (
-        make_daily_key(
-            target_user_id
+    now = time.time()
+
+    social_state[
+        "daily_ping_count"
+    ] = (
+        get_daily_ping_count()
+        + 1
+    )
+
+    social_state[
+        "last_global_ping"
+    ] = now
+
+    target_data = (
+        social_state.setdefault(
+            "last_target_pings",
+            {}
         )
     )
 
-    daily_ping_counts[
-        key
-    ] += 1
-
-    last_ping_timestamp[
+    target_data[
         target_user_id
-    ] = time.time()
+    ] = now
+
+    save_state()
+
+
+# =========================================================
+# SOCIAL ACTION STATUS
+# =========================================================
+
+def get_social_action_status(
+    target_user_id=None
+):
+
+    refresh_daily_state()
+
+    daily_count = (
+        get_daily_ping_count()
+    )
+
+    since_global = (
+        seconds_since_last_global_ping()
+    )
+
+    if since_global is None:
+
+        global_remaining = 0
+
+    else:
+
+        global_remaining = max(
+            0,
+            int(
+                MIN_SECONDS_BETWEEN_AUTONOMOUS_PINGS
+                - since_global
+            )
+        )
+
+    target_remaining = 0
+
+    if target_user_id:
+
+        since_target = (
+            seconds_since_target_ping(
+                target_user_id
+            )
+        )
+
+        if since_target is not None:
+
+            target_remaining = max(
+                0,
+                int(
+                    MIN_SECONDS_BETWEEN_AUTONOMOUS_PINGS
+                    - since_target
+                )
+            )
+
+    return {
+
+        "daily_count":
+            daily_count,
+
+        "daily_limit":
+            MAX_AUTONOMOUS_PINGS_PER_DAY,
+
+        "global_cooldown_remaining":
+            global_remaining,
+
+        "target_cooldown_remaining":
+            target_remaining
+    }
 
 
 # =========================================================
@@ -187,37 +454,22 @@ def register_autonomous_ping(
 # =========================================================
 
 def format_social_action_debug(
-    target_user_id
+    target_user_id=None
 ):
 
-    count = (
-        get_daily_ping_count(
+    status = (
+        get_social_action_status(
             target_user_id
         )
     )
-
-    seconds_since = (
-        seconds_since_last_ping(
-            target_user_id
-        )
-    )
-
-    if seconds_since is None:
-
-        since_text = (
-            "never"
-        )
-
-    else:
-
-        since_text = (
-            f"{seconds_since:.0f}s"
-        )
 
     return (
         "[SOCIAL ACTION] "
-        f"target={target_user_id} "
-        f"daily={count}/"
-        f"{MAX_AUTONOMOUS_PINGS_PER_DAY} "
-        f"since_last={since_text}"
+        f"daily="
+        f"{status['daily_count']}/"
+        f"{status['daily_limit']} "
+        f"global_cd="
+        f"{status['global_cooldown_remaining']}s "
+        f"target="
+        f"{target_user_id}"
     )
