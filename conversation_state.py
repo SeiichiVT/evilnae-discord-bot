@@ -6,7 +6,7 @@ from typing import Optional, Any
 # VERSION
 # =========================================================
 
-CONVERSATION_STATE_VERSION = "1.0"
+CONVERSATION_STATE_VERSION = "1.1"
 
 
 # =========================================================
@@ -48,76 +48,31 @@ class EmojiState:
 @dataclass
 class MemoryState:
 
-    # -----------------------------------------
-    # Faktisches Profil
-    # -----------------------------------------
-
     profile: str = ""
 
-    # -----------------------------------------
-    # Evilnaes soziale Wahrnehmung
-    # -----------------------------------------
-
     relationship: str = ""
-
-    # -----------------------------------------
-    # Neuere Erinnerungen
-    # -----------------------------------------
 
     recent_memories: list[str] = field(
         default_factory=list
     )
 
-    # -----------------------------------------
-    # Älteres komprimiertes Archiv
-    # -----------------------------------------
-
     archive: str = ""
 
 
 # =========================================================
-# CONVERSATION HISTORY STATE
+# CONVERSATION HISTORY
 # =========================================================
 
 @dataclass
 class ConversationHistoryState:
 
-    # -----------------------------------------
-    # Direkter Dialog:
-    #
-    # User <-> Evilnae
-    # -----------------------------------------
-
     direct_history: str = ""
-
-    # -----------------------------------------
-    # Gesamter Channel-Kontext
-    # -----------------------------------------
 
     channel_history: str = ""
 
-    # -----------------------------------------
-    # Aktive Personen im Channel
-    # -----------------------------------------
-
     participant_context: str = ""
 
-    # -----------------------------------------
-    # Aufgelöste:
-    #
-    # ich auch
-    # same
-    # dito
-    # etc.
-    # -----------------------------------------
-
     resolved_short_context: str = ""
-
-    # -----------------------------------------
-    # Nur Evilnaes letzte eigene Antworten
-    #
-    # Sehr wichtig für Anti-Repetition.
-    # -----------------------------------------
 
     recent_evilnae_messages: list[str] = field(
         default_factory=list
@@ -178,101 +133,58 @@ class MoodState:
 
 # =========================================================
 # BRAIN STATE
-#
-# Wird später von brain.py gefüllt.
-#
-# Momentan noch leer / neutral.
 # =========================================================
 
 @dataclass
 class BrainState:
 
-    # -----------------------------------------
-    # Was passiert gerade?
-    # -----------------------------------------
-
     intent: str = "unknown"
-
-    # -----------------------------------------
-    # Muss Evilnae reagieren?
-    # -----------------------------------------
 
     action: str = "reply"
 
-    # Beispiele später:
-    #
-    # reply
-    # short_reply
-    # acknowledge
-    # tease
-    # correct
-    # react
-    # change_topic
-    # ignore
-    # wait
-
-    # -----------------------------------------
-    # Antwortlänge
-    # -----------------------------------------
-
     response_length: str = "auto"
-
-    # short
-    # medium
-    # long
-    # auto
-
-    # -----------------------------------------
-    # Ton
-    # -----------------------------------------
 
     tone: str = "natural"
 
-    # -----------------------------------------
-    # Frage?
-    # -----------------------------------------
-
     ask_question: bool = False
-
-    # -----------------------------------------
-    # Muss ein Fehler akzeptiert werden?
-    # -----------------------------------------
 
     acknowledge_correction: bool = False
 
-    # -----------------------------------------
-    # Ist das Thema praktisch beendet?
-    # -----------------------------------------
-
     topic_exhausted: bool = False
-
-    # -----------------------------------------
-    # Wiederholungsrisiko
-    # -----------------------------------------
 
     repetition_risk: bool = False
 
-    # -----------------------------------------
-    # Dinge, die Writer vermeiden soll
-    # -----------------------------------------
+    # -----------------------------------------------------
+    # KNOWLEDGE GUARD
+    # -----------------------------------------------------
+
+    knowledge_available: bool = False
+
+    knowledge_confidence: str = "unknown"
+
+    knowledge_source: str = "unknown"
+
+    # -----------------------------------------------------
+    # SOCIAL ACTION
+    # -----------------------------------------------------
+
+    should_ask_person: bool = False
+
+    target_user_id: Optional[str] = None
+
+    target_user_name: Optional[str] = None
+
+    # -----------------------------------------------------
+    # WRITER GUIDANCE
+    # -----------------------------------------------------
 
     avoid_phrases: list[str] = field(
         default_factory=list
     )
 
-    # -----------------------------------------
-    # Relevante Memories
-    # -----------------------------------------
-
     relevant_memories: list[str] = field(
         default_factory=list
     )
-
-    # -----------------------------------------
-    # Interne kurze Begründung
-    #
-    # NICHT an Discord senden.
-    # -----------------------------------------
 
     reasoning_summary: str = ""
 
@@ -284,58 +196,21 @@ class BrainState:
 @dataclass
 class ConversationState:
 
-    # -----------------------------------------
-    # Identität
-    # -----------------------------------------
-
     user: UserState
 
     channel_id: str
 
-    # -----------------------------------------
-    # Wahrnehmung
-    # -----------------------------------------
-
     perception: PerceptionState
-
-    # -----------------------------------------
-    # Memory
-    # -----------------------------------------
 
     memory: MemoryState
 
-    # -----------------------------------------
-    # Conversation
-    # -----------------------------------------
-
     history: ConversationHistoryState
 
-    # -----------------------------------------
-    # Mood
-    # -----------------------------------------
-
     mood: MoodState
-
-    # -----------------------------------------
-    # Brain Output
-    # -----------------------------------------
 
     brain: BrainState = field(
         default_factory=BrainState
     )
-
-    # -----------------------------------------
-    # Optional später:
-    #
-    # Stream State
-    # World State
-    # Self Memory
-    # Group Memory
-    # Current Goals
-    # Attention
-    #
-    # können einfach ergänzt werden.
-    # -----------------------------------------
 
 
 # =========================================================
@@ -348,6 +223,7 @@ def _safe_text(
 ) -> str:
 
     if value is None:
+
         return fallback
 
     value = str(
@@ -355,31 +231,20 @@ def _safe_text(
     ).strip()
 
     if not value:
+
         return fallback
 
     return value
 
 
 # =========================================================
-# EXTRACT RECENT EVILNAE MESSAGES
+# RECENT EVILNAE MESSAGES
 # =========================================================
 
 def extract_recent_evilnae_messages(
     user_context,
     limit: int = 6
 ) -> list[str]:
-
-    """
-    Holt nur Evilnaes letzte eigene Antworten.
-
-    Das brauchen wir später für:
-
-    - Anti-Repetition
-    - Haha-Spam erkennen
-    - Gegenfragen erkennen
-    - Running-Gag-Wiederholung
-    - gleiche Satzstruktur erkennen
-    """
 
     messages = []
 
@@ -451,103 +316,141 @@ def build_conversation_state(
     user_context
 ) -> ConversationState:
 
-    # =====================================================
+    # -----------------------------------------------------
     # USER
-    # =====================================================
+    # -----------------------------------------------------
 
     user_state = UserState(
-        user_id=perception.user_id,
-        username=perception.username,
+
+        user_id=(
+            perception.user_id
+        ),
+
+        username=(
+            perception.username
+        ),
+
         is_hanae=(
             perception.user_id
             == hanae_user_id
         )
     )
 
-    # =====================================================
+    # -----------------------------------------------------
     # EMOJIS
-    # =====================================================
+    # -----------------------------------------------------
 
     emoji_states = []
 
-    for emoji in perception.custom_emojis:
+    for emoji in (
+        perception.custom_emojis
+    ):
 
         emoji_states.append(
             EmojiState(
-                name=emoji.name,
-                emoji_id=emoji.emoji_id,
-                animated=emoji.animated
+
+                name=(
+                    emoji.name
+                ),
+
+                emoji_id=(
+                    emoji.emoji_id
+                ),
+
+                animated=(
+                    emoji.animated
+                )
             )
         )
 
-    # =====================================================
+    # -----------------------------------------------------
     # REPLY
-    # =====================================================
+    # -----------------------------------------------------
 
     reply_state = None
 
     if perception.reply:
 
         reply_state = ReplyState(
+
             message_id=(
                 perception.reply.message_id
             ),
+
             author_id=(
                 perception.reply.author_id
             ),
+
             author_name=(
                 perception.reply.author_name
             ),
+
             content=(
                 perception.reply.content
                 or ""
             ),
+
             author_is_bot=(
                 perception.reply.author_is_bot
             )
         )
 
-    # =====================================================
+    # -----------------------------------------------------
     # PERCEPTION
-    # =====================================================
+    # -----------------------------------------------------
 
     perception_state = PerceptionState(
+
         raw_content=(
             perception.raw_content
             or ""
         ),
+
         clean_text=(
             perception.text
             or ""
         ),
+
         has_text=(
             perception.has_text
         ),
+
         is_emoji_only=(
             perception.is_emoji_only
         ),
+
         bot_mentioned=(
             perception.bot_mentioned
         ),
+
         trigger_detected=(
             perception.trigger_detected
         ),
+
         replied_to_bot=(
             perception.replied_to_bot
         ),
-        emojis=emoji_states,
-        reply=reply_state
+
+        emojis=(
+            emoji_states
+        ),
+
+        reply=(
+            reply_state
+        )
     )
 
-    # =====================================================
+    # -----------------------------------------------------
     # MEMORY
-    # =====================================================
+    # -----------------------------------------------------
 
     memory_state = MemoryState(
+
         profile=_safe_text(
             user_profile,
             "Noch kein stabiles Profil."
         ),
+
         relationship=_safe_text(
             social_impression,
             (
@@ -556,20 +459,22 @@ def build_conversation_state(
                 "von dieser Person."
             )
         ),
+
         recent_memories=(
             recent_memories
             if recent_memories
             else []
         ),
+
         archive=_safe_text(
             memory_archive,
             "Noch kein Langzeit-Archiv."
         )
     )
 
-    # =====================================================
-    # RECENT EVILNAE OUTPUT
-    # =====================================================
+    # -----------------------------------------------------
+    # EVILNAES OWN RECENT OUTPUT
+    # -----------------------------------------------------
 
     recent_evilnae_messages = (
         extract_recent_evilnae_messages(
@@ -578,12 +483,13 @@ def build_conversation_state(
         )
     )
 
-    # =====================================================
+    # -----------------------------------------------------
     # HISTORY
-    # =====================================================
+    # -----------------------------------------------------
 
     history_state = (
         ConversationHistoryState(
+
             direct_history=_safe_text(
                 direct_context_text,
                 (
@@ -591,6 +497,7 @@ def build_conversation_state(
                     "Gesprächsverlauf."
                 )
             ),
+
             channel_history=_safe_text(
                 group_context_text,
                 (
@@ -598,6 +505,7 @@ def build_conversation_state(
                     "Channel-Verlauf."
                 )
             ),
+
             participant_context=_safe_text(
                 participant_context_text,
                 (
@@ -605,6 +513,7 @@ def build_conversation_state(
                     "aktiven Personen."
                 )
             ),
+
             resolved_short_context=_safe_text(
                 resolved_short_context_text,
                 (
@@ -612,66 +521,75 @@ def build_conversation_state(
                     "Kurzantworten."
                 )
             ),
+
             recent_evilnae_messages=(
                 recent_evilnae_messages
             )
         )
     )
 
-    # =====================================================
+    # -----------------------------------------------------
     # MOOD
-    # =====================================================
+    # -----------------------------------------------------
 
     mood_state = MoodState(
+
         current_mood=(
             current_mood
             or "normal"
         )
     )
 
-    # =====================================================
-    # COMPLETE STATE
-    # =====================================================
-
     return ConversationState(
-        user=user_state,
+
+        user=(
+            user_state
+        ),
+
         channel_id=(
             perception.channel_id
         ),
-        perception=perception_state,
-        memory=memory_state,
-        history=history_state,
-        mood=mood_state
+
+        perception=(
+            perception_state
+        ),
+
+        memory=(
+            memory_state
+        ),
+
+        history=(
+            history_state
+        ),
+
+        mood=(
+            mood_state
+        )
     )
 
 
 # =========================================================
 # FORMAT STATE FOR BRAIN
-#
-# Später bekommt brain.py genau das hier.
 # =========================================================
 
 def format_state_for_brain(
     state: ConversationState
 ) -> str:
 
-    # =====================================================
+    # -----------------------------------------------------
     # EMOJIS
-    # =====================================================
+    # -----------------------------------------------------
 
     if state.perception.emojis:
 
-        emoji_lines = []
-
-        for emoji in state.perception.emojis:
-
-            emoji_lines.append(
+        emoji_text = "\n".join(
+            (
                 f"- {emoji.name} "
                 f"(animated={emoji.animated})"
             )
 
-        emoji_text = "\n".join(
-            emoji_lines
+            for emoji
+            in state.perception.emojis
         )
 
     else:
@@ -680,9 +598,9 @@ def format_state_for_brain(
             "Keine Custom-Emotes."
         )
 
-    # =====================================================
+    # -----------------------------------------------------
     # REPLY
-    # =====================================================
+    # -----------------------------------------------------
 
     if state.perception.reply:
 
@@ -691,10 +609,14 @@ def format_state_for_brain(
         )
 
         reply_text = f"""
-Antwort auf:
-Name: {reply.author_name}
-Discord-ID: {reply.author_id}
-Bot: {reply.author_is_bot}
+Name:
+{reply.author_name}
+
+Discord-ID:
+{reply.author_id}
+
+Bot:
+{reply.author_is_bot}
 
 Inhalt:
 {reply.content}
@@ -706,42 +628,50 @@ Inhalt:
             "Keine Discord-Antwort."
         )
 
-    # =====================================================
-    # RECENT EVILNAE MESSAGES
-    # =====================================================
+    # -----------------------------------------------------
+    # RECENT EVILNAE OUTPUT
+    # -----------------------------------------------------
 
     if (
-        state.history.recent_evilnae_messages
+        state.history
+        .recent_evilnae_messages
     ):
 
-        recent_output = "\n\n".join(
-            (
-                f"{index + 1}. {message}"
-            )
+        recent_output = (
+            "\n\n".join(
+                (
+                    f"{index + 1}. "
+                    f"{message}"
+                )
 
-            for index, message
-            in enumerate(
-                state.history.recent_evilnae_messages
+                for index, message
+                in enumerate(
+                    state.history
+                    .recent_evilnae_messages
+                )
             )
         )
 
     else:
 
         recent_output = (
-            "Noch keine eigenen "
-            "aktuellen Antworten."
+            "Noch keine aktuellen "
+            "eigenen Antworten."
         )
 
-    # =====================================================
-    # RECENT MEMORY
-    # =====================================================
+    # -----------------------------------------------------
+    # RECENT MEMORIES
+    # -----------------------------------------------------
 
     if state.memory.recent_memories:
 
-        recent_memory_text = "\n".join(
-            f"- {memory}"
-            for memory
-            in state.memory.recent_memories
+        recent_memory_text = (
+            "\n".join(
+                f"- {memory}"
+
+                for memory
+                in state.memory.recent_memories
+            )
         )
 
     else:
@@ -749,10 +679,6 @@ Inhalt:
         recent_memory_text = (
             "Keine neueren Erinnerungen."
         )
-
-    # =====================================================
-    # FULL BRAIN STATE
-    # =====================================================
 
     return f"""
 ==================================================
@@ -891,11 +817,16 @@ def format_state_debug(
 
     return (
         "[STATE] "
-        f"v={CONVERSATION_STATE_VERSION} "
-        f"user={state.user.username} "
-        f"id={state.user.user_id} "
-        f"hanae={state.user.is_hanae} "
-        f"mood={state.mood.current_mood} "
+        f"v="
+        f"{CONVERSATION_STATE_VERSION} "
+        f"user="
+        f"{state.user.username} "
+        f"id="
+        f"{state.user.user_id} "
+        f"hanae="
+        f"{state.user.is_hanae} "
+        f"mood="
+        f"{state.mood.current_mood} "
         f"recent_evilnae="
         f"{len(state.history.recent_evilnae_messages)} "
         f"memories="

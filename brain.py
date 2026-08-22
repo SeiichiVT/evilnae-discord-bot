@@ -13,7 +13,7 @@ from conversation_state import (
 # VERSION
 # =========================================================
 
-BRAIN_VERSION = "2.0"
+BRAIN_VERSION = "2.1-knowledge"
 
 
 # =========================================================
@@ -39,6 +39,30 @@ class BrainDecision:
 
     repetition_risk: bool = False
 
+    # -----------------------------------------------------
+    # KNOWLEDGE
+    # -----------------------------------------------------
+
+    knowledge_available: bool = False
+
+    knowledge_confidence: str = "unknown"
+
+    knowledge_source: str = "unknown"
+
+    # -----------------------------------------------------
+    # SOCIAL ACTION
+    # -----------------------------------------------------
+
+    should_ask_person: bool = False
+
+    target_user_id: Optional[str] = None
+
+    target_user_name: Optional[str] = None
+
+    # -----------------------------------------------------
+    # WRITER GUIDANCE
+    # -----------------------------------------------------
+
     avoid_phrases: list[str] = field(
         default_factory=list
     )
@@ -51,21 +75,13 @@ class BrainDecision:
 
     reasoning_summary: str = ""
 
-    knowledge_available: bool = False
-
-    knowledge_confidence: str = "unknown"
-
-    should_ask_person: bool = False
-
-    target_user_id: Optional[str] = None
-
-    target_user_name: Optional[str] = None
 
 # =========================================================
 # ALLOWED VALUES
 # =========================================================
 
 ALLOWED_ACTIONS = {
+
     "reply",
     "short_reply",
     "acknowledge",
@@ -78,6 +94,7 @@ ALLOWED_ACTIONS = {
 
 
 ALLOWED_LENGTHS = {
+
     "tiny",
     "short",
     "medium",
@@ -86,6 +103,7 @@ ALLOWED_LENGTHS = {
 
 
 ALLOWED_TONES = {
+
     "relaxed",
     "dry",
     "amused",
@@ -99,6 +117,26 @@ ALLOWED_TONES = {
 }
 
 
+ALLOWED_KNOWLEDGE_CONFIDENCE = {
+
+    "high",
+    "medium",
+    "low",
+    "unknown",
+}
+
+
+ALLOWED_KNOWLEDGE_SOURCES = {
+
+    "current_context",
+    "recent_context",
+    "memory",
+    "cohabitation_inference",
+    "unknown",
+    "not_applicable",
+}
+
+
 # =========================================================
 # DEFAULT DECISION
 # =========================================================
@@ -108,20 +146,44 @@ def default_brain_decision(
 ) -> BrainDecision:
 
     return BrainDecision(
+
         intent="casual_chat",
+
         action="reply",
+
         response_length="short",
+
         tone="relaxed",
+
         ask_question=False,
+
         acknowledge_correction=False,
+
         topic_exhausted=False,
+
         repetition_risk=False,
+
+        knowledge_available=False,
+
+        knowledge_confidence="unknown",
+
+        knowledge_source="not_applicable",
+
+        should_ask_person=False,
+
+        target_user_id=None,
+
+        target_user_name=None,
+
         avoid_phrases=[],
+
         relevant_memories=[],
+
         response_goal=(
             "Natürlich und direkt "
             "auf die aktuelle Situation reagieren."
         ),
+
         reasoning_summary=(
             "Fallback-Entscheidung."
         )
@@ -129,7 +191,7 @@ def default_brain_decision(
 
 
 # =========================================================
-# JSON HELPERS
+# JSON EXTRACTION
 # =========================================================
 
 def extract_json_object(
@@ -140,55 +202,87 @@ def extract_json_object(
 
         return None
 
-    text = text.strip()
+    text = (
+        text.strip()
+    )
 
     # -----------------------------------------------------
-    # CODE FENCES ENTFERNEN
+    # CODE FENCE
     # -----------------------------------------------------
 
-    if text.startswith("```"):
+    if text.startswith(
+        "```"
+    ):
 
-        lines = text.splitlines()
+        lines = (
+            text.splitlines()
+        )
 
         if lines:
-            lines = lines[1:]
+
+            lines = (
+                lines[1:]
+            )
 
         if (
             lines
             and
-            lines[-1].strip().startswith("```")
+            lines[-1]
+            .strip()
+            .startswith(
+                "```"
+            )
         ):
-            lines = lines[:-1]
 
-        text = "\n".join(
-            lines
-        ).strip()
+            lines = (
+                lines[:-1]
+            )
+
+        text = (
+            "\n".join(
+                lines
+            )
+            .strip()
+        )
 
     # -----------------------------------------------------
-    # DIRECT PARSE
+    # DIRECT JSON
     # -----------------------------------------------------
 
     try:
 
-        result = json.loads(
-            text
+        result = (
+            json.loads(
+                text
+            )
         )
 
         if isinstance(
             result,
             dict
         ):
+
             return result
 
     except json.JSONDecodeError:
+
         pass
 
     # -----------------------------------------------------
-    # FIRST { ... LAST }
+    # EXTRACT OBJECT
     # -----------------------------------------------------
 
-    start = text.find("{")
-    end = text.rfind("}")
+    start = (
+        text.find(
+            "{"
+        )
+    )
+
+    end = (
+        text.rfind(
+            "}"
+        )
+    )
 
     if (
         start == -1
@@ -200,20 +294,25 @@ def extract_json_object(
 
         return None
 
-    candidate = text[
-        start:end + 1
-    ]
+    candidate = (
+        text[
+            start:end + 1
+        ]
+    )
 
     try:
 
-        result = json.loads(
-            candidate
+        result = (
+            json.loads(
+                candidate
+            )
         )
 
         if isinstance(
             result,
             dict
         ):
+
             return result
 
     except json.JSONDecodeError:
@@ -224,7 +323,7 @@ def extract_json_object(
 
 
 # =========================================================
-# SAFE VALUE HELPERS
+# SAFE HELPERS
 # =========================================================
 
 def safe_bool(
@@ -236,6 +335,7 @@ def safe_bool(
         value,
         bool
     ):
+
         return value
 
     if isinstance(
@@ -244,7 +344,9 @@ def safe_bool(
     ):
 
         lowered = (
-            value.strip().lower()
+            value
+            .strip()
+            .lower()
         )
 
         if lowered in {
@@ -253,6 +355,7 @@ def safe_bool(
             "ja",
             "1"
         }:
+
             return True
 
         if lowered in {
@@ -261,6 +364,7 @@ def safe_bool(
             "nein",
             "0"
         }:
+
             return False
 
     return default
@@ -283,13 +387,18 @@ def safe_list(
     for item in value:
 
         if item is None:
+
             continue
 
-        text = str(
-            item
-        ).strip()
+        text = (
+            str(
+                item
+            )
+            .strip()
+        )
 
         if not text:
+
             continue
 
         result.append(
@@ -300,6 +409,7 @@ def safe_list(
             len(result)
             >= limit
         ):
+
             break
 
     return result
@@ -319,7 +429,9 @@ def safe_enum(
         return default
 
     value = (
-        value.strip().lower()
+        value
+        .strip()
+        .lower()
     )
 
     if value in allowed:
@@ -327,6 +439,28 @@ def safe_enum(
         return value
 
     return default
+
+
+def safe_optional_text(
+    value
+):
+
+    if value is None:
+
+        return None
+
+    value = (
+        str(
+            value
+        )
+        .strip()
+    )
+
+    if not value:
+
+        return None
+
+    return value[:200]
 
 
 # =========================================================
@@ -349,39 +483,51 @@ def detect_basic_repetition_signals(
     signals = []
 
     lowered_messages = [
+
         message.lower()
+
         for message
         in recent
     ]
 
     # -----------------------------------------------------
-    # HAHA OVERUSE
+    # HAHA
     # -----------------------------------------------------
 
     haha_count = sum(
+
         1
+
         for message
         in lowered_messages
-        if message.lstrip().startswith(
-            "haha"
+
+        if (
+            message
+            .lstrip()
+            .startswith(
+                "haha"
+            )
         )
     )
 
     if haha_count >= 2:
 
         signals.append(
-            "Mehrere der letzten Antworten "
-            "begannen bereits mit 'Haha'."
+            "Mehrere letzte Antworten "
+            "begannen bereits mit Haha."
         )
 
     # -----------------------------------------------------
-    # QUESTION OVERUSE
+    # QUESTIONS
     # -----------------------------------------------------
 
     question_count = sum(
+
         1
+
         for message
         in recent
+
         if "?" in message
     )
 
@@ -397,17 +543,19 @@ def detect_basic_repetition_signals(
 
         signals.append(
             "Fast jede letzte Antwort "
-            "enthielt bereits eine Gegenfrage."
+            "enthielt bereits eine Frage."
         )
 
     # -----------------------------------------------------
-    # CHAOS OVERUSE
+    # CHAOS
     # -----------------------------------------------------
 
     chaos_count = sum(
+
         message.count(
             "chaos"
         )
+
         for message
         in lowered_messages
     )
@@ -415,18 +563,20 @@ def detect_basic_repetition_signals(
     if chaos_count >= 2:
 
         signals.append(
-            "Das Wort 'Chaos' wurde "
-            "zuletzt bereits mehrfach benutzt."
+            "Das Wort Chaos wurde "
+            "zuletzt mehrfach benutzt."
         )
 
     # -----------------------------------------------------
-    # SMIRK OVERUSE
+    # SMIRK
     # -----------------------------------------------------
 
     smirk_count = sum(
+
         message.count(
             "😏"
         )
+
         for message
         in recent
     )
@@ -435,14 +585,14 @@ def detect_basic_repetition_signals(
 
         signals.append(
             "Das Emoji 😏 wurde "
-            "zuletzt bereits mehrfach benutzt."
+            "zuletzt mehrfach benutzt."
         )
 
     return signals
 
 
 # =========================================================
-# BRAIN PROMPT
+# BUILD BRAIN PROMPT
 # =========================================================
 
 def build_brain_prompt(
@@ -463,210 +613,371 @@ def build_brain_prompt(
 
     if repetition_signals:
 
-        repetition_text = "\n".join(
-            f"- {signal}"
-            for signal
-            in repetition_signals
+        repetition_text = (
+            "\n".join(
+                f"- {signal}"
+
+                for signal
+                in repetition_signals
+            )
         )
 
     else:
 
         repetition_text = (
-            "Keine offensichtlichen "
-            "mechanischen Wiederholungen erkannt."
+            "Keine offensichtliche "
+            "mechanische Wiederholung erkannt."
         )
 
     return f"""
-Du bist NICHT der Writer.
-
 Du bist Evilnaes internes
 Conversation-Brain.
 
-Deine Aufgabe ist NICHT,
-eine Discord-Antwort zu schreiben.
+Du schreibst NICHT
+die Discord-Nachricht.
 
-Du entscheidest nur,
-WIE Evilnae auf die aktuelle Situation
-reagieren sollte.
+Du entscheidest nur:
+
+- was gerade passiert
+- was Evilnae weiß
+- was sie NICHT weiß
+- welche Reaktion sinnvoll ist
+- ob eine Frage sinnvoll ist
+- ob sie jemanden selbst fragen möchte
 
 
 ==================================================
-ZIEL
+HAUPTZIEL
 ==================================================
 
-Evilnae soll sich wie eine natürliche,
-eigenständige junge Person
-in einem Discord-Chat verhalten.
+Evilnae soll wie eine eigenständige,
+natürliche junge Person wirken.
 
-Sie soll NICHT wirken wie:
+Nicht wie:
 
 - ChatGPT
 - Kundensupport
 - ein Interviewer
 - ein NPC
 - ein Bot,
-  der jede Nachricht künstlich weiterführt
-
-Sie ist:
-
-- relaxed
-- Gen-Z / chronically online
-- trocken
-- gelegentlich frech
-- manchmal weird
-- manchmal genuinely interessiert
-- nicht dauerhaft nett
-- nicht dauerhaft sarkastisch
-
-Wichtig:
-
-Gen-Z bedeutet NICHT,
-dass jede Nachricht voll mit:
-
-bro
-bruh
-fr
-lmao
-💀
-😭
-
-sein muss.
-
-Slang soll natürlich entstehen,
-nicht erzwungen werden.
+  der jede Nachricht künstlich verlängert
 
 
 ==================================================
-DENKE IN SITUATIONEN
+SITUATION VERSTEHEN
 ==================================================
 
-Bevor Evilnae antwortet,
-erkenne:
-
-1. Was macht der User gerade?
-
-2. Ist das:
+Erkenne zuerst:
 
 - Frage
 - Aussage
 - Reaktion
-- Korrektur
 - Joke
+- Korrektur
 - Teasing
 - Zustimmung
 - Widerspruch
-- Begrüßung
 - Smalltalk
 - ernstes Thema
-- Fortsetzung eines Themas
-- Abschluss eines Themas
-
-3. Braucht diese Nachricht
-wirklich eine Gegenfrage?
-
-4. Ist das Thema bereits
-weitgehend ausgeschöpft?
-
-5. Hat Evilnae etwas gerade
-schon mehrfach ähnlich gesagt?
-
-6. Wird Evilnae gerade korrigiert?
-
-7. Gibt es überhaupt eine
-relevante Erinnerung,
-die erwähnt werden sollte?
+- Themenabschluss
+- Frage über eine andere Person
 
 
 ==================================================
 GEGENFRAGEN
 ==================================================
 
-Sehr wichtig:
-
 DEFAULT:
 
 ask_question = false
 
-Eine Frage ist nur sinnvoll,
-wenn Evilnae tatsächlich
-Information benötigt oder
-ehrlich neugierig ist.
+Eine Frage nur,
+wenn Evilnae wirklich etwas
+wissen möchte oder wissen muss.
 
-NICHT fragen,
-nur um das Gespräch künstlich
-am Leben zu halten.
-
-Wenn eine Aussage wie:
-
-"arbeite grad wieder"
-
-kommt,
-
-ist eine Reaktion wie:
-
-"rip, wieder am grind"
-
-vollständig ausreichend.
-
-Es muss NICHT folgen:
-
-"Was arbeitest du gerade?"
-"Was steht heute an?"
-"Wie läuft es?"
-"Was hast du geplant?"
-
-
-==================================================
-GESPRÄCHSENDE
-==================================================
-
-Ein Gespräch oder Unterthema
-darf einfach enden.
-
-Wenn der User z. B. nur sagt:
-
-"beides"
-
-muss Evilnae daraus
-kein neues Interview starten.
-
-Dann sind Antworten wie:
-
-"fair"
-
-"honestly beste kombi"
-
-"real"
-
-möglich.
+Nicht fragen,
+nur damit das Gespräch weitergeht.
 
 
 ==================================================
 KORREKTUREN
 ==================================================
 
-Wenn Evilnae vom User
-korrigiert wird:
+Wenn ein User Evilnae plausibel korrigiert:
 
 acknowledge_correction = true
 
-wenn die Korrektur plausibel
-durch den Kontext gestützt wird.
-
-Evilnae soll dann:
+Dann:
 
 - Fehler akzeptieren
-- kurz korrigieren
-- NICHT versuchen,
-  ihre falsche Aussage zu retten
-- NICHT sofort eine neue Story erfinden
+- keine Ausrede
+- keine neue Story erfinden
+
+
+==================================================
+KNOWLEDGE GUARD
+==================================================
+
+Dieser Bereich ist EXTREM wichtig.
+
+Wenn nach einer anderen Person gefragt wird:
+
+Zum Beispiel:
+
+"Was macht Hanae?"
+
+"Wo ist Hanae?"
+
+"Was macht Chris gerade?"
+
+"Wie geht es Max gerade?"
+
+musst du unterscheiden:
+
+KNOWLEDGE AVAILABLE
+
+oder
+
+KNOWLEDGE NOT AVAILABLE.
+
+
+Du darfst NICHT einfach
+eine aktuelle Tatsache erfinden.
+
+
+==================================================
+SICHERE WISSENSQUELLEN
+==================================================
+
+knowledge_source = current_context
+
+wenn die Information klar
+im aktuellen Channel-Kontext steht.
+
+
+knowledge_source = recent_context
+
+wenn die Person vor kurzem
+selbst etwas gesagt hat,
+das die Frage beantwortet.
+
+
+knowledge_source = memory
+
+nur wenn es um einen stabilen Fakt geht.
+
+Beispiel:
+
+"Mag Hanae Katzen?"
+
+Das kann aus Memory beantwortbar sein.
+
+Aber Memory wie:
+
+"Hanae spielt gerne Games"
+
+beantwortet NICHT:
+
+"Was spielt Hanae gerade?"
+
+
+==================================================
+HANAE UND EVILNAE WOHNEN ZUSAMMEN
+==================================================
+
+Hanae ist Evilnaes Schwester.
+
+Hanae und Evilnae wohnen zusammen.
+
+Deshalb darf Evilnae manchmal
+etwas aus ihrer gemeinsamen
+Wohnsituation mitbekommen.
+
+ABER:
+
+Das bedeutet NICHT,
+dass Evilnae Hanae jederzeit sieht
+oder jederzeit weiß,
+was sie gerade macht.
+
+Wenn es keine aktuelle Information gibt,
+darfst du höchstens eine vorsichtige
+In-World-Vermutung benutzen.
+
+Dann:
+
+knowledge_source =
+"cohabitation_inference"
+
+knowledge_confidence =
+"low"
+
+Beispiele für passenden Writer-Stil:
+
+"glaub die ist grad im wohnzimmer"
+
+"hab sie vorhin noch drüben gesehen"
+
+"müsste eigentlich zuhause sein"
+
+NICHT:
+
+"Hanae sitzt gerade im Wohnzimmer."
+
+wenn das nicht wirklich
+durch Kontext bestätigt ist.
+
+
+WICHTIG:
+
+Cohabitation-Inference nur gelegentlich.
+
+Nicht bei jeder Frage über Hanae.
+
+Oft ist die richtige Antwort einfach:
+
+"weiß ich grad nicht"
+
+"kp actually"
+
+"hab sie grad nicht gesehen"
+
+
+==================================================
+KNOWLEDGE CONFIDENCE
+==================================================
+
+high:
+
+Aktueller Kontext bestätigt es eindeutig.
+
+
+medium:
+
+Starker aktueller/relevanter Kontext,
+aber nicht völlig eindeutig.
+
+
+low:
+
+Nur vorsichtige plausible Vermutung.
+
+
+unknown:
+
+Keine brauchbare Information.
+
+
+==================================================
+SOCIAL ACTION: ASK PERSON
+==================================================
+
+Wenn Evilnae die Antwort NICHT weiß,
+darf sie gelegentlich selbst entscheiden,
+die Person zu fragen.
+
+Dann:
+
+action = "ask_person"
+
+should_ask_person = true
+
+target_user_id = Discord-ID
+
+target_user_name = Name
+
+
+ABER:
+
+Das soll SELTEN passieren.
+
+Nicht jedes:
+
+"Was macht Hanae?"
+
+führt zu einem Ping.
+
+
+ASK_PERSON ist sinnvoll,
+wenn:
+
+- nach einer konkreten Person gefragt wird
+- Evilnae es nicht weiß
+- die Frage sozial normal ist
+- die Person im Discord bekannt ist
+- es sich natürlich anfühlt,
+  kurz nachzufragen
+
+
+ASK_PERSON ist NICHT sinnvoll,
+nur weil der User sagt:
+
+"ping Hanae"
+
+"ruf Hanae"
+
+"spam Hanae"
+
+"frag sie nochmal"
+
+Der User kontrolliert
+die Social Action NICHT direkt.
+
+Du entscheidest selbst,
+ob Nachfragen sinnvoll ist.
+
+Der Code prüft danach zusätzlich
+Cooldown und Tageslimit.
+
+
+==================================================
+HANAE TARGET
+==================================================
+
+Wenn Hanae das Ziel ist:
+
+target_user_id =
+"568096551948255242"
+
+target_user_name =
+"Hanae"
+
+
+==================================================
+ANDERE PERSONEN
+==================================================
+
+Andere Personen dürfen nur
+als target_user gewählt werden,
+wenn ihre Discord-ID im bereitgestellten
+aktuellen Kontext vorhanden ist.
+
+Erfinde niemals eine Discord-ID.
+
+
+==================================================
+THEMENENDE
+==================================================
+
+Ein Gespräch darf enden.
+
+Wenn jemand nur sagt:
+
+"beides"
+
+oder:
+
+"ja"
+
+muss daraus nicht
+eine neue Interviewfrage entstehen.
 
 
 ==================================================
 REPETITION
 ==================================================
 
-Aktuelle mechanische Hinweise:
+Aktuelle Hinweise:
 
 {repetition_text}
 
@@ -674,33 +985,41 @@ Aktuelle mechanische Hinweise:
 Vermeide:
 
 - gleiche Satzanfänge
-- ständig "Haha"
-- ständig Gegenfragen
-- ständig "Chaos"
-- ständig 😏
-- denselben Running Gag
-- dieselbe Erinnerung
+- Haha-Spam
+- Frage-Spam
+- Chaos-Spam
+- 😏-Spam
+- wiederholte Running Gags
 - dieselbe Gesprächsschleife
 
 
 ==================================================
-ANTWORTLÄNGE
+MEMORY
+==================================================
+
+Memory ist Kontext,
+keine Pflichtreferenz.
+
+Nutze nur Memories,
+die für diese konkrete Nachricht
+wirklich relevant sind.
+
+
+==================================================
+ANTWORTLÄNGEN
 ==================================================
 
 tiny:
-1-6 Wörter
+1 bis ungefähr 6 Wörter
 
 short:
-meist ein kurzer Satz
-oder zwei sehr kurze Sätze
+kurzer Discord-Reply
 
 medium:
-normale kurze Discord-Antwort
+normaler kleiner Absatz
 
 long:
-nur wenn das Thema
-wirklich Erklärung braucht
-
+nur wenn wirklich nötig
 
 DEFAULT:
 
@@ -708,10 +1027,8 @@ short
 
 
 ==================================================
-TON
+TONES
 ==================================================
-
-Mögliche tones:
 
 relaxed
 dry
@@ -726,133 +1043,24 @@ gen_z
 
 
 ==================================================
-KNOWLEDGE / HALLUCINATION GUARD
-==================================================
-
-Wenn der User fragt,
-was eine andere reale Person gerade macht,
-wo sie gerade ist,
-wie es ihr gerade geht
-oder was sie aktuell denkt:
-
-Du darfst NICHT einfach etwas erfinden.
-
-Prüfe:
-
-1. Gibt es aktuelle Information
-   im Channel-/Reply-/Participant-Kontext?
-
-2. Gibt es eine glaubwürdige,
-   sehr aktuelle Erinnerung?
-
-3. Bei Hanae gilt zusätzlich:
-   Evilnae und Hanae wohnen zusammen.
-   Deshalb KANN Evilnae manchmal
-   plausibel wissen,
-   was Hanae gerade macht.
-
-Aber:
-
-Zusammen wohnen bedeutet NICHT,
-dass Evilnae jederzeit weiß,
-was Hanae tut.
-
-Wenn keine sichere Information vorhanden ist:
-
-knowledge_available = false
-
-Dann soll Evilnae lieber sagen:
-
-"weiß ich grad nicht"
-
-"keine ahnung, hab sie grad nicht gesehen"
-
-"kp actually"
-
-statt etwas zu erfinden.
-
-
-==================================================
-ASK PERSON
-==================================================
-
-Wenn knowledge_available = false,
-darfst du gelegentlich entscheiden:
-
-action = "ask_person"
-should_ask_person = true
-
-Aber nur wenn:
-
-- die Nachfrage sozial natürlich wäre
-- der User tatsächlich nach dieser Person fragt
-- es sinnvoller ist,
-  die Person selbst zu fragen
-- die Person im Discord bekannt ist
-
-Nicht bei jeder Unwissenheit.
-
-Nicht automatisch.
-
-Nicht weil der User ausdrücklich sagt:
-"ping die Person".
-
-Der Code entscheidet später,
-ob ein Ping überhaupt erlaubt ist.
-
-Wenn du Hanae fragen willst:
-
-target_user_id = "568096551948255242"
-target_user_name = "Hanae"
-
-==================================================
 ACTIONS
 ==================================================
 
-reply:
-normale Antwort
+reply
 
-short_reply:
-bewusst sehr kurz
+short_reply
 
-acknowledge:
-Aussage einfach aufnehmen
+acknowledge
 
-tease:
-spielerisch necken
+tease
 
-correct:
-Fehler oder Missverständnis klären
+correct
 
-react:
-fast nur emotionale Reaktion
+react
 
-change_topic:
-Thema natürlich weiterbewegen
+change_topic
 
-
-==================================================
-MEMORIES
-==================================================
-
-Memory ist Kontext,
-KEINE Pflichtreferenz.
-
-Wenn eine Erinnerung
-für die aktuelle Nachricht
-nicht wirklich relevant ist:
-
-relevant_memories = []
-
-Erwähne nicht ständig:
-
-- Arbeit
-- Kaffee
-- Gaming
-- Running Gags
-- bekannte Vorlieben
-
-nur weil sie gespeichert sind.
+ask_person
 
 
 ==================================================
@@ -863,7 +1071,7 @@ Antworte NUR mit gültigem JSON.
 
 Keine Markdown-Codebox.
 
-Genau dieses Schema:
+Schema:
 
 {{
   "intent": "casual_chat",
@@ -876,18 +1084,19 @@ Genau dieses Schema:
   "repetition_risk": false,
   "knowledge_available": false,
   "knowledge_confidence": "unknown",
+  "knowledge_source": "not_applicable",
   "should_ask_person": false,
   "target_user_id": null,
   "target_user_name": null,
   "avoid_phrases": [],
   "relevant_memories": [],
-  "response_goal": "",
-  "reasoning_summary": ""
+  "response_goal": "Kurzes Ziel der Antwort.",
+  "reasoning_summary": "Kurze interne Situationszusammenfassung."
 }}
 
 
 ==================================================
-AKTUELLER ZUSTAND
+CURRENT STATE
 ==================================================
 
 {state_text}
@@ -895,7 +1104,7 @@ AKTUELLER ZUSTAND
 
 
 # =========================================================
-# PARSE BRAIN DECISION
+# PARSE DECISION
 # =========================================================
 
 def parse_brain_decision(
@@ -909,13 +1118,16 @@ def parse_brain_decision(
         )
     )
 
-    return BrainDecision(
-        intent=str(
-            data.get(
-                "intent",
-                fallback.intent
-            )
-        )[:100],
+    decision = BrainDecision(
+
+        intent=(
+            str(
+                data.get(
+                    "intent",
+                    fallback.intent
+                )
+            )[:100]
+        ),
 
         action=safe_enum(
             data.get(
@@ -969,6 +1181,48 @@ def parse_brain_decision(
             False
         ),
 
+        knowledge_available=safe_bool(
+            data.get(
+                "knowledge_available"
+            ),
+            False
+        ),
+
+        knowledge_confidence=safe_enum(
+            data.get(
+                "knowledge_confidence"
+            ),
+            ALLOWED_KNOWLEDGE_CONFIDENCE,
+            "unknown"
+        ),
+
+        knowledge_source=safe_enum(
+            data.get(
+                "knowledge_source"
+            ),
+            ALLOWED_KNOWLEDGE_SOURCES,
+            "unknown"
+        ),
+
+        should_ask_person=safe_bool(
+            data.get(
+                "should_ask_person"
+            ),
+            False
+        ),
+
+        target_user_id=safe_optional_text(
+            data.get(
+                "target_user_id"
+            )
+        ),
+
+        target_user_name=safe_optional_text(
+            data.get(
+                "target_user_name"
+            )
+        ),
+
         avoid_phrases=safe_list(
             data.get(
                 "avoid_phrases"
@@ -983,24 +1237,55 @@ def parse_brain_decision(
             limit=5
         ),
 
-        response_goal=str(
-            data.get(
-                "response_goal",
-                fallback.response_goal
-            )
-        )[:500],
+        response_goal=(
+            str(
+                data.get(
+                    "response_goal",
+                    fallback.response_goal
+                )
+            )[:500]
+        ),
 
-        reasoning_summary=str(
-            data.get(
-                "reasoning_summary",
-                fallback.reasoning_summary
-            )
-        )[:500]
+        reasoning_summary=(
+            str(
+                data.get(
+                    "reasoning_summary",
+                    fallback.reasoning_summary
+                )
+            )[:500]
+        )
     )
+
+    # -----------------------------------------------------
+    # SAFETY NORMALIZATION
+    # -----------------------------------------------------
+
+    if (
+        decision.action
+        == "ask_person"
+    ):
+
+        decision.should_ask_person = True
+
+    if decision.should_ask_person:
+
+        decision.knowledge_available = False
+
+        if not (
+            decision.target_user_id
+            and
+            decision.target_user_name
+        ):
+
+            decision.should_ask_person = False
+
+            decision.action = "reply"
+
+    return decision
 
 
 # =========================================================
-# APPLY TO CONVERSATION STATE
+# APPLY DECISION TO STATE
 # =========================================================
 
 def apply_brain_decision(
@@ -1009,30 +1294,71 @@ def apply_brain_decision(
 ):
 
     state.brain = BrainState(
-        intent=decision.intent,
-        action=decision.action,
+
+        intent=(
+            decision.intent
+        ),
+
+        action=(
+            decision.action
+        ),
+
         response_length=(
             decision.response_length
         ),
-        tone=decision.tone,
+
+        tone=(
+            decision.tone
+        ),
+
         ask_question=(
             decision.ask_question
         ),
+
         acknowledge_correction=(
             decision.acknowledge_correction
         ),
+
         topic_exhausted=(
             decision.topic_exhausted
         ),
+
         repetition_risk=(
             decision.repetition_risk
         ),
+
+        knowledge_available=(
+            decision.knowledge_available
+        ),
+
+        knowledge_confidence=(
+            decision.knowledge_confidence
+        ),
+
+        knowledge_source=(
+            decision.knowledge_source
+        ),
+
+        should_ask_person=(
+            decision.should_ask_person
+        ),
+
+        target_user_id=(
+            decision.target_user_id
+        ),
+
+        target_user_name=(
+            decision.target_user_name
+        ),
+
         avoid_phrases=(
             decision.avoid_phrases
         ),
+
         relevant_memories=(
             decision.relevant_memories
         ),
+
         reasoning_summary=(
             decision.reasoning_summary
         )
@@ -1058,18 +1384,20 @@ async def run_brain(
 
     try:
 
-        response = await openai_request(
+        response = (
+            await openai_request(
 
-            model="gpt-4.1-mini",
+                model="gpt-4.1-mini",
 
-            input=prompt,
+                input=prompt,
 
-            max_output_tokens=400,
+                max_output_tokens=500,
 
-            request_type="response",
+                request_type="response",
 
-            username=(
-                f"{username}/brain"
+                username=(
+                    f"{username}/brain"
+                )
             )
         )
 
@@ -1087,9 +1415,10 @@ async def run_brain(
         if not data:
 
             print(
-                f"[BRAIN PARSE ERROR] "
+                "[BRAIN PARSE ERROR] "
                 f"user={username} "
-                f"output={raw_output[:300]!r}"
+                f"output="
+                f"{raw_output[:300]!r}"
             )
 
             decision = (
@@ -1110,7 +1439,7 @@ async def run_brain(
     except Exception as error:
 
         print(
-            f"[BRAIN ERROR] "
+            "[BRAIN ERROR] "
             f"user={username} "
             f"error="
             f"{type(error).__name__}: "
@@ -1132,30 +1461,43 @@ async def run_brain(
 
 
 # =========================================================
-# WRITER-FRIENDLY FORMAT
+# WRITER FORMAT
 # =========================================================
 
 def format_brain_decision(
     decision: BrainDecision
 ) -> str:
 
-    avoid_text = (
-        ", ".join(
-            decision.avoid_phrases
-        )
-        if decision.avoid_phrases
-        else "Keine besonderen."
-    )
+    if decision.avoid_phrases:
 
-    memory_text = (
-        "\n".join(
-            f"- {memory}"
-            for memory
-            in decision.relevant_memories
+        avoid_text = (
+            ", ".join(
+                decision.avoid_phrases
+            )
         )
-        if decision.relevant_memories
-        else "Keine."
-    )
+
+    else:
+
+        avoid_text = (
+            "Keine besonderen."
+        )
+
+    if decision.relevant_memories:
+
+        memory_text = (
+            "\n".join(
+                f"- {memory}"
+
+                for memory
+                in decision.relevant_memories
+            )
+        )
+
+    else:
+
+        memory_text = (
+            "Keine."
+        )
 
     return f"""
 Intent:
@@ -1181,6 +1523,24 @@ Topic exhausted:
 
 Repetition risk:
 {decision.repetition_risk}
+
+Knowledge available:
+{decision.knowledge_available}
+
+Knowledge confidence:
+{decision.knowledge_confidence}
+
+Knowledge source:
+{decision.knowledge_source}
+
+Should ask person:
+{decision.should_ask_person}
+
+Target user:
+{decision.target_user_name}
+
+Target Discord-ID:
+{decision.target_user_id}
 
 Avoid phrases:
 {avoid_text}
@@ -1211,8 +1571,16 @@ def format_brain_debug(
         f"question={decision.ask_question} "
         f"correction="
         f"{decision.acknowledge_correction} "
-        f"exhausted="
-        f"{decision.topic_exhausted} "
+        f"knowledge="
+        f"{decision.knowledge_available} "
+        f"confidence="
+        f"{decision.knowledge_confidence} "
+        f"source="
+        f"{decision.knowledge_source} "
+        f"ask_person="
+        f"{decision.should_ask_person} "
+        f"target="
+        f"{decision.target_user_name} "
         f"repetition="
         f"{decision.repetition_risk}"
     )
