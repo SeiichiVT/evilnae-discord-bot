@@ -2039,6 +2039,61 @@ def clean_generated_answer(
 
     return cleaned.strip()
 
+# =========================================================
+# QUESTION GUARD
+# =========================================================
+
+def enforce_question_guard(
+    answer,
+    allow_question
+):
+
+    # Brain erlaubt Fragen.
+    # Dann nichts verändern.
+    if allow_question:
+        return answer
+
+    # Keine Frage vorhanden.
+    # Ebenfalls nichts verändern.
+    if "?" not in answer:
+        return answer
+
+    # Antwort in einzelne Sätze zerlegen.
+    sentences = re.split(
+        r"(?<=[.!?])\s+",
+        answer
+    )
+
+    kept_sentences = []
+
+    for sentence in sentences:
+
+        sentence = sentence.strip()
+
+        if not sentence:
+            continue
+
+        # Sätze mit Fragezeichen entfernen,
+        # wenn Brain Fragen verboten hat.
+        if "?" in sentence:
+            continue
+
+        kept_sentences.append(
+            sentence
+        )
+
+    cleaned = " ".join(
+        kept_sentences
+    ).strip()
+
+    # Falls noch eine normale Aussage übrig ist:
+    if cleaned:
+        return cleaned
+
+    # Sicherheits-Fallback,
+    # falls die komplette Antwort
+    # nur aus einer Frage bestand.
+    return "fair"
 
 # =========================================================
 # MEMORY ARCHIVE
@@ -3958,6 +4013,15 @@ Nachricht:
             clean_generated_answer(
                 response.output_text
             )
+    )
+
+# =========================================================
+# HARD QUESTION GUARD
+# =========================================================
+
+        answer = enforce_question_guard(
+            answer,
+            decision.ask_question
         )
 
         if not answer:
@@ -3975,7 +4039,6 @@ Nachricht:
         # Damit können wir im Live-Test sehen,
         # wie zuverlässig das System ist.
         # =================================================
-
         if (
             not decision.ask_question
             and
