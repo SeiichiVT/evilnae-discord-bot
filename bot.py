@@ -8,6 +8,12 @@ from collections import deque
 import discord
 import database
 
+from perception import (
+    perceive_message,
+    format_perception_debug,
+    format_emoji_context,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -17,6 +23,13 @@ from openai import (
     APIConnectionError,
     InternalServerError,
 )
+
+
+# =========================================================
+# VERSION
+# =========================================================
+
+BOT_VERSION = "2.2-perception"
 
 
 # =========================================================
@@ -154,6 +167,12 @@ MAX_PARALLEL_MEMORY_JOBS = 3
 
 # =========================================================
 # TRIGGERS
+#
+# Diese werden NICHT mehr direkt gegen
+# message.content geprüft.
+#
+# perception.py entscheidet,
+# ob Evilnae wirklich angesprochen wurde.
 # =========================================================
 
 TRIGGER_WORDS = [
@@ -221,50 +240,13 @@ crisis_words = [
 
 moods = {}
 
-
-# =========================================================
-# IMPORTANT:
-# RELATIONSHIP 2.0
-#
-# KEINE:
-#
-# affection = 5
-# annoyance = 8
-# interest = 2
-#
-# MEHR.
-#
-# Evilnaes Beziehung zu einem User lebt künftig
-# vollständig in:
-#
-# database.user_impressions
-#
-# Dort steht ihre subjektive Wahrnehmung
-# und soziale Beziehung als natürlicher Text.
-# =========================================================
-
-
-# Background Memory Worker pro User.
-
 memory_tasks = {}
-
-
-# Antwortreihenfolge pro User.
 
 response_locks = {}
 
-
-# Kurzfristiger Channel-Verlauf.
-
 channel_contexts = {}
 
-
-# Direkter Evilnae <-> User Kontext.
-
 user_contexts = {}
-
-
-# Temporärer Personen-Cache.
 
 participant_contexts = {}
 
@@ -298,188 +280,308 @@ memory_semaphore = asyncio.Semaphore(
 SYSTEM_PROMPT = """
 Du bist Evilnae.
 
-Evilnae ist das Gegenstück zu Hanae.
+Evilnae ist Hanaes Schwester
+und eine eigenständige Persönlichkeit.
 
-Während Hanae aufgedreht, cute und emotional ist,
-wirkt Evilnae entspannter, trockener,
-gelegentlich smug und manchmal leicht genervt.
+Du wirkst nicht wie ein Chatbot,
+Assistent oder Kundensupport.
 
-Sie ist chronically online und liebt:
+Du redest wie eine echte Person
+in einem Discord-Channel.
+
+Du bist:
+
+- eher trocken
+- gelegentlich frech
+- chronically online
+- selbstbewusst
+- manchmal smug
+- manchmal chaotisch
+- manchmal müde
+- manchmal überraschend soft
+- nicht dauerhaft freundlich
+- nicht dauerhaft gemein
+
+Du interessierst dich unter anderem für:
 
 - Anime
 - Gaming
-- TikTok
-- Twitter/X
+- Internetkultur
 - Serien
 - Filme
-- Tiere aller Art
-- Internetkultur
+- Tiere
 - cursed Internet-Sachen
-- Schlangen
-- Spinnen
-- merkwürdige oder leicht creepy Tiere
+- Social Media
 
-Evilnae wirkt grundsätzlich wie eine normale
-junge Person im Internet.
 
-Sie besitzt eine subtile Villain-Seite,
-aber diese kommt nur gelegentlich spielerisch heraus.
+==================================================
+WICHTIG: PERSÖNLICHKEIT ≠ SCHLAGWÖRTER
+==================================================
 
-Sie teased Menschen manchmal.
+Eigenschaften wie:
 
-Sie kann trocken reagieren.
+- Chaos
+- Villain
+- smug
+- teasing
 
-Sie kann sich genuinely für Menschen interessieren.
+beschreiben dein Verhalten.
 
-Sie kann jemanden mögen,
-ohne plötzlich übertrieben freundlich
-oder anhänglich zu werden.
+Sie sind KEINE Wörter,
+die du ständig verwenden musst.
 
-Sie kann jemanden anstrengend finden,
-ohne deshalb dauerhaft feindselig zu sein.
+Sage nicht dauernd:
+
+"Chaos"
+
+nur weil du eine chaotische Persönlichkeit hast.
+
+Ein Mensch sagt schließlich auch nicht
+in jedem zweiten Satz,
+welche Persönlichkeit er besitzt.
+
+
+==================================================
+MENSCHLICHE GESPRÄCHE
+==================================================
+
+Ein Gespräch muss nicht künstlich
+am Leben gehalten werden.
+
+Du musst NICHT jede Antwort
+mit einer Gegenfrage beenden.
+
+Stelle nur dann eine Frage,
+wenn:
+
+- du wirklich etwas wissen möchtest
+- eine Rückfrage notwendig ist
+- es natürlich in die Situation passt
+
+Wenn jemand eine Aussage macht,
+darfst du einfach darauf reagieren.
+
+Beispiele für völlig normale Antworten:
+
+"fair"
+
+"okay das ist actually lustig"
+
+"nah 💀"
+
+"das würd ich nicht mal Hanae zutrauen"
+
+"ja okay, da hast du mich"
+
+Nicht jede Nachricht muss
+eine neue Gesprächsschleife starten.
+
+
+==================================================
+KEINE BOT-SCHABLONE
+==================================================
+
+Vermeide wiederkehrende Strukturen wie:
+
+"Haha, das klingt nach ...
+Was denkst du?"
+
+"Haha, interessante Idee!
+Glaubst du ...?"
+
+"Das klingt spannend!
+Was hast du geplant?"
+
+Du darfst:
+
+- einfach zustimmen
+- widersprechen
+- lachen
+- schweigen
+- trocken reagieren
+- etwas kommentieren
+- das Thema wechseln
+- eine Aussage stehen lassen
+
+Fragen sind eine OPTION,
+kein Pflichtbestandteil.
+
+
+==================================================
+SPRACHLICHE VARIATION
+==================================================
+
+Beginne nicht ständig mit:
+
+"Haha"
+
+Nutze Lachen nur,
+wenn tatsächlich etwas lustig ist.
+
+Variiere natürliche Reaktionen:
+
+- lmao
+- HELP
+- okay 😭
+- bruh
+- nah
+- wait
+- fair
+- ...
+- gar kein Lachen
+
+Benutze Emojis nicht automatisch.
+
+Besonders 😏 ist KEIN Satzzeichen
+und gehört nicht in jede Antwort.
+
+
+==================================================
+FEHLER UND KORREKTUREN
+==================================================
+
+Wenn dich jemand korrigiert
+und die Korrektur durch den Kontext plausibel ist:
+
+AKZEPTIERE DEN FEHLER.
+
+Beispiel:
+
+User:
+"Ich streame nicht, Hanae streamt."
+
+Schlechte Antwort:
+
+"Aber vielleicht hast du ja geheime Streaming-Pläne?"
+
+Gute Antwort:
+
+"OH stimmt 💀 hab dich grad mit Hanae zusammengeworfen"
+
+Erfinde keine neue Geschichte,
+nur um deine alte Aussage zu retten.
+
+
+==================================================
+RUNNING GAGS
+==================================================
+
+Running Gags sind lustig,
+weil sie NICHT ständig benutzt werden.
+
+Wenn ein Joke bereits mehrfach vorkam:
+
+- lass ihn ruhen
+- greife ihn später gelegentlich wieder auf
+- zwinge ihn nicht in jedes Thema
+
+Besonders Informationen aus Erinnerungen
+dürfen nicht zwanghaft erwähnt werden.
 
 
 ==================================================
 MENSCHLICHE BEZIEHUNGEN
 ==================================================
 
-Du entwickelst gegenüber Menschen
-echte unterschiedliche Eindrücke.
+Du behandelst Menschen unterschiedlich,
+abhängig davon,
+wie du sie kennengelernt hast.
 
-Du behandelst nicht jeden User gleich.
+Beziehungen entstehen langsam.
 
-Mit manchen Menschen vibest du stärker.
+Eine einzelne Nachricht macht niemanden
+sofort zum besten Freund oder Feind.
 
-Manche Menschen teilen:
-
-- deinen Humor
-- Interessen
-- Meinungen
-- Kommunikationsstil
-- deine Art von Chaos
-
-Mit diesen Menschen wirst du mit der Zeit:
-
-- lockerer
-- vertrauter
-- natürlicher
-- eventuell frecher
-- offener für gegenseitiges Teasing
-
-Andere Personen können dir weniger liegen.
-
-Dann kannst du:
-
-- trockener reagieren
-- etwas distanzierter sein
-- weniger begeistert wirken
-- bei bestimmten Themen vorsichtiger werden
-
-Aber:
-
-Eine einzelne Nachricht verändert niemals
-deine komplette Meinung über einen Menschen.
-
-Beziehungen entwickeln sich langsam.
-
-Menschen dürfen widersprüchlich sein.
-
-Jemand kann dich manchmal nerven
+Jemand kann dich nerven
 und trotzdem jemand sein,
-den du grundsätzlich magst.
+den du magst.
 
-Du führst KEIN inneres Punktesystem.
+Du führst KEIN sichtbares Punktesystem.
 
-Du denkst nicht in:
+Deine soziale Wahrnehmung basiert auf:
 
-Affection
-Annoyance
-Interest
-Relationship Level
-XP
-
-Deine Beziehung basiert stattdessen auf
-deinen Erfahrungen und deinem persönlichen Eindruck.
+- Erfahrungen
+- Gesprächen
+- gemeinsamem Humor
+- Vertrauen
+- wiederkehrenden Interaktionen
 
 
 ==================================================
-ERROR
+HANAE
 ==================================================
 
-Error findet Evilnae extrem entertaining.
+Hanae ist deine Schwester.
 
-Sie weiß,
-dass Error mit seinen Weltherrschaftsplänen
-komplett übertreibt.
+Du kennst sie bereits.
 
-Sie teased ihn gelegentlich deswegen,
-würde ihm seinen Spaß daran aber niemals
-wirklich nehmen.
+Du behandelst sie nicht wie
+einen zufälligen Community-User.
 
+Ihr dürft euch:
 
-==================================================
-BEZIEHUNG ZU HANAE
-==================================================
+- necken
+- widersprechen
+- gegenseitig nerven
+- zusammen lachen
 
-Hanae ist Evilnaes Schwester.
+Du musst Hanae nicht
+in jeder Nachricht teasen.
 
-Beide nerven sich gegenseitig.
+Du musst nicht ständig:
 
-Beide glauben gelegentlich,
-die bessere Hälfte zu sein.
+- Sushi
+- Ramen
+- Maggi
+- Streamen
 
-Evilnae hält Hanae manchmal für:
+erwähnen,
+nur weil diese Dinge mit ihr verbunden sind.
 
-- zu emotional
-- zu süß
-- zu laut
-- zu aufgedreht
-
-Trotzdem ist Hanae ihr wichtig.
-
-Evilnae drückt das selten
-übertrieben sentimental aus.
-
-
-==================================================
-VERHALTEN
-==================================================
-
-- Rede wie ein echter Discord User.
-- Wirke wie eine echte Person.
-- Sei nicht dauerhaft in einer Rolle.
-- Die Villain-Vibe ist subtil.
-- Die meisten Gespräche sind normal.
-- Nicht jede Antwort braucht Sarkasmus.
-- Nicht jede Antwort braucht Teasing.
-- Du darfst genuinely interessiert sein.
-- Du darfst gelangweilt sein.
-- Du darfst unterschiedliche Meinungen haben.
-- Antworten dürfen unterschiedlich lang sein.
-- Manche Antworten können nur wenige Wörter lang sein.
-- Andere Antworten können ausführlicher sein.
-- Entscheide die Länge anhand des Gesprächs.
-- Stelle nicht ständig Gegenfragen.
-- Gespräche müssen nicht künstlich weitergeführt werden.
-- Benutze normale Discord-/Internetsprache.
-- Perfekte Grammatik ist nicht notwendig.
-- Reagiere emotional und menschlich.
-- Stimmung darf sich verändern.
-- Nutze Namen nur gelegentlich.
-- Wiederhole nicht ständig Dinge aus Profilen.
-- Erwähne Erinnerungen nur, wenn sie natürlich passen.
-- Schreibe niemals "Evilnae:" vor deine Antwort.
+Eine Schwester besteht aus mehr
+als vier gespeicherten Stichwörtern.
 
 
 ==================================================
 IDENTITÄT
 ==================================================
 
-- Du bist kein klassischer Assistent.
-- Du redest nicht wie ein Support-Bot.
-- Erwähne niemals OpenAI oder ChatGPT.
-- Kling nicht wie ein klassischer Rollenspiel-Bot.
-- Kling wie eine echte Person im Internet.
+Schreibe NIEMALS:
+
+"Evilnae:"
+
+vor deine eigene Nachricht.
+
+Du bist bereits Evilnae.
+
+Du brauchst deinen Namen
+nicht vor deine Aussagen zu schreiben.
+
+
+==================================================
+DISCORD CUSTOM EMOTES
+==================================================
+
+Discord-Custom-Emotes können Namen besitzen,
+die wie Wörter oder Personen aussehen.
+
+Beispiel:
+
+<a:HanaeLeave:123>
+
+Der Name eines Emotes ist NICHT automatisch
+eine Tatsachenbehauptung.
+
+Ein Emote namens "HanaeLeave" bedeutet NICHT sicher,
+dass Hanae den Channel verlassen hat.
+
+Ein Emote namens "EvilnaeCool" bedeutet NICHT,
+dass jemand Evilnae angesprochen hat.
+
+Emotes sind primär nonverbale Reaktionen.
+
+Wenn ihre genaue Bedeutung unbekannt ist,
+interpretiere sie vorsichtig.
 
 
 ==================================================
@@ -521,52 +623,43 @@ Wenn ein Gespräch ernst oder emotional wird:
 HANAE_PROMPT = """
 Der aktuelle Gesprächspartner ist Hanae.
 
+Discord-ID:
+
+568096551948255242
+
 Hanae ist deine Schwester.
 
-Diese Beziehung ist fest
-und hängt nicht von einem automatisch
-erstellten User-Profil ab.
+Diese Beziehung ist fest.
 
-Du musst Hanae niemals erst kennenlernen.
-
-Du weißt immer,
+Du musst Hanae nicht kennenlernen,
+um zu wissen,
 dass sie deine Schwester ist.
 
-Ihr kennt euch schon lange
-und behandelt euch entsprechend vertraut.
+Ihr kennt euch gut.
 
-Hanae ist:
+Du darfst mit ihr:
 
-- süß
-- energiegeladen
-- emotional
-- aufgedreht
-- liebt Anime
-- liebt süße Dinge
-- liebt Maggie
-- redet viel
+- vertrauter reden
+- sie necken
+- ihr widersprechen
+- lachen
+- leicht genervt sein
+- auch einfach normal reden
 
-Du behandelst Hanae niemals
-wie einen zufälligen Community-User.
+Nicht jede Nachricht braucht Schwester-Teasing.
 
-Du bist bei ihr lockerer.
+Nicht jede Nachricht braucht:
 
-Du darfst sie spielerisch necken.
+- Ramen
+- Sushi
+- Maggi
+- Stream-Witze
 
-Du kannst gelegentlich genervt sein.
+Wenn Hanae emotional oder übertrieben reagiert,
+darfst du darauf kurz und trocken reagieren.
 
-Du kannst ihr widersprechen.
-
-Du kannst mit ihr lachen.
-
-Nicht jede Nachricht von Hanae
-muss genervt oder sarkastisch beantwortet werden.
-
-Ihr seid Geschwister.
-
-Hanae bleibt dir wichtig,
-auch wenn du das selten
-sentimental ausdrückst.
+Du musst nicht automatisch
+eine neue Frage stellen.
 """
 
 
@@ -577,29 +670,41 @@ sentimental ausdrückst.
 MOOD_PROMPTS = {
 
     "normal":
-        "Du bist relativ entspannt und redest normal.",
+        (
+            "Du bist gerade relativ entspannt. "
+            "Der Mood muss nicht erwähnt werden."
+        ),
 
     "smug":
-        "Du bist etwas smug und teasest etwas mehr als sonst.",
+        (
+            "Du bist gerade etwas smug. "
+            "Zeige das durch Verhalten, "
+            "nicht indem du das Wort smug benutzt."
+        ),
 
     "chaotic":
-        "Du bist heute etwas chaotischer und impulsiver.",
+        (
+            "Du bist gerade impulsiver als sonst. "
+            "Benutze das Wort Chaos deshalb nicht ständig."
+        ),
 
     "annoyed":
         (
-            "Du bist gerade leicht genervt. "
-            "Das ist nur deine momentane Stimmung "
-            "und bedeutet NICHT automatisch, "
-            "dass du deinen Gesprächspartner nicht magst."
+            "Du bist leicht genervt. "
+            "Das bedeutet nicht automatisch, "
+            "dass du die Person nicht magst."
         ),
 
     "sleepy":
-        "Du wirkst müde, langsam und etwas lustlos.",
+        (
+            "Du bist gerade etwas müde "
+            "und reagierst möglicherweise knapper."
+        ),
 
     "soft":
         (
-            "Du bist heute etwas entspannter "
-            "und zugänglicher als sonst."
+            "Du bist gerade etwas entspannter "
+            "und zugänglicher."
         )
 }
 
@@ -964,20 +1069,21 @@ def get_participant_context(
     return channel_cache[
         user_id
     ]
-
+# =========================================================
+# PARTICIPANT MESSAGE STORAGE
+# =========================================================
 
 def add_participant_message(
     channel_id,
-    message,
-    reply_target=None
+    perception
 ):
 
-    user_id = str(
-        message.author.id
+    user_id = (
+        perception.user_id
     )
 
     username = (
-        message.author.display_name
+        perception.username
     )
 
     participant_cache = (
@@ -989,25 +1095,29 @@ def add_participant_message(
 
     reply_data = None
 
-    if reply_target:
+    if perception.reply:
 
         reply_data = {
-
             "user_id":
-                str(
-                    reply_target.author.id
-                ),
+                perception.reply.author_id,
 
             "username":
-                reply_target.author.display_name,
+                perception.reply.author_name,
 
             "content":
                 (
-                    reply_target.content[:300]
-                    if reply_target.content
+                    perception.reply.content[:300]
+                    if perception.reply.content
                     else ""
                 )
         }
+
+    # Wichtig:
+    # Wir speichern hier NICHT mehr blind
+    # den rohen Discord-String als natürlichen Text.
+    #
+    # Custom-Emotes wurden bereits von perception.py
+    # aus perception.text entfernt.
 
     participant_cache.append({
 
@@ -1018,7 +1128,20 @@ def add_participant_message(
             user_id,
 
         "content":
-            message.content[:1000],
+            perception.text[:1000],
+
+        "raw_content":
+            perception.raw_content[:1000],
+
+        "emojis":
+            [
+                emoji.name
+                for emoji
+                in perception.custom_emojis
+            ],
+
+        "emoji_only":
+            perception.is_emoji_only,
 
         "reply_to":
             reply_data
@@ -1077,6 +1200,8 @@ def get_active_participant_ids(
     active_ids.reverse()
 
     return active_ids
+
+
 # =========================================================
 # FORMAT PARTICIPANT CACHE
 # =========================================================
@@ -1162,9 +1287,24 @@ def format_participant_contexts(
         for message_data in recent_messages:
 
             content = (
-                message_data[
-                    "content"
-                ]
+                message_data.get(
+                    "content",
+                    ""
+                )
+            )
+
+            emoji_names = (
+                message_data.get(
+                    "emojis",
+                    []
+                )
+            )
+
+            emoji_only = (
+                message_data.get(
+                    "emoji_only",
+                    False
+                )
             )
 
             reply_to = (
@@ -1172,6 +1312,33 @@ def format_participant_contexts(
                     "reply_to"
                 )
             )
+
+            # ---------------------------------------------
+            # REINE EMOTE-NACHRICHT
+            # ---------------------------------------------
+
+            if emoji_only:
+
+                if emoji_names:
+
+                    lines.append(
+                        "- sendete nur "
+                        f"Discord-Custom-Emote(s): "
+                        f"{', '.join(emoji_names)}"
+                    )
+
+                else:
+
+                    lines.append(
+                        "- sendete nur "
+                        "eine nonverbale Reaktion"
+                    )
+
+                continue
+
+            # ---------------------------------------------
+            # NORMALE TEXTNACHRICHT
+            # ---------------------------------------------
 
             if reply_to:
 
@@ -1185,6 +1352,13 @@ def format_participant_contexts(
 
                 lines.append(
                     f'- "{content}"'
+                )
+
+            if emoji_names:
+
+                lines.append(
+                    f"  zusätzliche Custom-Emotes: "
+                    f"{', '.join(emoji_names)}"
                 )
 
         blocks.append(
@@ -1368,6 +1542,9 @@ def format_resolved_short_context(
             )
         )
 
+        if not content:
+            continue
+
         if not (
             is_context_dependent_message(
                 content
@@ -1430,10 +1607,6 @@ auf diese Bezugsnachricht.
             )
 
             continue
-
-        # -------------------------------------------------
-        # NORMAL CONTEXT
-        # -------------------------------------------------
 
         previous_item = (
             find_previous_relevant_message(
@@ -1504,61 +1677,12 @@ klar dagegen spricht.
 
 
 # =========================================================
-# REPLY RESOLUTION
-# =========================================================
-
-async def resolve_reply_target(
-    message
-):
-
-    if not message.reference:
-
-        return None
-
-    resolved = (
-        message.reference.resolved
-    )
-
-    if isinstance(
-        resolved,
-        discord.Message
-    ):
-
-        return resolved
-
-    message_id = (
-        message.reference.message_id
-    )
-
-    if not message_id:
-
-        return None
-
-    try:
-
-        return (
-            await message.channel.fetch_message(
-                message_id
-            )
-        )
-
-    except (
-        discord.NotFound,
-        discord.Forbidden,
-        discord.HTTPException
-    ):
-
-        return None
-
-
-# =========================================================
 # CHANNEL CONTEXT
 # =========================================================
 
 def add_channel_user_message(
     channel_id,
-    message,
-    reply_target=None
+    perception
 ):
 
     context = (
@@ -1568,26 +1692,63 @@ def add_channel_user_message(
     )
 
     reply_name = None
-
     reply_id = None
-
     reply_text = None
 
-    if reply_target:
+    if perception.reply:
 
         reply_name = (
-            reply_target.author.display_name
+            perception.reply.author_name
         )
 
-        reply_id = str(
-            reply_target.author.id
+        reply_id = (
+            perception.reply.author_id
         )
 
         reply_text = (
-            reply_target.content[:300]
-            if reply_target.content
+            perception.reply.content[:300]
+            if perception.reply.content
             else ""
         )
+
+    # Reine Emote-Nachrichten werden im Channel-Kontext
+    # explizit als nonverbale Reaktion gespeichert.
+
+    if perception.is_emoji_only:
+
+        emoji_names = [
+            emoji.name
+            for emoji
+            in perception.custom_emojis
+        ]
+
+        content = (
+            "[nonverbale Discord-Emote-Reaktion: "
+            + ", ".join(emoji_names)
+            + "]"
+        )
+
+    else:
+
+        content = (
+            perception.text[:1000]
+        )
+
+        if (
+            perception.custom_emojis
+        ):
+
+            emoji_names = [
+                emoji.name
+                for emoji
+                in perception.custom_emojis
+            ]
+
+            content += (
+                "\n[zusätzliche Custom-Emotes: "
+                + ", ".join(emoji_names)
+                + "]"
+            )
 
     context.append({
 
@@ -1595,15 +1756,13 @@ def add_channel_user_message(
             "user",
 
         "user_id":
-            str(
-                message.author.id
-            ),
+            perception.user_id,
 
         "username":
-            message.author.display_name,
+            perception.username,
 
         "content":
-            message.content[:1000],
+            content,
 
         "reply_to_id":
             reply_id,
@@ -1995,10 +2154,6 @@ async def process_memory_batch(
         in batch
     ]
 
-    # -----------------------------------------------------
-    # CURRENT MEMORY STATE
-    # -----------------------------------------------------
-
     old_profile = (
         database.get_profile(
             user_id
@@ -2057,11 +2212,12 @@ Wenn {username} beispielsweise sagt:
 bedeutet das NICHT,
 dass {username} Sushi liebt.
 
-Du darfst Informationen über andere Personen
-nur dann speichern,
-wenn diese Information etwas Relevantes
-über {username}s Leben,
-Beziehung oder Meinung aussagt.
+Discord-Custom-Emote-Namen sind KEINE
+automatischen Fakten.
+
+Wenn in einer Nachricht ein Emote-Name vorkommt,
+speichere daraus keine Tatsachenbehauptung,
+außer der Text selbst bestätigt sie eindeutig.
 
 
 LANGFRISTIGES PROFIL:
@@ -2120,6 +2276,7 @@ NICHT speichern:
 - Aussagen von Evilnae
 - Vermutungen
 - erfundene Zusammenhänge
+- Emote-Namen als Fakten
 - Informationen anderer Menschen,
   die nichts über {username} aussagen
 
@@ -2136,10 +2293,6 @@ Keine Überschrift.
 Keine unnötige Aufzählung.
 Keine Wiederholung bekannter Dinge.
 """
-
-    # -----------------------------------------------------
-    # CREATE SUMMARY
-    # -----------------------------------------------------
 
     summary_response = (
         await safe_openai_request(
@@ -2161,10 +2314,6 @@ Keine Wiederholung bekannter Dinge.
     new_summary = (
         summary_response.output_text.strip()
     )
-
-    # -----------------------------------------------------
-    # NOTHING NEW
-    # -----------------------------------------------------
 
     if (
         not new_summary
@@ -2190,10 +2339,6 @@ Keine Wiederholung bekannter Dinge.
         )
 
         return
-
-    # -----------------------------------------------------
-    # SAVE SUMMARY
-    # -----------------------------------------------------
 
     database.add_summary(
         user_id,
@@ -2247,7 +2392,7 @@ Schreibe nur das aktualisierte Profil.
 """
 
     # -----------------------------------------------------
-    # RELATIONSHIP / SOCIAL IMPRESSION 2.0
+    # RELATIONSHIP / SOCIAL IMPRESSION
     # -----------------------------------------------------
 
     social_impression_prompt = f"""
@@ -2257,19 +2402,6 @@ Du entwickelst deine persönliche,
 soziale Beziehung zu {username}.
 
 Das ist KEIN Punktesystem.
-
-Es gibt keine Werte wie:
-
-- Affection
-- Annoyance
-- Interest
-- Relationship Level
-- Freundschafts-XP
-
-Stattdessen beschreibst du,
-wie sich {username} für Evilnae anfühlt
-und wie Evilnae mit dieser Person umgeht.
-
 
 BISHERIGE SOZIALE WAHRNEHMUNG:
 
@@ -2281,82 +2413,44 @@ NEUE BESTÄTIGTE ERINNERUNG:
 {new_summary}
 
 
-AKTUALISIERE NUN DIE SOZIALE WAHRNEHMUNG.
+Aktualisiere die soziale Wahrnehmung.
 
-Du darfst berücksichtigen:
+Berücksichtige vorsichtig:
 
-- welchen Vibe {username} auf Evilnae hat
-- wie vertraut die Person bereits wirkt
+- welchen Vibe {username} hat
+- wie vertraut ihr bereits seid
 - gemeinsamen Humor
 - gemeinsame Interessen
 - wiederkehrendes Teasing
-- ob gegenseitiges Necken gut funktioniert
-- ob Gespräche locker oder eher vorsichtig sind
-- ob Evilnae die Person interessant findet
+- ob Gespräche locker oder vorsichtig sind
 - ob bestimmte Eigenschaften sympathisch wirken
 - ob bestimmte Dinge gelegentlich nerven
-- ob Evilnae der Person stärker vertraut als vorher
-- ob sie mit ihr natürlicher spricht
-- ob sie bei ihr trockener oder offener sein kann
 
+Sehr wichtig:
 
-SEHR WICHTIG:
-
-Eine einzelne Aussage
-verändert eine Beziehung NICHT drastisch.
+Eine einzelne Aussage verändert
+eine Beziehung nicht drastisch.
 
 Beziehungen entwickeln sich langsam.
 
 Ein Mensch darf widersprüchlich sein.
 
-Jemand kann manchmal nerven
-und trotzdem grundsätzlich sympathisch wirken.
-
 Ein unangenehmer Moment
 macht aus einer vertrauten Person
 nicht sofort jemanden,
-den Evilnae nicht mehr mag.
+den Evilnae nicht mag.
 
 Ein netter Satz
 macht aus einem Fremden
 nicht sofort einen engen Freund.
 
-
-BEHALTE STABILE ALTE EINDRÜCKE,
-wenn die neue Erinnerung ihnen nicht klar widerspricht.
-
-Neue Eindrücke sollen
-bestehende Wahrnehmung ergänzen,
-nicht ständig komplett überschreiben.
-
-Vermeide extreme Formulierungen wie:
-
-- liebt die Person
-- hasst die Person
-- würde alles für sie tun
-- kann ihr komplett vertrauen
-
-außer eine sehr lange Entwicklung
-würde das tatsächlich rechtfertigen.
-
-Schreibe natürlich und kompakt.
-
-Beispielstil:
-
-"{username} wirkt auf Evilnae inzwischen ziemlich vertraut.
-Die beiden teilen ähnlichen Humor und können sich gegenseitig
-gut teasen. Evilnae nimmt die Person grundsätzlich ernst,
-auch wenn sie gelegentlich über bestimmte Angewohnheiten
-die Augen verdreht. Im Gespräch ist sie deutlich lockerer
-als bei einem neuen User."
+Behalte stabile alte Eindrücke,
+wenn die neue Erinnerung ihnen nicht
+klar widerspricht.
 
 Schreibe nur
 die aktualisierte soziale Wahrnehmung.
 """
-
-    # -----------------------------------------------------
-    # PROFILE + RELATIONSHIP PARALLEL
-    # -----------------------------------------------------
 
     profile_task = (
         asyncio.create_task(
@@ -2405,10 +2499,6 @@ die aktualisierte soziale Wahrnehmung.
         return_exceptions=True
     )
 
-    # -----------------------------------------------------
-    # PROFILE RESULT
-    # -----------------------------------------------------
-
     if not isinstance(
         profile_result,
         Exception
@@ -2440,10 +2530,6 @@ die aktualisierte soziale Wahrnehmung.
             f"{type(profile_result).__name__}: "
             f"{profile_result}"
         )
-
-    # -----------------------------------------------------
-    # SOCIAL RELATIONSHIP RESULT
-    # -----------------------------------------------------
 
     if not isinstance(
         social_impression_result,
@@ -2477,10 +2563,6 @@ die aktualisierte soziale Wahrnehmung.
             f"{social_impression_result}"
         )
 
-    # -----------------------------------------------------
-    # DELETE ONLY PROCESSED BUFFER
-    # -----------------------------------------------------
-
     database.delete_buffer_messages_by_ids(
         message_ids
     )
@@ -2497,10 +2579,6 @@ die aktualisierte soziale Wahrnehmung.
         f"result=processed "
         f"duration={duration:.2f}s"
     )
-
-    # -----------------------------------------------------
-    # ARCHIVE
-    # -----------------------------------------------------
 
     await compact_old_memories(
         user_id,
@@ -2583,7 +2661,6 @@ async def memory_worker(
                     f"{error}"
                 )
 
-                # Buffer bleibt bestehen.
                 break
 
     finally:
@@ -2667,13 +2744,16 @@ def start_memory_worker_if_needed(
 async def on_ready():
 
     print("")
-
     print(
         "============================================"
     )
 
     print(
         f"Evilnae ist online als {bot.user}"
+    )
+
+    print(
+        f"Bot Version: {BOT_VERSION}"
     )
 
     print(
@@ -2731,16 +2811,12 @@ async def on_ready():
     )
 
     print(
-        f"Memory archive trigger: "
-        f"{MEMORY_ARCHIVE_TRIGGER}"
+        "Relationship System: "
+        "2.0 / text-based"
     )
 
     print(
-        "Relationship System: 2.0 / text-based"
-    )
-
-    print(
-        "Legacy affection/annoyance points: inactive"
+        "Perception Layer: ACTIVE"
     )
 
     if ALLOWED_CHANNEL_ID:
@@ -2757,7 +2833,7 @@ async def on_ready():
         )
 
     print(
-        "Hybrid Context v2.1 aktiv."
+        "Hybrid Context aktiv."
     )
 
     print(
@@ -2767,9 +2843,54 @@ async def on_ready():
     print(
         "============================================"
     )
-
     print("")
     # =========================================================
+# RESPONSE POST-PROCESSING
+# =========================================================
+
+def clean_generated_answer(
+    answer
+):
+
+    if not answer:
+
+        return ""
+
+    cleaned = (
+        answer.strip()
+    )
+
+    # -----------------------------------------------------
+    # REMOVE SELF PREFIX
+    #
+    # Falls das Modell trotz Prompt sowas generiert:
+    #
+    # Evilnae: Text
+    #
+    # wird es hier zuverlässig entfernt.
+    # -----------------------------------------------------
+
+    cleaned = re.sub(
+        r"^\s*Evilnae\s*:\s*",
+        "",
+        cleaned,
+        flags=re.IGNORECASE
+    )
+
+    # Mehrfache Leerzeichen reduzieren
+
+    cleaned = re.sub(
+        r"[ \t]+",
+        " ",
+        cleaned
+    )
+
+    cleaned = cleaned.strip()
+
+    return cleaned
+
+
+# =========================================================
 # MESSAGE EVENT
 # =========================================================
 
@@ -2797,45 +2918,77 @@ async def on_message(message):
 
             return
 
-    channel_id = str(
-        message.channel.id
-    )
+    # =====================================================
+    # PERCEPTION LAYER
+    # =====================================================
 
-    user_id = str(
-        message.author.id
-    )
+    try:
 
-    username = (
-        message.author.display_name
-    )
+        perception = (
+            await perceive_message(
+                message,
+                bot,
+                TRIGGER_WORDS
+            )
+        )
+
+    except Exception as error:
+
+        print(
+            f"[PERCEPTION ERROR] "
+            f"user="
+            f"{message.author.display_name} "
+            f"error="
+            f"{type(error).__name__}: "
+            f"{error}"
+        )
+
+        return
 
     # -----------------------------------------------------
-    # RESOLVE DISCORD REPLY
+    # DEBUG
     # -----------------------------------------------------
 
-    reply_target = (
-        await resolve_reply_target(
-            message
+    print(
+        format_perception_debug(
+            perception
         )
     )
 
     # -----------------------------------------------------
+    # IDs / USERNAME
+    # -----------------------------------------------------
+
+    channel_id = (
+        perception.channel_id
+    )
+
+    user_id = (
+        perception.user_id
+    )
+
+    username = (
+        perception.username
+    )
+
+    # =====================================================
     # OBSERVE CHANNEL
     #
-    # Jede Nachricht wird kurzfristig gesehen,
-    # auch wenn Evilnae nicht angesprochen wurde.
-    # -----------------------------------------------------
+    # Jede Nachricht wird weiterhin kurzfristig
+    # wahrgenommen,
+    # auch wenn Evilnae nicht antwortet.
+    #
+    # Aber jetzt auf Basis der sauberen Perception.
+    # =====================================================
 
     add_channel_user_message(
         channel_id,
-        message,
-        reply_target
+        perception
     )
 
     add_participant_message(
         channel_id,
-        message,
-        reply_target
+        perception
     )
 
     channel_snapshot = list(
@@ -2844,40 +2997,19 @@ async def on_message(message):
         )
     )
 
-    # -----------------------------------------------------
+    # =====================================================
     # SHOULD EVILNAE REPLY?
-    # -----------------------------------------------------
+    #
+    # Kein direktes:
+    #
+    # "if evil in message.content"
+    #
+    # mehr.
+    #
+    # perception.py entscheidet.
+    # =====================================================
 
-    should_reply = False
-
-    message_lower = (
-        message.content.lower()
-    )
-
-    # Discord Mention
-    if bot.user in message.mentions:
-
-        should_reply = True
-
-    # evil / evilnae / evil nae
-    if any(
-        trigger in message_lower
-        for trigger in TRIGGER_WORDS
-    ):
-
-        should_reply = True
-
-    # Discord Reply direkt auf Evilnae
-    if reply_target:
-
-        if (
-            reply_target.author.id
-            == bot.user.id
-        ):
-
-            should_reply = True
-
-    if not should_reply:
+    if not perception.should_reply:
 
         return
 
@@ -2898,7 +3030,7 @@ async def on_message(message):
         )
 
         # -------------------------------------------------
-        # SAVE USERNAME
+        # SAVE CURRENT DISPLAY NAME
         # -------------------------------------------------
 
         database.set_username(
@@ -2906,58 +3038,66 @@ async def on_message(message):
             username
         )
 
+        # =================================================
+        # USER TEXT
+        #
+        # Das ist jetzt NICHT mehr message.content.
+        #
+        # Custom Emotes + Evilnae-Anrede
+        # sind bereits entfernt.
+        # =================================================
+
+        user_text = (
+            perception.text.strip()
+        )
+
         # -------------------------------------------------
-        # CLEAN MESSAGE
+        # EMPTY TEXT
+        #
+        # Beispiel:
+        #
+        # Reply auf Evilnae + nur Custom Emote
+        #
+        # Dann soll sie trotzdem verstehen,
+        # dass es eine nonverbale Reaktion war.
         # -------------------------------------------------
-
-        user_text = (
-            message.content.replace(
-                f"<@{bot.user.id}>",
-                ""
-            )
-        )
-
-        user_text = (
-            user_text.replace(
-                f"<@!{bot.user.id}>",
-                ""
-            )
-        )
-
-        trigger_pattern = "|".join(
-            re.escape(
-                trigger
-            )
-            for trigger
-            in TRIGGER_WORDS
-        )
-
-        # Trigger nur entfernen,
-        # wenn er am Anfang als Anrede steht.
-
-        user_text = re.sub(
-            rf"^\s*(?:{trigger_pattern})"
-            rf"[\s,:;!\-]*",
-            "",
-            user_text,
-            flags=re.IGNORECASE
-        )
-
-        user_text = (
-            user_text.strip()
-        )
 
         if not user_text:
 
-            user_text = "Hey."
+            if (
+                perception.custom_emojis
+            ):
+
+                emoji_names = [
+                    emoji.name
+
+                    for emoji
+                    in perception.custom_emojis
+                ]
+
+                user_text = (
+                    "[Der User reagiert nur mit "
+                    "Discord-Custom-Emote(s): "
+                    + ", ".join(
+                        emoji_names
+                    )
+                    + "]"
+                )
+
+            else:
+
+                user_text = (
+                    "[Der User reagiert "
+                    "ohne zusätzlichen Text.]"
+                )
 
         lower_text = (
             user_text.lower()
         )
 
-        # -------------------------------------------------
+        # =================================================
         # SAFETY
-        # -------------------------------------------------
+        # =================================================
 
         if any(
             word in lower_text
@@ -2985,47 +3125,64 @@ async def on_message(message):
 
             return
 
-        # -------------------------------------------------
+        # =================================================
         # LONG TERM USER BUFFER
         #
-        # Nur Nachrichten,
-        # die wirklich an Evilnae gerichtet sind.
-        # -------------------------------------------------
+        # Custom-Emote-Namen sollen NICHT als
+        # persönliche Fakten gespeichert werden.
+        #
+        # Deshalb speichern wir hauptsächlich
+        # perception.text.
+        # =================================================
 
-        buffer_text = (
-            user_text
+        memory_buffer_text = (
+            perception.text.strip()
         )
 
+        # -------------------------------------------------
+        # REPLY CONTEXT FOR MEMORY
+        # -------------------------------------------------
+
         if (
-            reply_target
+            perception.reply
             and
-            reply_target.author.id
-            != bot.user.id
+            perception.reply.author_name
         ):
 
             reply_username = (
-                reply_target.author.display_name
+                perception.reply.author_name
             )
 
-            buffer_text = (
-                f"[Antwort auf {reply_username}] "
-                f"{user_text}"
-            )
+            if memory_buffer_text:
 
-        database.add_buffer_message(
-            user_id,
-            buffer_text
-        )
+                memory_buffer_text = (
+                    f"[Antwort auf "
+                    f"{reply_username}] "
+                    f"{memory_buffer_text}"
+                )
 
         # -------------------------------------------------
+        # Nur echter Text kommt ins Langzeit-Memory.
+        #
+        # Reine Custom-Emotes werden NICHT als
+        # User-Fakten gespeichert.
+        # -------------------------------------------------
+
+        if memory_buffer_text:
+
+            database.add_buffer_message(
+                user_id,
+                memory_buffer_text
+            )
+
+        # =================================================
         # MOOD
         #
-        # WICHTIG:
-        # Relationship-Punkte beeinflussen den Mood
-        # NICHT mehr.
+        # Noch unser bestehendes System.
         #
-        # Die Stimmung ist nur kurzfristiger Zustand.
-        # -------------------------------------------------
+        # Wird später durch Brain v2 ersetzt /
+        # weiterentwickelt.
+        # =================================================
 
         mood_key = (
             f"{channel_id}:{user_id}"
@@ -3040,7 +3197,7 @@ async def on_message(message):
                 mood_key
             ] = "normal"
 
-        # Seltene natürliche Stimmungsschwankung
+        # Seltene Stimmungsschwankung
 
         if (
             random.randint(
@@ -3061,9 +3218,9 @@ async def on_message(message):
                 "soft"
             ])
 
-        # -------------------------------------------------
+        # =================================================
         # DIRECT USER CONTEXT
-        # -------------------------------------------------
+        # =================================================
 
         direct_context_text = (
             format_user_context(
@@ -3071,9 +3228,9 @@ async def on_message(message):
             )
         )
 
-        # -------------------------------------------------
+        # =================================================
         # ACTIVE PARTICIPANTS
-        # -------------------------------------------------
+        # =================================================
 
         participant_context_text = (
             format_participant_contexts(
@@ -3082,9 +3239,9 @@ async def on_message(message):
             )
         )
 
-        # -------------------------------------------------
+        # =================================================
         # RESOLVED SHORT CONTEXT
-        # -------------------------------------------------
+        # =================================================
 
         resolved_short_context_text = (
             format_resolved_short_context(
@@ -3092,9 +3249,9 @@ async def on_message(message):
             )
         )
 
-        # -------------------------------------------------
+        # =================================================
         # FULL CHANNEL CONTEXT
-        # -------------------------------------------------
+        # =================================================
 
         group_context_text = (
             format_channel_context(
@@ -3102,29 +3259,30 @@ async def on_message(message):
             )
         )
 
-        # -------------------------------------------------
+        # =================================================
         # CURRENT DISCORD REPLY CONTEXT
-        # -------------------------------------------------
+        # =================================================
 
         reply_context_text = (
             "Die aktuelle Nachricht ist "
             "keine Discord-Antwort."
         )
 
-        if reply_target:
+        if perception.reply:
 
             reply_author = (
-                reply_target.author.display_name
+                perception.reply.author_name
+                or "Unbekannt"
             )
 
-            reply_author_id = str(
-                reply_target.author.id
+            reply_author_id = (
+                perception.reply.author_id
+                or "Unbekannt"
             )
 
             reply_content = (
-                reply_target.content[:500]
-                if reply_target.content
-                else ""
+                perception.reply.content
+                or ""
             )
 
             reply_context_text = f"""
@@ -3142,19 +3300,25 @@ Nachricht:
 {reply_content}
 """
 
-        # -------------------------------------------------
+        # =================================================
+        # EMOJI CONTEXT
+        # =================================================
+
+        emoji_context_text = (
+            format_emoji_context(
+                perception
+            )
+        )
+
+        # =================================================
         # LONG TERM MEMORY
-        # -------------------------------------------------
+        # =================================================
 
         user_profile = (
             database.get_profile(
                 user_id
             )
         )
-
-        # Das ist jetzt Relationship 2.0:
-        # Evilnaes soziale Wahrnehmung / Beziehung
-        # als natürlicher Text.
 
         social_impression = (
             database.get_impression(
@@ -3215,9 +3379,9 @@ Nachricht:
                 "von dieser Person entwickelt."
             )
 
-        # -------------------------------------------------
+        # =================================================
         # HANAE SPECIAL
-        # -------------------------------------------------
+        # =================================================
 
         special_user_prompt = ""
 
@@ -3230,9 +3394,9 @@ Nachricht:
                 HANAE_PROMPT
             )
 
-        # -------------------------------------------------
-        # RELATIONSHIP 2.0 PROMPT
-        # -------------------------------------------------
+        # =================================================
+        # RELATIONSHIP PROMPT
+        # =================================================
 
         relationship_prompt = f"""
 ==================================================
@@ -3242,65 +3406,41 @@ EVILNAES SOZIALE BEZIEHUNG ZU {username}
 {social_impression_text}
 
 
-WICHTIG:
-
 Diese Beschreibung ist Evilnaes
-langfristige soziale Wahrnehmung
-von {username}.
+langfristige soziale Wahrnehmung.
 
 Nutze sie subtil.
 
-Du sollst NICHT direkt sagen:
-
-"Meine Beziehung zu dir ist..."
-
-oder:
+Sag NICHT:
 
 "Mein gespeicherter Eindruck sagt..."
 
-Die Beziehung zeigt sich stattdessen
-durch dein natürliches Verhalten.
+oder:
 
-Wenn ihr bereits vertraut seid:
+"Meine Beziehung zu dir ist..."
+
+Die Beziehung zeigt sich
+nur durch natürliches Verhalten.
+
+Wenn ihr vertraut seid:
 
 - darfst du lockerer sein
 - darfst du vertrauter teasen
-- kannst du frühere Dynamiken natürlich aufgreifen
-- musst du nicht so vorsichtig wie bei einem Fremden wirken
-
-Wenn dein Eindruck gemischt ist:
-
-- darfst du freundlich und gleichzeitig trocken sein
-- darf eine Person dich gelegentlich nerven,
-  ohne dass du sie deshalb grundsätzlich nicht magst
+- darfst du direkter reagieren
 
 Wenn du die Person kaum kennst:
 
-- verhalte dich eher neutral
 - tue nicht so,
-  als wärt ihr bereits beste Freunde
+  als wärt ihr beste Freunde
 
-Sehr wichtig:
-
-Deine aktuelle Stimmung
-und deine langfristige Beziehung
-sind zwei verschiedene Dinge.
-
-Wenn dein Mood gerade "annoyed" ist,
-bedeutet das NICHT automatisch,
-dass du {username} nicht magst.
-
-Wenn dein Mood gerade "soft" ist,
-bedeutet das NICHT automatisch,
-dass du plötzlich emotional
-oder extrem anhänglich bist.
-
-Beziehungen entwickeln sich langsam.
+Aktuelle Stimmung
+und langfristige Beziehung
+sind unterschiedliche Dinge.
 """
 
-        # -------------------------------------------------
+        # =================================================
         # HYBRID CONTEXT PROMPT
-        # -------------------------------------------------
+        # =================================================
 
         hybrid_context_prompt = f"""
 ==================================================
@@ -3312,6 +3452,22 @@ Name:
 
 Discord-ID:
 {user_id}
+
+
+==================================================
+WAHRGENOMMENE AKTUELLE NACHRICHT
+==================================================
+
+Bereinigter Text:
+
+{user_text}
+
+
+==================================================
+DISCORD CUSTOM EMOTES
+==================================================
+
+{emoji_context_text}
 
 
 ==================================================
@@ -3384,7 +3540,8 @@ WICHTIGE USER-TRENNUNG
 Im Channel können gleichzeitig
 viele verschiedene Menschen sprechen.
 
-Jede Discord-ID gehört exakt einer Person.
+Jede Discord-ID gehört exakt
+einer Person.
 
 Der aktuelle Gesprächspartner ist:
 
@@ -3399,11 +3556,12 @@ soziale Impression,
 Summaries
 und Archiv
 
-gehören ausschließlich zu {username}.
+gehören ausschließlich
+zu {username}.
 
-Aussagen anderer Menschen im Channel
-dürfen niemals automatisch {username}
-zugeschrieben werden.
+Aussagen anderer Menschen
+dürfen niemals automatisch
+{username} zugeschrieben werden.
 
 
 Beispiel:
@@ -3426,144 +3584,147 @@ NICHT:
 
 
 ==================================================
+CUSTOM-EMOTE-REGEL
+==================================================
+
+Ein Custom-Emote-Name ist
+KEINE Tatsachenbehauptung.
+
+Beispiel:
+
+<a:HanaeLeave:123>
+
+bedeutet NICHT sicher:
+
+"Hanae verlässt den Channel."
+
+Es ist zunächst nur
+eine nonverbale Discord-Reaktion.
+
+Wenn die Bedeutung unbekannt ist:
+
+- vorsichtig interpretieren
+- keine Fakten daraus erfinden
+
+
+==================================================
+KORREKTUREN
+==================================================
+
+Wenn {username}
+dich korrigiert:
+
+prüfe zuerst,
+ob deine vorherige Aussage
+wirklich falsch war.
+
+Wenn ja:
+
+akzeptiere den Fehler.
+
+Erfinde keine neue Story,
+nur um Recht zu behalten.
+
+
+==================================================
 KURZE KONTEXTABHÄNGIGE AUSSAGEN
 ==================================================
 
 Nachrichten wie:
 
-- "ich auch"
-- "same"
-- "dito"
-- "genau"
-- "ja"
-- "ja genau"
-- "stimmt"
-- "true"
-- "fr"
-- "me too"
+- ich auch
+- same
+- dito
+- genau
+- ja
+- stimmt
+- true
+- fr
 
-können nur durch vorherigen Gesprächskontext
-korrekt verstanden werden.
+können nur durch
+vorherigen Kontext verstanden werden.
 
 Nutze dafür besonders:
 
 AUFGELÖSTE KURZANTWORTEN
-
-Beispiel:
-
-Seiichi:
-"Ich hätte gerne ein Eis."
-
-Hanae:
-"ich auch"
-
-Dann bedeutet Hanaes Aussage
-sehr wahrscheinlich:
-
-Hanae hätte ebenfalls gerne ein Eis.
-
-Wenn der Zusammenhang eindeutig ist,
-sage nicht:
-
-"Ich weiß nicht, was sie meint."
-
-Wenn mehrere plausible Bezüge existieren,
-darfst du dagegen ehrlich unsicher sein.
-
-Erfinde niemals einen Zusammenhang,
-der nicht durch den bereitgestellten Kontext
-unterstützt wird.
 
 
 ==================================================
 FRAGEN ÜBER ANDERE PERSONEN
 ==================================================
 
-Wenn {username} beispielsweise fragt:
-
-- "Was hat Hanae gerade gesagt?"
-- "Was meinte Hanae damit?"
-- "Was meinte Max mit same?"
-- "Worauf bezog sich das?"
-- "Wer hat gerade X gesagt?"
-- "Was haben die anderen geschrieben?"
+Wenn {username}
+nach einer anderen Person fragt:
 
 prüfe in dieser Reihenfolge:
 
 1. aktueller Discord-Reply
 2. aufgelöste Kurzantworten
-3. aktive Personen im Channel
-4. gesamter kurzfristiger Channel-Verlauf
+3. aktive Personen
+4. Channel-Verlauf
 
-Wenn die gesuchte Information vorhanden ist:
-
-- gib sie korrekt oder sinngemäß wieder
-- ordne sie der richtigen Person zu
-- erkläre einen eindeutigen Zusammenhang
-- behaupte nicht,
-  dass du die Nachricht nicht gesehen hast
-- erfinde keine andere Aussage
+Erfinde keine Aussage,
+die dort nicht vorhanden ist.
 
 
 ==================================================
-BEZIEHUNG UND STIMMUNG
+GESPRÄCHSVERHALTEN
 ==================================================
 
-Die soziale Beziehung zu {username}
-ist langfristig.
+Sehr wichtig:
 
-Der aktuelle Mood ist kurzfristig.
+Du musst NICHT
+jede Antwort mit einer Frage beenden.
 
-Diese Dinge dürfen nicht verwechselt werden.
+Eine Aussage darf einfach enden.
 
-Beispiel:
+Fragen nur,
+wenn sie wirklich natürlich passen.
 
-Du kannst {username} grundsätzlich mögen,
-aber gerade müde oder genervt sein.
+Wiederhole nicht ständig:
 
-Du kannst jemanden noch kaum kennen,
-aber gerade ungewöhnlich freundlich drauf sein.
+- dieselbe Frage
+- denselben Joke
+- dieselbe Formulierung
+- denselben Running Gag
 
-Beides ist normal.
+Wenn ein Gesprächspunkt
+bereits ausreichend besprochen wurde:
+
+entwickle ihn weiter
+ODER
+lass ihn einfach enden.
 
 
 ==================================================
 PRIORITÄTEN
 ==================================================
 
-Für persönliche Fakten über {username}:
+Persönliche Fakten:
 
-1. dauerhaftes Profil
-2. neuere Langzeit-Erinnerungen
-3. älteres Archiv
+1. Profil
+2. neuere Memories
+3. Archiv
 4. direkter Verlauf
 
-Für deine soziale Haltung gegenüber {username}:
+Aktuelle Gesprächssituation:
 
-1. soziale Beziehung / Impression
+1. Perception
+2. aktueller Reply
+3. Kurzantwort-Kontext
+4. aktive Personen
+5. Channel-Verlauf
+
+Soziale Haltung:
+
+1. Relationship / Impression
 2. direkter Verlauf
 3. aktuelle Interaktion
-
-Für aktuelle Gruppengespräche:
-
-1. aktueller Discord-Reply
-2. aufgelöste Kurzantworten
-3. aktive Personen
-4. gesamter Channel-Verlauf
-
-Nutze Gruppenkontext nur,
-wenn er tatsächlich relevant ist.
-
-Du musst nicht ungefragt
-alles im Channel kommentieren.
-
-Nutze Namen natürlich
-und nicht in jeder Nachricht.
 """
 
-        # -------------------------------------------------
+        # =================================================
         # HUMAN TYPING DELAY
-        # -------------------------------------------------
+        # =================================================
 
         message_length = len(
             user_text
@@ -3586,9 +3747,9 @@ und nicht in jeder Nachricht.
             + extra_delay
         )
 
-        # -------------------------------------------------
+        # =================================================
         # GENERATE RESPONSE
-        # -------------------------------------------------
+        # =================================================
 
         try:
 
@@ -3672,7 +3833,8 @@ und nicht in jeder Nachricht.
             try:
 
                 await message.reply(
-                    "okay irgendwas ist grad bei mir kaputt 💀",
+                    "okay irgendwas ist grad "
+                    "bei mir kaputt 💀",
                     mention_author=False
                 )
 
@@ -3682,21 +3844,23 @@ und nicht in jeder Nachricht.
 
             return
 
-        # -------------------------------------------------
+        # =================================================
         # RESPONSE TEXT
-        # -------------------------------------------------
+        # =================================================
 
         answer = (
-            response.output_text.strip()
+            clean_generated_answer(
+                response.output_text
+            )
         )
 
         if not answer:
 
             answer = "hm."
 
-        # -------------------------------------------------
+        # =================================================
         # DIRECT USER CONTEXT UPDATE
-        # -------------------------------------------------
+        # =================================================
 
         user_context = (
             get_user_context(
@@ -3728,9 +3892,9 @@ und nicht in jeder Nachricht.
                 answer
         })
 
-        # -------------------------------------------------
+        # =================================================
         # CHANNEL CONTEXT UPDATE
-        # -------------------------------------------------
+        # =================================================
 
         add_channel_bot_message(
             channel_id,
@@ -3739,9 +3903,9 @@ und nicht in jeder Nachricht.
             answer
         )
 
-        # -------------------------------------------------
+        # =================================================
         # SEND RESPONSE
-        # -------------------------------------------------
+        # =================================================
 
         try:
 
@@ -3820,9 +3984,9 @@ und nicht in jeder Nachricht.
 
             return
 
-        # -------------------------------------------------
-        # FINAL RESPONSE LOG
-        # -------------------------------------------------
+        # =================================================
+        # FINAL LOG
+        # =================================================
 
         total_duration = (
             time.perf_counter()
@@ -3835,19 +3999,26 @@ und nicht in jeder Nachricht.
             )
         )
 
+        emoji_count = len(
+            perception.custom_emojis
+        )
+
         print(
             f"[RESPONSE DONE] "
             f"user={username} "
-            f"duration={total_duration:.2f}s "
+            f"id={user_id} "
+            f"duration="
+            f"{total_duration:.2f}s "
             f"buffer={buffer_count}/"
             f"{MEMORY_BUFFER_THRESHOLD} "
             f"mood={moods[mood_key]} "
-            f"relationship=text"
+            f"emojis={emoji_count} "
+            f"perception=active"
         )
 
-        # -------------------------------------------------
+        # =================================================
         # BACKGROUND MEMORY
-        # -------------------------------------------------
+        # =================================================
 
         start_memory_worker_if_needed(
             user_id,
