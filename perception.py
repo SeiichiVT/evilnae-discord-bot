@@ -6,6 +6,13 @@ import discord
 
 
 # =========================================================
+# PERCEPTION VERSION
+# =========================================================
+
+PERCEPTION_VERSION = "1.1"
+
+
+# =========================================================
 # REGEX
 # =========================================================
 
@@ -50,6 +57,20 @@ CHANNEL_MENTION_PATTERN = re.compile(
 
 
 # =========================================================
+# KNOWN NON-ADDRESS PHRASES
+#
+# Damit z. B. "Resident Evil" nicht als
+# "jemand ruft Evilnae" interpretiert wird.
+# =========================================================
+
+NON_ADDRESS_EVIL_PHRASES = {
+    "resident evil",
+    "evil dead",
+    "the evil within",
+}
+
+
+# =========================================================
 # DATA OBJECTS
 # =========================================================
 
@@ -78,7 +99,6 @@ class PerceivedMessage:
     # -----------------------------------------------------
 
     user_id: str
-
     username: str
 
     # -----------------------------------------------------
@@ -96,15 +116,15 @@ class PerceivedMessage:
     # -----------------------------------------------------
     # CLEAN NATURAL-LANGUAGE CONTENT
     #
-    # Custom Emojis und Bot-Anrede entfernt.
+    # Custom Emojis und Evilnae-Anrede entfernt.
     # -----------------------------------------------------
 
     text: str
 
     # -----------------------------------------------------
-    # CONTENT WITHOUT CUSTOM EMOJIS
+    # TEXT WITHOUT CUSTOM EMOJIS
     #
-    # Wird unter anderem für Trigger Detection benutzt.
+    # Wird für Trigger Detection benutzt.
     # -----------------------------------------------------
 
     trigger_text: str
@@ -118,23 +138,19 @@ class PerceivedMessage:
     )
 
     # -----------------------------------------------------
-    # MESSAGE TYPE FLAGS
+    # MESSAGE FLAGS
     # -----------------------------------------------------
 
     is_emoji_only: bool = False
-
     has_text: bool = False
 
     # -----------------------------------------------------
-    # EVILNAE ADDRESSING
+    # ADDRESSING
     # -----------------------------------------------------
 
     bot_mentioned: bool = False
-
     trigger_detected: bool = False
-
     replied_to_bot: bool = False
-
     should_reply: bool = False
 
     # -----------------------------------------------------
@@ -160,16 +176,10 @@ def extract_custom_emojis(
 
         emojis.append(
             ParsedEmoji(
-                name=match.group(
-                    "name"
-                ),
-                emoji_id=match.group(
-                    "id"
-                ),
+                name=match.group("name"),
+                emoji_id=match.group("id"),
                 animated=(
-                    match.group(
-                        "animated"
-                    )
+                    match.group("animated")
                     == "a"
                 ),
                 raw=match.group(0)
@@ -207,15 +217,11 @@ def normalize_spacing(
     if not text:
         return ""
 
-    # Mehrere Spaces -> einer
-
     text = re.sub(
         r"[ \t]+",
         " ",
         text
     )
-
-    # Mehr als zwei Newlines vermeiden
 
     text = re.sub(
         r"\n{3,}",
@@ -254,6 +260,44 @@ def remove_bot_mention(
 
 
 # =========================================================
+# HELPER: TRIGGER PATTERN
+# =========================================================
+
+def build_trigger_pattern(
+    trigger_words: list[str]
+) -> str:
+
+    sorted_triggers = sorted(
+        trigger_words,
+        key=len,
+        reverse=True
+    )
+
+    return "|".join(
+        re.escape(trigger)
+        for trigger in sorted_triggers
+    )
+
+
+# =========================================================
+# KNOWN TITLE CHECK
+# =========================================================
+
+def contains_known_non_address_phrase(
+    text: str
+) -> bool:
+
+    lowered = (
+        text or ""
+    ).lower()
+
+    return any(
+        phrase in lowered
+        for phrase in NON_ADDRESS_EVIL_PHRASES
+    )
+
+
+# =========================================================
 # TRIGGER DETECTION
 # =========================================================
 
@@ -263,53 +307,150 @@ def detect_trigger(
 ) -> bool:
 
     """
-    Erkennt Evilnae-Anreden ausschließlich
-    im echten Text.
+    Evilnae wird nur erkannt,
+    wenn der Name tatsächlich wie eine Anrede
+    oder direkte Ansprache benutzt wird.
 
-    Custom Emoji Namen wurden VORHER entfernt.
+    Beispiele:
 
-    Dadurch löst:
+    Evil was machst du?
+    -> True
+
+    Hey Evil, komm mal
+    -> True
+
+    was denkst du Evil?
+    -> True
+
+    Resident Evil ist geil
+    -> False
 
     <a:EvilnaeCool:123>
-
-    KEINEN Trigger aus.
+    -> False
     """
 
-    text = (
+    text = normalize_spacing(
         content_without_emojis
         or ""
-    ).lower()
+    )
 
-    for trigger in trigger_words:
+    if not text:
+        return False
 
-        escaped = re.escape(
-            trigger.lower()
+    lowered = text.lower()
+
+    # -----------------------------------------------------
+    # BEKANNTE TITEL / NICHT-ANREDEN
+    # -----------------------------------------------------
+
+    if contains_known_non_address_phrase(
+        lowered
+    ):
+
+        # Falls zusätzlich irgendwo eine echte,
+        # separate Anrede vorkommt, darf sie trotzdem
+        # erkannt werden.
+        #
+        # Beispiel:
+        #
+        # Evil, Resident Evil ist geil
+        #
+        # -> True
+
+        beginning_pattern = build_trigger_pattern(
+            trigger_words
         )
 
-        # Wort-/Namensgrenzen.
-        #
-        # "evil" wird erkannt in:
-        #
-        # Evil was geht?
-        # ey evil
-        # EVIL!!!
-        #
-        # aber nicht mitten in einem
-        # beliebigen längeren Wort.
-
-        pattern = (
-            rf"(?<![a-zA-Z0-9_])"
-            rf"{escaped}"
-            rf"(?![a-zA-Z0-9_])"
-        )
-
-        if re.search(
-            pattern,
+        explicit_start = re.search(
+            rf"^\s*"
+            rf"(?:hey|ey|yo|hi|hallo|moin|servus)?"
+            rf"[\s,:;!?.\-]*"
+            rf"(?:{beginning_pattern})"
+            rf"[\s,:;!?.\-]+",
             text,
             flags=re.IGNORECASE
-        ):
+        )
 
-            return True
+        if not explicit_start:
+            return False
+
+    trigger_pattern = build_trigger_pattern(
+        trigger_words
+    )
+
+    # -----------------------------------------------------
+    # 1. DIREKTE ANREDE AM ANFANG
+    #
+    # Evil was machst du
+    # Evil, komm mal
+    # -----------------------------------------------------
+
+    if re.search(
+        rf"^\s*"
+        rf"(?:{trigger_pattern})"
+        rf"(?:\s|[,.:;!?…\-]|$)",
+        text,
+        flags=re.IGNORECASE
+    ):
+
+        return True
+
+    # -----------------------------------------------------
+    # 2. GREETING + ANREDE
+    #
+    # Hey Evil
+    # Ey evil komm mal
+    # Hallo Evilnae
+    # -----------------------------------------------------
+
+    if re.search(
+        rf"^\s*"
+        rf"(?:hey|ey|yo|hi|hallo|moin|servus)"
+        rf"[\s,]+"
+        rf"(?:{trigger_pattern})"
+        rf"(?:\s|[,.:;!?…\-]|$)",
+        text,
+        flags=re.IGNORECASE
+    ):
+
+        return True
+
+    # -----------------------------------------------------
+    # 3. ANREDE AM SATZENDE
+    #
+    # was denkst du Evil?
+    # gute Nacht Evil
+    # -----------------------------------------------------
+
+    if re.search(
+        rf"(?:^|[\s,])"
+        rf"(?:{trigger_pattern})"
+        rf"[\s.!?,:;…\-]*$",
+        text,
+        flags=re.IGNORECASE
+    ):
+
+        return True
+
+    # -----------------------------------------------------
+    # 4. KLARE ANREDE IN DER MITTE
+    #
+    # sag mal Evil, was denkst du?
+    #
+    # Wir verlangen Satzzeichen nach dem Namen,
+    # damit nicht jedes normale "evil" im Satz feuert.
+    # -----------------------------------------------------
+
+    if re.search(
+        rf"(?:^|[\s])"
+        rf"(?:{trigger_pattern})"
+        rf"[,!:;]"
+        rf"(?:\s|$)",
+        text,
+        flags=re.IGNORECASE
+    ):
+
+        return True
 
     return False
 
@@ -324,22 +465,10 @@ def remove_trigger_address(
 ) -> str:
 
     """
-    Entfernt eine Evilnae-Anrede nur dort,
-    wo sie wie eine Anrede benutzt wird.
+    Entfernt Evilnae nur dort,
+    wo sie als direkte Anrede benutzt wird.
 
-    Beispiele:
-
-    Evil was machst du?
-    -> was machst du?
-
-    Hey Evil, was machst du?
-    -> Hey, was machst du?
-
-    Resident Evil ist cool
-    -> Resident Evil ist cool
-
-    Wir entfernen also NICHT blind jedes
-    Vorkommen von "evil".
+    Resident Evil bleibt erhalten.
     """
 
     if not text:
@@ -347,33 +476,27 @@ def remove_trigger_address(
 
     result = text
 
-    # -----------------------------------------------------
-    # TRIGGER AM ANFANG
-    # -----------------------------------------------------
-
-    sorted_triggers = sorted(
-        trigger_words,
-        key=len,
-        reverse=True
+    trigger_pattern = build_trigger_pattern(
+        trigger_words
     )
 
-    trigger_pattern = "|".join(
-        re.escape(trigger)
-        for trigger in sorted_triggers
-    )
+    # -----------------------------------------------------
+    # EVIL AM ANFANG
+    # -----------------------------------------------------
 
     result = re.sub(
-        rf"^\s*(?:{trigger_pattern})"
-        rf"[\s,:;!?.\-]*",
+        rf"^\s*"
+        rf"(?:{trigger_pattern})"
+        rf"[\s,:;!?.…\-]*",
         "",
         result,
         flags=re.IGNORECASE
     )
 
     # -----------------------------------------------------
-    # "hey evil ..."
-    # "ey evil ..."
-    # "yo evil ..."
+    # HEY EVIL ...
+    #
+    # Wir behalten "Hey" als natürlichen Satzanfang.
     # -----------------------------------------------------
 
     result = re.sub(
@@ -381,8 +504,25 @@ def remove_trigger_address(
         rf"(hey|ey|yo|hallo|hi|moin|servus)"
         rf"[\s,]+"
         rf"(?:{trigger_pattern})"
-        rf"[\s,:;!?.\-]*",
+        rf"[\s,:;!?.…\-]*",
         r"\1 ",
+        result,
+        flags=re.IGNORECASE
+    )
+
+    # -----------------------------------------------------
+    # EVIL AM SATZENDE
+    #
+    # "was denkst du Evil?"
+    # -> "was denkst du?"
+    # -----------------------------------------------------
+
+    result = re.sub(
+        rf"[\s,]+"
+        rf"(?:{trigger_pattern})"
+        rf"(?P<punc>[.!?…]*)"
+        rf"\s*$",
+        r"\g<punc>",
         result,
         flags=re.IGNORECASE
     )
@@ -403,6 +543,15 @@ def detect_emoji_only(
     if not raw_content:
         return False
 
+    custom_emojis = (
+        extract_custom_emojis(
+            raw_content
+        )
+    )
+
+    if not custom_emojis:
+        return False
+
     without_custom = (
         remove_custom_emojis(
             raw_content
@@ -415,20 +564,9 @@ def detect_emoji_only(
         )
     )
 
-    # Wenn nach Entfernen der Discord-Custom-Emojis
-    # kein echter Text übrig bleibt:
-    #
-    # reine Custom-Emoji-Nachricht.
-
-    if not without_custom:
-
-        return bool(
-            extract_custom_emojis(
-                raw_content
-            )
-        )
-
-    return False
+    return not bool(
+        without_custom
+    )
 
 
 # =========================================================
@@ -441,7 +579,6 @@ async def resolve_reply_info(
 ) -> Optional[ReplyInfo]:
 
     if not message.reference:
-
         return None
 
     resolved = (
@@ -455,9 +592,7 @@ async def resolve_reply_info(
         discord.Message
     ):
 
-        reply_message = (
-            resolved
-        )
+        reply_message = resolved
 
     else:
 
@@ -466,7 +601,6 @@ async def resolve_reply_info(
         )
 
         if not message_id:
-
             return None
 
         try:
@@ -490,29 +624,23 @@ async def resolve_reply_info(
             )
 
     if not reply_message:
-
         return None
 
     return ReplyInfo(
-
         message_id=str(
             reply_message.id
         ),
-
         author_id=str(
             reply_message.author.id
         ),
-
         author_name=(
             reply_message.author.display_name
         ),
-
         content=(
             reply_message.content[:1000]
             if reply_message.content
             else ""
         ),
-
         author_is_bot=(
             bot.user is not None
             and
@@ -589,7 +717,7 @@ async def perceive_message(
         )
 
     # -----------------------------------------------------
-    # TRIGGER
+    # TRIGGER DETECTION
     # -----------------------------------------------------
 
     trigger_detected = (
@@ -620,9 +748,7 @@ async def perceive_message(
     # CLEAN NATURAL TEXT
     # -----------------------------------------------------
 
-    clean_text = (
-        no_emojis
-    )
+    clean_text = no_emojis
 
     if bot.user is not None:
 
@@ -665,7 +791,6 @@ async def perceive_message(
     # -----------------------------------------------------
 
     should_reply = (
-
         bot_mentioned
         or
         trigger_detected
@@ -673,35 +798,91 @@ async def perceive_message(
         replied_to_bot
     )
 
+    # -----------------------------------------------------
+    # IMPORTANT:
+    #
+    # Reines Emote darf NICHT allein durch seinen
+    # Namen Evilnae triggern.
+    # -----------------------------------------------------
+
+    if (
+        is_emoji_only
+        and
+        not bot_mentioned
+        and
+        not replied_to_bot
+    ):
+
+        should_reply = False
+
+    # -----------------------------------------------------
+    # RESULT
+    # -----------------------------------------------------
+
     return PerceivedMessage(
-
         user_id=user_id,
-
         username=username,
-
         channel_id=channel_id,
-
         raw_content=raw_content,
-
         text=clean_text,
-
         trigger_text=no_emojis,
-
         custom_emojis=custom_emojis,
-
         is_emoji_only=is_emoji_only,
-
         has_text=has_text,
-
         bot_mentioned=bot_mentioned,
-
         trigger_detected=trigger_detected,
-
         replied_to_bot=replied_to_bot,
-
         should_reply=should_reply,
-
         reply=reply
+    )
+
+
+# =========================================================
+# EMOJI CONTEXT FORMAT
+# =========================================================
+
+def format_emoji_context(
+    perception: PerceivedMessage
+) -> str:
+
+    if not perception.custom_emojis:
+
+        return (
+            "Keine Discord-Custom-Emotes "
+            "in dieser Nachricht."
+        )
+
+    lines = []
+
+    for emoji in perception.custom_emojis:
+
+        animation_label = (
+            "animiert"
+            if emoji.animated
+            else "statisch"
+        )
+
+        lines.append(
+            f"- {emoji.name} "
+            f"(Discord-Custom-Emote, "
+            f"{animation_label}, "
+            f"ID {emoji.emoji_id})"
+        )
+
+    lines.append("")
+    lines.append(
+        "WICHTIG: Die Emote-Namen sind "
+        "keine wörtlichen Aussagen des Users."
+    )
+
+    lines.append(
+        "Nutze einen Emote-Namen niemals allein "
+        "als Beweis dafür, dass ein Ereignis "
+        "wirklich stattgefunden hat."
+    )
+
+    return "\n".join(
+        lines
     )
 
 
@@ -719,8 +900,17 @@ def format_perception_debug(
         in perception.custom_emojis
     ]
 
+    reply_name = None
+
+    if perception.reply:
+
+        reply_name = (
+            perception.reply.author_name
+        )
+
     return (
         "[PERCEPTION] "
+        f"v={PERCEPTION_VERSION} "
         f"user={perception.username} "
         f"id={perception.user_id} "
         f"text={perception.text!r} "
@@ -729,5 +919,6 @@ def format_perception_debug(
         f"bot_mention={perception.bot_mentioned} "
         f"trigger={perception.trigger_detected} "
         f"reply_bot={perception.replied_to_bot} "
+        f"reply_to={reply_name!r} "
         f"should_reply={perception.should_reply}"
     )
