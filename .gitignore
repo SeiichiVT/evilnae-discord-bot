@@ -2,3 +2,8 @@
 .venv/
 __pycache__/
 evilnae.db
+
+evilnae_inner_state.json
+initiative_state.json
+social_actions_state.json
+reflection_state.json
