@@ -9,7 +9,7 @@ import discord
 # PERCEPTION VERSION
 # =========================================================
 
-PERCEPTION_VERSION = "1.4"
+PERCEPTION_VERSION = "1.5"
 
 
 # =========================================================
@@ -38,89 +38,32 @@ CHANNEL_MENTION_PATTERN = re.compile(
 # =========================================================
 # KNOWN NON-ADDRESS PHRASES
 #
-# Damit z. B.:
+# "Evil" ist Evilnaes Spitzname.
 #
-# Resident Evil
-# Evil Dead
+# Deshalb behandeln wir ein eigenständiges
+# "Evil" grundsätzlich als Anrede.
 #
-# nicht als direkte Anrede interpretiert werden.
+# Es gibt aber bekannte Titel / Namen,
+# bei denen Evil NICHT Evilnae meint.
 # =========================================================
 
-NON_ADDRESS_EVIL_PHRASES = {
-    "resident evil",
-    "evil dead",
-    "the evil within",
-}
+NON_ADDRESS_EVIL_PATTERNS = [
 
+    re.compile(
+        r"\bresident\s+evil\b",
+        flags=re.IGNORECASE
+    ),
 
-# =========================================================
-# NATURAL ADDRESS LEAD-INS
-#
-# Diese Wörter können natürlich
-# vor einer Evilnae-Anrede stehen.
-#
-# Beispiele:
-#
-# So Evil ...
-# Soooo Evil ...
-# Also Evil ...
-# Okay Evil ...
-# Naja Evil ...
-# =========================================================
+    re.compile(
+        r"\bevil\s+dead\b",
+        flags=re.IGNORECASE
+    ),
 
-ADDRESS_LEAD_INS = {
-    "so",
-    "also",
-    "okay",
-    "ok",
-    "ja",
-    "na",
-    "naja",
-    "gut",
-    "hm",
-    "hmm",
-    "äh",
-    "ehm",
-}
-
-
-# =========================================================
-# GREETINGS
-# =========================================================
-
-GREETING_LEAD_INS = {
-    "hey",
-    "ey",
-    "yo",
-    "hi",
-    "hallo",
-    "moin",
-    "servus",
-}
-
-
-# =========================================================
-# OPTIONAL ADDRESS MODIFIERS
-#
-# Beispiele:
-#
-# Soooo liebe Evil
-# Hey kleine Evil
-# Also meine liebe Evil
-# =========================================================
-
-ADDRESS_MODIFIERS = {
-    "liebe",
-    "lieber",
-    "meine",
-    "mein",
-    "kleine",
-    "kleiner",
-    "gute",
-    "guter",
-    "werte",
-    "werter",
-}
+    re.compile(
+        r"\bthe\s+evil\s+within\b",
+        flags=re.IGNORECASE
+    ),
+]
 
 
 # =========================================================
@@ -177,13 +120,16 @@ class PerceivedMessage:
     raw_content: str
 
     # -----------------------------------------------------
-    # CLEAN NATURAL TEXT
+    # CLEAN TEXT
+    #
+    # Evil / Evilnae wird als Anrede entfernt,
+    # der restliche natürliche Text bleibt erhalten.
     # -----------------------------------------------------
 
     text: str
 
     # -----------------------------------------------------
-    # TEXT FOR TRIGGER DETECTION
+    # TEXT USED FOR TRIGGER DETECTION
     # -----------------------------------------------------
 
     trigger_text: str
@@ -316,39 +262,6 @@ def normalize_spacing(
 
 
 # =========================================================
-# STRETCHED WORD NORMALIZATION
-#
-# Nur für Anrede-Erkennung.
-#
-# User-Text selbst wird NICHT verändert.
-#
-# sooo   -> so
-# heyyy  -> hey
-# okayyy -> okay
-# jaaaa  -> ja
-# =========================================================
-
-def normalize_stretched_word(
-    word: str
-) -> str:
-
-    word = (
-        word
-        or ""
-    ).strip().lower()
-
-    if not word:
-
-        return ""
-
-    return re.sub(
-        r"(.)\1+",
-        r"\1",
-        word
-    )
-
-
-# =========================================================
 # REMOVE BOT MENTION
 # =========================================================
 
@@ -377,7 +290,16 @@ def remove_bot_mention(
 
 
 # =========================================================
-# TRIGGER PATTERN
+# BUILD TRIGGER PATTERN
+#
+# Aus:
+#
+# evilnae
+# evil nae
+# evil
+#
+# wird ein Regex,
+# bei dem Leerzeichen flexibel sind.
 # =========================================================
 
 def build_trigger_pattern(
@@ -390,93 +312,111 @@ def build_trigger_pattern(
         reverse=True
     )
 
+    patterns = []
+
+    for trigger in sorted_triggers:
+
+        escaped = (
+            re.escape(
+                trigger
+            )
+        )
+
+        # "evil nae"
+        # soll auch bei mehreren Spaces funktionieren.
+
+        escaped = escaped.replace(
+            r"\ ",
+            r"\s+"
+        )
+
+        patterns.append(
+            escaped
+        )
+
     return "|".join(
-        re.escape(
-            trigger
-        )
-        for trigger
-        in sorted_triggers
+        patterns
     )
 
 
 # =========================================================
-# ADDRESS MODIFIER PATTERN
+# NON-ADDRESS SPANS
+#
+# Beispiel:
+#
+# "Ich spiel Resident Evil"
+#
+# Der Evil-Teil darin darf NICHT
+# als Evilnae-Anrede gelten.
 # =========================================================
 
-def build_modifier_pattern():
-
-    return "|".join(
-        re.escape(
-            word
-        )
-        for word
-        in sorted(
-            ADDRESS_MODIFIERS,
-            key=len,
-            reverse=True
-        )
-    )
-
-
-# =========================================================
-# KNOWN TITLE CHECK
-# =========================================================
-
-def contains_known_non_address_phrase(
-    text: str
-) -> bool:
-
-    lowered = (
-        text
-        or ""
-    ).lower()
-
-    return any(
-        phrase in lowered
-        for phrase
-        in NON_ADDRESS_EVIL_PHRASES
-    )
-
-
-# =========================================================
-# NATURAL LEAD-IN CLASSIFICATION
-# =========================================================
-
-def classify_lead_in(
-    word
+def get_non_address_spans(
+    text
 ):
 
-    normalized = (
-        normalize_stretched_word(
-            word
-        )
+    spans = []
+
+    for pattern in (
+        NON_ADDRESS_EVIL_PATTERNS
+    ):
+
+        for match in (
+            pattern.finditer(
+                text or ""
+            )
+        ):
+
+            spans.append(
+                (
+                    match.start(),
+                    match.end()
+                )
+            )
+
+    return spans
+
+
+# =========================================================
+# SPAN OVERLAP
+# =========================================================
+
+def spans_overlap(
+    first_start,
+    first_end,
+    second_start,
+    second_end
+):
+
+    return (
+        first_start < second_end
+        and
+        second_start < first_end
     )
 
-    if (
-        normalized
-        in ADDRESS_LEAD_INS
-    ):
-
-        return "address"
-
-    if (
-        normalized
-        in GREETING_LEAD_INS
-    ):
-
-        return "greeting"
-
-    return None
-
 
 # =========================================================
-# DIRECT START ADDRESS
+# FIND VALID EVILNAE ADDRESS SPANS
+#
+# DAS IST DIE NEUE ZENTRALE LOGIK.
+#
+# Nicht mehr:
+#
+# "Steht Hallo davor?"
+#
+# Sondern:
+#
+# "Steht Evil / Evilnae überhaupt
+#  als eigenständiger Name im Text?"
 # =========================================================
 
-def detect_direct_start_address(
+def find_address_trigger_spans(
     text,
     trigger_words
 ):
+
+    if not text:
+
+        return []
 
     trigger_pattern = (
         build_trigger_pattern(
@@ -484,133 +424,106 @@ def detect_direct_start_address(
         )
     )
 
-    modifier_pattern = (
-        build_modifier_pattern()
+    pattern = re.compile(
+        rf"(?<![\w])"
+        rf"(?:{trigger_pattern})"
+        rf"(?![\w])",
+        flags=re.IGNORECASE
     )
 
-    # -----------------------------------------------------
-    # EVIL ...
-    # -----------------------------------------------------
+    excluded_spans = (
+        get_non_address_spans(
+            text
+        )
+    )
 
-    if re.search(
-        rf"^\s*"
-        rf"(?:{trigger_pattern})"
-        rf"(?:\s|[,.:;!?…\-]|$)",
-        text,
-        flags=re.IGNORECASE
+    valid_spans = []
+
+    for match in (
+        pattern.finditer(
+            text
+        )
     ):
 
-        return True
+        match_start = (
+            match.start()
+        )
 
-    # -----------------------------------------------------
-    # NATURAL LEAD-IN + OPTIONAL MODIFIERS
-    #
-    # Sooo Evil
-    #
-    # Soooo liebe Evil
-    #
-    # Also meine liebe Evil
-    #
-    # Heyyy kleine Evil
-    #
-    # Okay Evil
-    # -----------------------------------------------------
+        match_end = (
+            match.end()
+        )
 
-    match = re.search(
-        rf"^\s*"
-        rf"(?P<lead>[A-Za-zÄÖÜäöüß]+)"
-        rf"[\s,.:;!?…\-]+"
-        rf"(?:"
-            rf"(?:{modifier_pattern})"
-            rf"[\s,.:;!?…\-]+"
-        rf"){{0,3}}"
-        rf"(?:{trigger_pattern})"
-        rf"(?:\s|[,.:;!?…\-]|$)",
-        text,
-        flags=re.IGNORECASE
-    )
+        excluded = False
 
-    if match:
+        for (
+            excluded_start,
+            excluded_end
+        ) in excluded_spans:
 
-        lead = (
-            match.group(
-                "lead"
+            if spans_overlap(
+                match_start,
+                match_end,
+                excluded_start,
+                excluded_end
+            ):
+
+                excluded = True
+
+                break
+
+        if excluded:
+
+            continue
+
+        valid_spans.append(
+            (
+                match_start,
+                match_end
             )
         )
 
-        if classify_lead_in(
-            lead
-        ):
-
-            return True
-
-    # -----------------------------------------------------
-    # MODIFIER DIRECTLY BEFORE EVIL
-    #
-    # Liebe Evil ...
-    #
-    # Meine liebe Evil ...
-    # -----------------------------------------------------
-
-    if re.search(
-        rf"^\s*"
-        rf"(?:"
-            rf"(?:{modifier_pattern})"
-            rf"[\s,.:;!?…\-]+"
-        rf"){{1,3}}"
-        rf"(?:{trigger_pattern})"
-        rf"(?:\s|[,.:;!?…\-]|$)",
-        text,
-        flags=re.IGNORECASE
-    ):
-
-        return True
-
-    return False
+    return valid_spans
 
 
 # =========================================================
 # TRIGGER DETECTION
+#
+# Name-first statt Greeting-first.
+#
+# Beispiele:
+#
+# Hallo Evil
+# -> True
+#
+# Tag Evil
+# -> True
+#
+# Moin Evil
+# -> True
+#
+# Sooooo meine liebe Evil
+# -> True
+#
+# Evil was machst du?
+# -> True
+#
+# Was denkst du Evil?
+# -> True
+#
+# Evilnae?
+# -> True
+#
+# Resident Evil
+# -> False
+#
+# Evil Dead
+# -> False
 # =========================================================
 
 def detect_trigger(
     content_without_emojis: str,
     trigger_words: list[str]
 ) -> bool:
-
-    """
-    Beispiele:
-
-    Evil was machst du?
-    -> True
-
-    Hey Evil
-    -> True
-
-    Heyyy Evil
-    -> True
-
-    So Evil
-    -> True
-
-    Sooooo Evil
-    -> True
-
-    Soooo liebe Evil
-    -> True
-
-    Also meine liebe Evil
-    -> True
-
-    Liebe Evil
-    -> True
-
-    was denkst du Evil?
-    -> True
-
-    Resident Evil ist geil
-    -> False
-    """
 
     text = (
         normalize_spacing(
@@ -623,75 +536,40 @@ def detect_trigger(
 
         return False
 
-    direct_start = (
-        detect_direct_start_address(
+    spans = (
+        find_address_trigger_spans(
             text,
             trigger_words
         )
     )
 
-    # -----------------------------------------------------
-    # KNOWN NON-ADDRESS PHRASE
-    # -----------------------------------------------------
-
-    if (
-        contains_known_non_address_phrase(
-            text
-        )
-        and
-        not direct_start
-    ):
-
-        return False
-
-    if direct_start:
-
-        return True
-
-    trigger_pattern = (
-        build_trigger_pattern(
-            trigger_words
-        )
+    return bool(
+        spans
     )
-
-    # -----------------------------------------------------
-    # NAME AT END
-    #
-    # was denkst du Evil?
-    # -----------------------------------------------------
-
-    if re.search(
-        rf"(?:^|[\s,])"
-        rf"(?:{trigger_pattern})"
-        rf"[\s.!?,:;…\-]*$",
-        text,
-        flags=re.IGNORECASE
-    ):
-
-        return True
-
-    # -----------------------------------------------------
-    # VOCATIVE IN MIDDLE
-    #
-    # sag mal Evil, was denkst du?
-    # -----------------------------------------------------
-
-    if re.search(
-        rf"(?:^|[\s])"
-        rf"(?:{trigger_pattern})"
-        rf"[,!:;]"
-        rf"(?:\s|$)",
-        text,
-        flags=re.IGNORECASE
-    ):
-
-        return True
-
-    return False
 
 
 # =========================================================
 # REMOVE TRIGGER ADDRESS
+#
+# Wir entfernen Evil / Evilnae,
+# aber NICHT irgendwelche Wörter davor.
+#
+# Dadurch hängt die Wahrnehmung nicht mehr
+# von Hallo / Moin / Tag / Sooo usw. ab.
+#
+#
+# Beispiel:
+#
+# "HALLO Evil - wie gehts?"
+#
+# wird ungefähr:
+#
+# "HALLO - wie gehts?"
+#
+#
+# Das ist völlig okay:
+# Der Writer bekommt weiterhin
+# den natürlichen Inhalt der Nachricht.
 # =========================================================
 
 def remove_trigger_address(
@@ -703,170 +581,87 @@ def remove_trigger_address(
 
         return ""
 
-    result = text
-
-    trigger_pattern = (
-        build_trigger_pattern(
+    spans = (
+        find_address_trigger_spans(
+            text,
             trigger_words
         )
     )
 
-    modifier_pattern = (
-        build_modifier_pattern()
-    )
+    if not spans:
 
-    # -----------------------------------------------------
-    # LEAD-IN + OPTIONAL MODIFIERS + EVIL
-    #
-    # Sooo Evil
-    # -> entfernt
-    #
-    # Sooo liebe Evil
-    # -> entfernt
-    #
-    # Heyyy Evil
-    # -> Heyyy bleibt
-    #
-    # Heyyy kleine Evil
-    # -> Heyyy bleibt
-    # -----------------------------------------------------
-
-    start_pattern = re.compile(
-        rf"^\s*"
-        rf"(?P<lead>[A-Za-zÄÖÜäöüß]+)"
-        rf"[\s,.:;!?…\-]+"
-        rf"(?:"
-            rf"(?:{modifier_pattern})"
-            rf"[\s,.:;!?…\-]+"
-        rf"){{0,3}}"
-        rf"(?:{trigger_pattern})"
-        rf"[\s,:;!?.…\-]*",
-        flags=re.IGNORECASE
-    )
-
-    start_match = (
-        start_pattern.search(
-            result
-        )
-    )
-
-    if start_match:
-
-        lead = (
-            start_match.group(
-                "lead"
-            )
+        return normalize_spacing(
+            text
         )
 
-        lead_type = (
-            classify_lead_in(
-                lead
-            )
+    result = text
+
+    # Von hinten entfernen,
+    # damit Positionswerte gültig bleiben.
+
+    for (
+        start,
+        end
+    ) in reversed(
+        spans
+    ):
+
+        result = (
+            result[:start]
+            + " "
+            + result[end:]
         )
 
-        if (
-            lead_type
-            == "address"
-        ):
-
-            result = (
-                result[
-                    start_match.end():
-                ]
-            )
-
-        elif (
-            lead_type
-            == "greeting"
-        ):
-
-            result = (
-                lead
-                + " "
-                + result[
-                    start_match.end():
-                ]
-            )
-
     # -----------------------------------------------------
-    # DIRECT MODIFIER + EVIL
-    #
-    # Liebe Evil
-    # Meine liebe Evil
+    # CLEANUP
     # -----------------------------------------------------
 
     result = re.sub(
-        rf"^\s*"
-        rf"(?:"
-            rf"(?:{modifier_pattern})"
-            rf"[\s,.:;!?…\-]+"
-        rf"){{1,3}}"
-        rf"(?:{trigger_pattern})"
-        rf"[\s,:;!?.…\-]*",
-        "",
-        result,
-        flags=re.IGNORECASE
-    )
-
-    # -----------------------------------------------------
-    # EVIL AT START
-    # -----------------------------------------------------
-
-    result = re.sub(
-        rf"^\s*"
-        rf"(?:{trigger_pattern})"
-        rf"[\s,:;!?.…\-]*",
-        "",
-        result,
-        flags=re.IGNORECASE
-    )
-
-    # -----------------------------------------------------
-    # EVIL AT END
-    # -----------------------------------------------------
-
-    result = re.sub(
-        rf"[\s,]+"
-        rf"(?:{trigger_pattern})"
-        rf"(?P<punc>[.!?…]*)"
-        rf"\s*$",
-        r"\g<punc>",
-        result,
-        flags=re.IGNORECASE
-    )
-
-    # -----------------------------------------------------
-    # EVIL AS VOCATIVE IN MIDDLE
-    #
-    # Sag mal Evil, was...
-    # -> Sag mal, was...
-    # -----------------------------------------------------
-
-    result = re.sub(
-        rf"(?P<before>\s)"
-        rf"(?:{trigger_pattern})"
-        rf"(?P<punc>[,!:;])"
-        rf"(?P<after>\s*)",
-        lambda match: (
-            match.group(
-                "punc"
-            )
-            +
-            (
-                " "
-                if match.group(
-                    "after"
-                )
-                else ""
-            )
-        ),
-        result,
-        flags=re.IGNORECASE
-    )
-
-    return normalize_spacing(
+        r"[ \t]+",
+        " ",
         result
     )
+
+    # Leerzeichen vor Satzzeichen entfernen.
+
+    result = re.sub(
+        r"\s+([,.!?;:])",
+        r"\1",
+        result
+    )
+
+    # Mehrere Bindestriche / Spaces normalisieren.
+
+    result = re.sub(
+        r"\s*-\s*",
+        " - ",
+        result
+    )
+
+    # Doppelte Satzzeichen,
+    # die durch Entfernen des Namens entstehen können.
+
+    result = re.sub(
+        r",\s*,",
+        ",",
+        result
+    )
+
+    result = normalize_spacing(
+        result
+    )
+
+    # -----------------------------------------------------
+    # ORPHAN PUNCTUATION AT START
+    # -----------------------------------------------------
+
+    result = re.sub(
+        r"^[,;:\-]+\s*",
+        "",
+        result
+    ).strip()
+
+    return result
 
 
 # =========================================================
@@ -932,7 +727,9 @@ async def resolve_reply_info(
         discord.Message
     ):
 
-        reply_message = resolved
+        reply_message = (
+            resolved
+        )
 
     else:
 
@@ -1035,7 +832,7 @@ async def perceive_message(
     )
 
     # -----------------------------------------------------
-    # REMOVE CUSTOM EMOJIS
+    # TEXT WITHOUT CUSTOM EMOJIS
     # -----------------------------------------------------
 
     no_emojis = (
@@ -1064,7 +861,10 @@ async def perceive_message(
         )
 
     # -----------------------------------------------------
-    # TRIGGER DETECTION
+    # NAME TRIGGER
+    #
+    # Evil / Evilnae ist jetzt
+    # das primäre Signal.
     # -----------------------------------------------------
 
     trigger_detected = (
@@ -1095,7 +895,9 @@ async def perceive_message(
     # CLEAN NATURAL TEXT
     # -----------------------------------------------------
 
-    clean_text = no_emojis
+    clean_text = (
+        no_emojis
+    )
 
     if bot.user is not None:
 
@@ -1106,12 +908,14 @@ async def perceive_message(
             )
         )
 
-    clean_text = (
-        remove_trigger_address(
-            clean_text,
-            trigger_words
+    if trigger_detected:
+
+        clean_text = (
+            remove_trigger_address(
+                clean_text,
+                trigger_words
+            )
         )
-    )
 
     clean_text = (
         normalize_spacing(
@@ -1134,28 +938,31 @@ async def perceive_message(
     )
 
     # -----------------------------------------------------
-    # DIRECT RESPONSE DECISION
+    # SHOULD REPLY
     #
-    # WICHTIG:
+    # DIRECT wenn:
     #
-    # Das bedeutet nur:
+    # - Evil / Evilnae genannt
+    # - Discord-Mention
+    # - Reply auf Evilnae
     #
-    # "Evilnae wurde direkt angesprochen."
-    #
-    # Active Conversation und Participation
-    # werden später in bot.py entschieden.
+    # Active Conversation / Participation
+    # entscheidet weiterhin bot.py.
     # -----------------------------------------------------
 
     should_reply = (
-        bot_mentioned
-        or
         trigger_detected
+        or
+        bot_mentioned
         or
         replied_to_bot
     )
 
     # -----------------------------------------------------
-    # EMOTE-ONLY SAFETY
+    # EMOTE ONLY
+    #
+    # Ein einzelnes Emote ohne
+    # direkte Ansprache erzwingt keine Antwort.
     # -----------------------------------------------------
 
     if (
@@ -1164,6 +971,8 @@ async def perceive_message(
         not bot_mentioned
         and
         not replied_to_bot
+        and
+        not trigger_detected
     ):
 
         should_reply = False
