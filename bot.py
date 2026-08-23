@@ -1,6 +1,7 @@
 import os
 import random
 import re
+import json
 import asyncio
 import time
 from collections import deque
@@ -58,6 +59,15 @@ from initiative import (
     format_initiative_debug,
 )
 
+from reflection import (
+    reflection_state,
+    build_reflection_prompt,
+    apply_learning_signals,
+    store_reflection,
+    format_learned_behavior,
+    format_reflection_debug,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -73,7 +83,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.7-autonomy"
+BOT_VERSION = "2.8-reflection"
 
 
 # =========================================================
@@ -207,24 +217,31 @@ EXPRESSION_VIOLATION_LOGGING = True
 # INITIATIVE CONFIG
 # =========================================================
 
-# Wie oft der Hintergrund-Loop prüft,
-# ob Evilnae selbst etwas sagen möchte.
-#
-# Das ist KEIN Nachrichtenintervall.
-#
-# initiative.py besitzt weiterhin:
-#
-# - 45 Minuten Cooldown
-# - max. 8 Initiativen/Tag
-# - Channel Silence Regeln
-# - Zufalls-Gate
-#
-# Hier wird nur alle 3 Minuten geprüft,
-# ob die Bedingungen erfüllt sind.
-
 INITIATIVE_CHECK_INTERVAL = (
     3 * 60
 )
+
+
+# =========================================================
+# REFLECTION CONFIG
+# =========================================================
+
+# Wenn der User nach Evilnaes Antwort
+# erneut mit ihr spricht,
+# wird diese Nachricht als mögliches
+# Feedback auf die vorherige Antwort benutzt.
+#
+# Kommt keine weitere Reaktion,
+# reflektiert Evilnae nach 12 Minuten
+# trotzdem vorsichtig.
+
+REFLECTION_REACTION_WINDOW = (
+    12 * 60
+)
+
+OPENAI_REFLECTION_TIMEOUT = 25
+
+MAX_PARALLEL_REFLECTION_JOBS = 2
 
 
 # =========================================================
@@ -347,12 +364,35 @@ initiative_target_channel_id = None
 
 
 # =========================================================
+# REFLECTION RUNTIME STATE
+#
+# pending_reflections:
+#
+# letzte Evilnae-Interaktion pro User,
+# die auf Feedback wartet.
+#
+# reflection_timeout_tasks:
+#
+# falls der User nicht mehr reagiert,
+# wird nach Ablauf trotzdem reflektiert.
+# =========================================================
+
+pending_reflections = {}
+
+reflection_timeout_tasks = {}
+
+reflection_background_tasks = set()
+
+
+# =========================================================
 # LIVE MONITORING
 # =========================================================
 
 active_response_requests = 0
 
 active_memory_requests = 0
+
+active_reflection_requests = 0
 
 
 # =========================================================
@@ -365,6 +405,10 @@ response_semaphore = asyncio.Semaphore(
 
 memory_semaphore = asyncio.Semaphore(
     MAX_PARALLEL_MEMORY_JOBS
+)
+
+reflection_semaphore = asyncio.Semaphore(
+    MAX_PARALLEL_REFLECTION_JOBS
 )
 
 
@@ -514,6 +558,54 @@ Aber leichte Gereiztheit bedeutet NICHT:
 "ich mag dich eigentlich nicht."
 
 Gefühle haben Abstufungen.
+
+
+==================================================
+LEARNING / REFLECTION
+==================================================
+
+Du besitzt ein langsam lernendes
+Verhaltensmodell.
+
+Es kann aus vergangenen
+Interaktionen kleine Tendenzen lernen:
+
+- wie kurz du normalerweise schreibst
+- wie viel du teasing benutzt
+- wie warm du wirkst
+- wie viel Slang du benutzt
+- wie häufig Emojis passen
+- ob unnötige Gegenfragen nerven
+- welche Sprachmuster natürlich wirken
+
+Dieses gelernte Verhalten
+ist eine Tendenz.
+
+KEIN unumstößliches Gesetz.
+
+Aktueller Kontext,
+Beziehung,
+Inner State
+und deine Kernpersönlichkeit
+bleiben wichtiger.
+
+Eine einzelne Interaktion
+darf deine Persönlichkeit
+niemals komplett verändern.
+
+Du darfst niemals lernen:
+
+- Sicherheitsregeln zu ignorieren
+- Hass zu fördern
+- NSFW-Regeln zu umgehen
+- Menschen gezielt zu manipulieren
+- absichtlich emotional abhängig zu machen
+- deine Kernidentität aufzugeben
+
+Learning verändert Stil
+und soziale Feinheiten.
+
+Nicht deine Sicherheitsgrenzen.
 
 
 ==================================================
@@ -817,6 +909,11 @@ Keine automatische Erwähnung von:
 
 # =========================================================
 # MOOD PROMPTS
+#
+# Weiterhin nur Kompatibilitäts-Bridge
+# für Conversation State / Writer.
+#
+# Mood wird NICHT mehr zufällig gewählt.
 # =========================================================
 
 MOOD_PROMPTS = {
@@ -875,6 +972,7 @@ async def safe_openai_request(
 
     global active_response_requests
     global active_memory_requests
+    global active_reflection_requests
 
     last_error = None
 
@@ -898,6 +996,15 @@ async def safe_openai_request(
                     memory_semaphore
                 )
 
+            elif (
+                request_type
+                == "reflection"
+            ):
+
+                semaphore = (
+                    reflection_semaphore
+                )
+
             else:
 
                 semaphore = (
@@ -912,6 +1019,13 @@ async def safe_openai_request(
                 ):
 
                     active_memory_requests += 1
+
+                elif (
+                    request_type
+                    == "reflection"
+                ):
+
+                    active_reflection_requests += 1
 
                 else:
 
@@ -957,19 +1071,37 @@ async def safe_openai_request(
                     ):
 
                         print(
-                            f"[API MEMORY] "
+                            "[API MEMORY] "
                             f"user={username} "
                             f"duration={duration:.2f}s "
-                            f"attempt={attempt}"
+                            f"attempt={attempt} "
+                            f"active="
+                            f"{active_memory_requests}"
+                        )
+
+                    elif (
+                        request_type
+                        == "reflection"
+                    ):
+
+                        print(
+                            "[API REFLECTION] "
+                            f"user={username} "
+                            f"duration={duration:.2f}s "
+                            f"attempt={attempt} "
+                            f"active="
+                            f"{active_reflection_requests}"
                         )
 
                     else:
 
                         print(
-                            f"[API RESPONSE] "
+                            "[API RESPONSE] "
                             f"user={username} "
                             f"duration={duration:.2f}s "
-                            f"attempt={attempt}"
+                            f"attempt={attempt} "
+                            f"active="
+                            f"{active_response_requests}"
                         )
 
                     return response
@@ -984,6 +1116,16 @@ async def safe_openai_request(
                         active_memory_requests = max(
                             0,
                             active_memory_requests - 1
+                        )
+
+                    elif (
+                        request_type
+                        == "reflection"
+                    ):
+
+                        active_reflection_requests = max(
+                            0,
+                            active_reflection_requests - 1
                         )
 
                     else:
@@ -1038,6 +1180,13 @@ async def safe_openai_request(
             delay += random.uniform(
                 0.0,
                 0.75
+            )
+
+            print(
+                "[API RETRY] "
+                f"type={request_type} "
+                f"user={username} "
+                f"in={delay:.2f}s"
             )
 
             await asyncio.sleep(
@@ -1560,7 +1709,7 @@ def format_participant_contexts(
 
 
 # =========================================================
-# CONTEXT-DEPENDENT SHORT MESSAGES
+# SHORT CONTEXT HELPERS
 # =========================================================
 
 def normalize_context_message(
@@ -1634,8 +1783,6 @@ def find_previous_relevant_message(
         ]
     )
 
-    max_distance = 4
-
     checked = 0
 
     for index in range(
@@ -1644,10 +1791,7 @@ def find_previous_relevant_message(
         -1
     ):
 
-        if (
-            checked
-            >= max_distance
-        ):
+        if checked >= 4:
 
             break
 
@@ -1730,15 +1874,11 @@ def format_resolved_short_context(
             continue
 
         username = (
-            item[
-                "username"
-            ]
+            item["username"]
         )
 
         user_id = (
-            item[
-                "user_id"
-            ]
+            item["user_id"]
         )
 
         reply_name = (
@@ -1771,10 +1911,6 @@ Das war eine direkte Discord-Antwort
 auf {reply_name}:
 
 "{reply_content}"
-
-Die kurze Aussage bezieht sich daher
-sehr wahrscheinlich direkt
-auf diese Bezugsnachricht.
 """.strip()
             )
 
@@ -1791,24 +1927,6 @@ auf diese Bezugsnachricht.
 
             continue
 
-        previous_username = (
-            previous_item[
-                "username"
-            ]
-        )
-
-        previous_user_id = (
-            previous_item[
-                "user_id"
-            ]
-        )
-
-        previous_content = (
-            previous_item[
-                "content"
-            ]
-        )
-
         resolved_blocks.append(
             f"""
 {username}
@@ -1818,16 +1936,14 @@ schrieb:
 
 "{content}"
 
-Wahrscheinlicher unmittelbarer Gesprächsbezug:
+Wahrscheinlicher unmittelbarer Bezug:
 
-{previous_username}
-[Discord-ID: {previous_user_id}]
+{previous_item["username"]}
+[Discord-ID: {previous_item["user_id"]}]
 
-schrieb kurz davor:
+schrieb:
 
-"{previous_content}"
-
-Diese Aussagen gehören wahrscheinlich zusammen.
+"{previous_item["content"]}"
 """.strip()
         )
 
@@ -2015,10 +2131,6 @@ def add_channel_initiative_message(
     })
 
 
-# =========================================================
-# FORMAT CHANNEL CONTEXT
-# =========================================================
-
 def format_channel_context(
     channel_snapshot
 ):
@@ -2034,27 +2146,19 @@ def format_channel_context(
     for item in channel_snapshot:
 
         username = (
-            item[
-                "username"
-            ]
+            item["username"]
         )
 
         user_id = (
-            item[
-                "user_id"
-            ]
+            item["user_id"]
         )
 
         content = (
-            item[
-                "content"
-            ]
+            item["content"]
         )
 
         if (
-            item[
-                "type"
-            ]
+            item["type"]
             == "bot"
         ):
 
@@ -2106,8 +2210,7 @@ def format_channel_context(
             if reply_content:
 
                 lines.append(
-                    f"  ↳ Bezugsnachricht von "
-                    f"{reply_name}: "
+                    f"  ↳ Bezugsnachricht: "
                     f"{reply_content}"
                 )
 
@@ -2149,9 +2252,7 @@ def format_user_context(
     for entry in context:
 
         if (
-            entry[
-                "role"
-            ]
+            entry["role"]
             == "user"
         ):
 
@@ -2294,7 +2395,7 @@ def enforce_question_guard(
         answer
     )
 
-    kept_sentences = []
+    kept = []
 
     for sentence in sentences:
 
@@ -2310,13 +2411,13 @@ def enforce_question_guard(
 
             continue
 
-        kept_sentences.append(
+        kept.append(
             sentence
         )
 
     cleaned = (
         " ".join(
-            kept_sentences
+            kept
         ).strip()
     )
 
@@ -2362,17 +2463,11 @@ def enforce_knowledge_guard(
     suspicious_patterns = [
 
         r"\b(?:sie|er)\s+ist\s+gerade\b",
-
         r"\b(?:sie|er)\s+macht\s+gerade\b",
-
         r"\b(?:sie|er)\s+schaut\s+gerade\b",
-
         r"\b(?:sie|er)\s+spielt\s+gerade\b",
-
         r"\b(?:sie|er)\s+sitzt\s+gerade\b",
-
         r"\b(?:sie|er)\s+liegt\s+gerade\b",
-
         r"\b(?:sie|er)\s+arbeitet\s+gerade\b",
     ]
 
@@ -2396,31 +2491,23 @@ def enforce_knowledge_guard(
 
 
 # =========================================================
-# SOCIAL ACTION QUESTION TEXT
+# SOCIAL ACTION TEXT
 # =========================================================
 
 def build_social_ping_message(
     target_user_name
 ):
 
-    options = [
-
+    return random.choice([
         "was machst du eig grad",
-
         "was treibst du grad",
-
         "was machst du gerade",
-
         "yo was machst du grad",
-    ]
-
-    return random.choice(
-        options
-    )
+    ])
 
 
 # =========================================================
-# INITIATIVE OUTPUT CLEANUP
+# INITIATIVE HELPERS
 # =========================================================
 
 def clean_initiative_answer(
@@ -2433,16 +2520,6 @@ def clean_initiative_answer(
         )
     )
 
-    answer = (
-        enforce_permanent_expression_bans(
-            answer
-        )
-    )
-
-    if not answer:
-
-        return ""
-
     if (
         answer.strip().upper()
         == "NO_INITIATIVE"
@@ -2450,8 +2527,11 @@ def clean_initiative_answer(
 
         return ""
 
-    # Keine direkten Mentions
-    # in Initiative v1.
+    answer = (
+        enforce_permanent_expression_bans(
+            answer
+        )
+    )
 
     answer = re.sub(
         r"<@!?\d+>",
@@ -2473,10 +2553,6 @@ def clean_initiative_answer(
 
     return answer
 
-
-# =========================================================
-# BUILD INITIATIVE RECENT MESSAGES
-# =========================================================
 
 def get_recent_evilnae_channel_messages(
     channel_id,
@@ -2530,10 +2606,6 @@ def get_recent_evilnae_channel_messages(
 
     return messages
 
-
-# =========================================================
-# GENERATE INITIATIVE MESSAGE
-# =========================================================
 
 async def generate_initiative_message(
     *,
@@ -2601,6 +2673,10 @@ async def generate_initiative_message(
         )
     )
 
+    learned_behavior_text = (
+        format_learned_behavior()
+    )
+
     prompt = (
         build_initiative_prompt(
 
@@ -2621,6 +2697,20 @@ async def generate_initiative_message(
             )
         )
     )
+
+    prompt += f"""
+
+
+==================================================
+LEARNED BEHAVIOR
+==================================================
+
+{learned_behavior_text}
+
+Nutze diese Werte nur als leichte Tendenzen.
+
+Sie sind keine harten Regeln.
+"""
 
     try:
 
@@ -2666,8 +2756,7 @@ async def generate_initiative_message(
     if not answer:
 
         print(
-            "[INITIATIVE] "
-            "writer_declined=yes"
+            "[INITIATIVE] writer_declined=yes"
         )
 
         return None
@@ -2678,10 +2767,6 @@ async def generate_initiative_message(
         score
     )
 
-
-# =========================================================
-# EXECUTE INITIATIVE
-# =========================================================
 
 async def execute_initiative(
     *,
@@ -2745,6 +2830,979 @@ async def execute_initiative(
 
 
 # =========================================================
+# REFLECTION JSON PARSER
+# =========================================================
+
+def extract_json_object(
+    text
+):
+
+    if not text:
+
+        return None
+
+    text = (
+        text.strip()
+    )
+
+    # ```json ... ``` entfernen
+
+    text = re.sub(
+        r"^```(?:json)?\s*",
+        "",
+        text,
+        flags=re.IGNORECASE
+    )
+
+    text = re.sub(
+        r"\s*```$",
+        "",
+        text
+    )
+
+    # Erst direkte JSON-Version probieren.
+
+    try:
+
+        data = json.loads(
+            text
+        )
+
+        if isinstance(
+            data,
+            dict
+        ):
+
+            return data
+
+    except json.JSONDecodeError:
+
+        pass
+
+    # Falls das Modell doch Text davor/dahinter
+    # gebaut hat: erstes {...} versuchen.
+
+    start = text.find(
+        "{"
+    )
+
+    end = text.rfind(
+        "}"
+    )
+
+    if (
+        start == -1
+        or
+        end == -1
+        or
+        end <= start
+    ):
+
+        return None
+
+    candidate = (
+        text[
+            start:end + 1
+        ]
+    )
+
+    try:
+
+        data = json.loads(
+            candidate
+        )
+
+        if isinstance(
+            data,
+            dict
+        ):
+
+            return data
+
+    except json.JSONDecodeError:
+
+        return None
+
+    return None
+
+
+# =========================================================
+# REFLECTION VALUE HELPERS
+# =========================================================
+
+def safe_float(
+    value,
+    default=0.0
+):
+
+    try:
+
+        return float(
+            value
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return default
+
+
+def clamp_reflection_delta(
+    value
+):
+
+    value = (
+        safe_float(
+            value,
+            0.0
+        )
+    )
+
+    return max(
+        -0.05,
+        min(
+            0.05,
+            value
+        )
+    )
+
+
+# =========================================================
+# SANITIZE REFLECTION
+# =========================================================
+
+def sanitize_reflection_data(
+    data
+):
+
+    if not isinstance(
+        data,
+        dict
+    ):
+
+        return None
+
+    quality = str(
+        data.get(
+            "quality",
+            "unknown"
+        )
+    ).strip().lower()
+
+    if quality not in {
+        "good",
+        "neutral",
+        "bad",
+        "mixed",
+        "unknown",
+    }:
+
+        quality = "unknown"
+
+    confidence = str(
+        data.get(
+            "confidence",
+            "low"
+        )
+    ).strip().lower()
+
+    if confidence not in {
+        "low",
+        "medium",
+        "high",
+    }:
+
+        confidence = "low"
+
+    cleaned = {
+
+        "quality":
+            quality,
+
+        "confidence":
+            confidence,
+
+        "brevity_delta":
+            clamp_reflection_delta(
+                data.get(
+                    "brevity_delta"
+                )
+            ),
+
+        "teasing_delta":
+            clamp_reflection_delta(
+                data.get(
+                    "teasing_delta"
+                )
+            ),
+
+        "warmth_delta":
+            clamp_reflection_delta(
+                data.get(
+                    "warmth_delta"
+                )
+            ),
+
+        "slang_delta":
+            clamp_reflection_delta(
+                data.get(
+                    "slang_delta"
+                )
+            ),
+
+        "emoji_delta":
+            clamp_reflection_delta(
+                data.get(
+                    "emoji_delta"
+                )
+            ),
+
+        "question_delta":
+            clamp_reflection_delta(
+                data.get(
+                    "question_delta"
+                )
+            ),
+
+        "initiative_delta":
+            clamp_reflection_delta(
+                data.get(
+                    "initiative_delta"
+                )
+            ),
+
+        "preferred_pattern":
+            data.get(
+                "preferred_pattern"
+            ),
+
+        "discouraged_pattern":
+            data.get(
+                "discouraged_pattern"
+            ),
+
+        "behavior_note":
+            data.get(
+                "behavior_note"
+            ),
+
+        "reflection_summary":
+            str(
+                data.get(
+                    "reflection_summary",
+                    ""
+                )
+            ).strip()[:600],
+    }
+
+    return cleaned
+
+
+# =========================================================
+# CONFIDENCE WEIGHTING
+#
+# HIGH:
+# volle sehr kleinen Deltas
+#
+# MEDIUM:
+# nur Hälfte
+#
+# LOW:
+# Reflection speichern,
+# aber überhaupt NICHT lernen.
+#
+# Das verhindert:
+# "Eine unklare Reaktion und Evilnae
+#  baut direkt ihre Persönlichkeit um."
+# =========================================================
+
+def prepare_learning_data(
+    reflection_data
+):
+
+    confidence = (
+        reflection_data[
+            "confidence"
+        ]
+    )
+
+    if confidence == "high":
+
+        factor = 1.0
+
+    elif confidence == "medium":
+
+        factor = 0.5
+
+    else:
+
+        factor = 0.0
+
+    learning_data = dict(
+        reflection_data
+    )
+
+    delta_fields = [
+
+        "brevity_delta",
+        "teasing_delta",
+        "warmth_delta",
+        "slang_delta",
+        "emoji_delta",
+        "question_delta",
+        "initiative_delta",
+    ]
+
+    for field_name in delta_fields:
+
+        learning_data[
+            field_name
+        ] = (
+            reflection_data[
+                field_name
+            ]
+            * factor
+        )
+
+    # Bei LOW Confidence auch keine
+    # dauerhaften Pattern / Notes lernen.
+
+    if factor == 0.0:
+
+        learning_data[
+            "preferred_pattern"
+        ] = None
+
+        learning_data[
+            "discouraged_pattern"
+        ] = None
+
+        learning_data[
+            "behavior_note"
+        ] = None
+
+    return learning_data
+
+
+# =========================================================
+# RUN REFLECTION
+# =========================================================
+
+async def run_reflection(
+    *,
+    user_id,
+    username,
+    user_message,
+    evilnae_answer,
+    next_user_message=None,
+    relationship_text="",
+    inner_state_guidance="",
+    source="reaction"
+):
+
+    current_learning_text = (
+        format_learned_behavior()
+    )
+
+    prompt = (
+        build_reflection_prompt(
+
+            username=username,
+
+            user_message=(
+                user_message
+            ),
+
+            evilnae_answer=(
+                evilnae_answer
+            ),
+
+            next_user_message=(
+                next_user_message
+            ),
+
+            relationship_text=(
+                relationship_text
+            ),
+
+            inner_state_guidance=(
+                inner_state_guidance
+            ),
+
+            current_learning_text=(
+                current_learning_text
+            )
+        )
+    )
+
+    # -----------------------------------------------------
+    # FALLBACK REFLECTION = EXTRA VORSICHT
+    # -----------------------------------------------------
+
+    if source == "timeout":
+
+        prompt += """
+
+
+==================================================
+IMPORTANT: NO USER REACTION
+==================================================
+
+Es liegt KEINE direkte Folge-Reaktion
+des Users vor.
+
+Deshalb:
+
+- Confidence normalerweise LOW
+- keine starken Rückschlüsse ziehen
+- Deltas normalerweise 0.0
+- nur offensichtliche Probleme bewerten
+- nicht annehmen, dass Schweigen Zustimmung ist
+- nicht annehmen, dass Schweigen Ablehnung ist
+"""
+
+    try:
+
+        response = (
+            await safe_openai_request(
+
+                model="gpt-4.1-mini",
+
+                input=prompt,
+
+                max_output_tokens=500,
+
+                timeout=(
+                    OPENAI_REFLECTION_TIMEOUT
+                ),
+
+                request_type="reflection",
+
+                username=username
+            )
+        )
+
+    except Exception as error:
+
+        print(
+            "[REFLECTION ERROR] "
+            f"user={username} "
+            f"source={source} "
+            f"error="
+            f"{type(error).__name__}: "
+            f"{error}"
+        )
+
+        return False
+
+    raw_text = (
+        response.output_text.strip()
+    )
+
+    parsed = (
+        extract_json_object(
+            raw_text
+        )
+    )
+
+    if parsed is None:
+
+        print(
+            "[REFLECTION PARSE ERROR] "
+            f"user={username} "
+            f"raw={raw_text[:500]!r}"
+        )
+
+        return False
+
+    reflection_data = (
+        sanitize_reflection_data(
+            parsed
+        )
+    )
+
+    if reflection_data is None:
+
+        return False
+
+    # -----------------------------------------------------
+    # STORE RAW REFLECTION RECORD
+    # -----------------------------------------------------
+
+    record = {
+
+        "timestamp":
+            time.time(),
+
+        "user_id":
+            str(user_id),
+
+        "username":
+            username,
+
+        "source":
+            source,
+
+        "user_message":
+            str(
+                user_message
+            )[:1000],
+
+        "evilnae_answer":
+            str(
+                evilnae_answer
+            )[:1000],
+
+        "next_user_message":
+            (
+                str(
+                    next_user_message
+                )[:1000]
+                if next_user_message
+                else None
+            ),
+
+        **reflection_data
+    }
+
+    store_reflection(
+        record
+    )
+
+    # -----------------------------------------------------
+    # LEARN
+    # -----------------------------------------------------
+
+    learning_data = (
+        prepare_learning_data(
+            reflection_data
+        )
+    )
+
+    apply_learning_signals(
+        learning_data
+    )
+
+    print(
+        "[REFLECTION RESULT] "
+        f"user={username} "
+        f"source={source} "
+        f"quality="
+        f"{reflection_data['quality']} "
+        f"confidence="
+        f"{reflection_data['confidence']} "
+        f"summary="
+        f"{reflection_data['reflection_summary']!r}"
+    )
+
+    print(
+        format_reflection_debug()
+    )
+
+    return True
+
+
+# =========================================================
+# BACKGROUND TASK TRACKING
+# =========================================================
+
+def track_reflection_task(
+    task
+):
+
+    reflection_background_tasks.add(
+        task
+    )
+
+    def remove_task(
+        finished_task
+    ):
+
+        reflection_background_tasks.discard(
+            finished_task
+        )
+
+    task.add_done_callback(
+        remove_task
+    )
+
+    return task
+
+
+# =========================================================
+# REFLECTION TIMEOUT
+# =========================================================
+
+async def reflection_timeout_worker(
+    *,
+    user_id,
+    reflection_id
+):
+
+    try:
+
+        await asyncio.sleep(
+            REFLECTION_REACTION_WINDOW
+        )
+
+        pending = (
+            pending_reflections.get(
+                user_id
+            )
+        )
+
+        if not pending:
+
+            return
+
+        # Wurde zwischenzeitlich schon
+        # durch eine User-Reaktion ersetzt?
+
+        if (
+            pending.get(
+                "reflection_id"
+            )
+            != reflection_id
+        ):
+
+            return
+
+        pending_reflections.pop(
+            user_id,
+            None
+        )
+
+        reflection_timeout_tasks.pop(
+            user_id,
+            None
+        )
+
+        await run_reflection(
+
+            user_id=user_id,
+
+            username=(
+                pending[
+                    "username"
+                ]
+            ),
+
+            user_message=(
+                pending[
+                    "user_message"
+                ]
+            ),
+
+            evilnae_answer=(
+                pending[
+                    "evilnae_answer"
+                ]
+            ),
+
+            next_user_message=None,
+
+            relationship_text=(
+                pending[
+                    "relationship_text"
+                ]
+            ),
+
+            inner_state_guidance=(
+                pending[
+                    "inner_state_guidance"
+                ]
+            ),
+
+            source="timeout"
+        )
+
+    except asyncio.CancelledError:
+
+        return
+
+    except Exception as error:
+
+        print(
+            "[REFLECTION TIMEOUT ERROR] "
+            f"user_id={user_id} "
+            f"error="
+            f"{type(error).__name__}: "
+            f"{error}"
+        )
+
+
+# =========================================================
+# CREATE PENDING REFLECTION
+# =========================================================
+
+def register_pending_reflection(
+    *,
+    user_id,
+    username,
+    user_message,
+    evilnae_answer,
+    relationship_text,
+    inner_state_guidance
+):
+
+    # -----------------------------------------------------
+    # FALLS NOCH EINE ALTE PENDING EXISTIERT
+    #
+    # Die alte sollte normalerweise bereits durch
+    # die neue User-Nachricht reflektiert worden sein.
+    #
+    # Sicherheitshalber Timeout canceln.
+    # -----------------------------------------------------
+
+    old_timeout = (
+        reflection_timeout_tasks.pop(
+            user_id,
+            None
+        )
+    )
+
+    if (
+        old_timeout
+        and
+        not old_timeout.done()
+    ):
+
+        old_timeout.cancel()
+
+    reflection_id = (
+        f"{user_id}:"
+        f"{time.time_ns()}"
+    )
+
+    pending_reflections[
+        user_id
+    ] = {
+
+        "reflection_id":
+            reflection_id,
+
+        "created_at":
+            time.time(),
+
+        "username":
+            username,
+
+        "user_message":
+            user_message,
+
+        "evilnae_answer":
+            evilnae_answer,
+
+        "relationship_text":
+            relationship_text,
+
+        "inner_state_guidance":
+            inner_state_guidance
+    }
+
+    timeout_task = (
+        asyncio.create_task(
+            reflection_timeout_worker(
+
+                user_id=user_id,
+
+                reflection_id=(
+                    reflection_id
+                )
+            )
+        )
+    )
+
+    reflection_timeout_tasks[
+        user_id
+    ] = timeout_task
+
+    track_reflection_task(
+        timeout_task
+    )
+
+    print(
+        "[REFLECTION PENDING] "
+        f"user={username} "
+        f"window="
+        f"{REFLECTION_REACTION_WINDOW}s"
+    )
+
+
+# =========================================================
+# CONSUME PREVIOUS REFLECTION WITH USER REACTION
+#
+# Wird aufgerufen,
+# BEVOR Evilnae die neue Nachricht beantwortet.
+#
+# Wichtig:
+# Reflection läuft im Hintergrund.
+# Der User wartet NICHT darauf.
+# =========================================================
+
+def consume_pending_reflection(
+    *,
+    user_id,
+    next_user_message
+):
+
+    pending = (
+        pending_reflections.pop(
+            user_id,
+            None
+        )
+    )
+
+    if not pending:
+
+        return False
+
+    timeout_task = (
+        reflection_timeout_tasks.pop(
+            user_id,
+            None
+        )
+    )
+
+    if (
+        timeout_task
+        and
+        not timeout_task.done()
+    ):
+
+        timeout_task.cancel()
+
+    age = (
+        time.time()
+        - pending[
+            "created_at"
+        ]
+    )
+
+    # Eigentlich wird Timeout nach 12 Minuten
+    # ohnehin ausgelöst.
+    #
+    # Falls Event Loop / Timing trotzdem
+    # etwas später liegt:
+    # sehr alte Nachricht nicht als
+    # direkte Reaktion behandeln.
+
+    if (
+        age
+        > REFLECTION_REACTION_WINDOW + 60
+    ):
+
+        task = (
+            asyncio.create_task(
+                run_reflection(
+
+                    user_id=user_id,
+
+                    username=(
+                        pending[
+                            "username"
+                        ]
+                    ),
+
+                    user_message=(
+                        pending[
+                            "user_message"
+                        ]
+                    ),
+
+                    evilnae_answer=(
+                        pending[
+                            "evilnae_answer"
+                        ]
+                    ),
+
+                    next_user_message=None,
+
+                    relationship_text=(
+                        pending[
+                            "relationship_text"
+                        ]
+                    ),
+
+                    inner_state_guidance=(
+                        pending[
+                            "inner_state_guidance"
+                        ]
+                    ),
+
+                    source="timeout"
+                )
+            )
+        )
+
+        track_reflection_task(
+            task
+        )
+
+        return False
+
+    task = (
+        asyncio.create_task(
+            run_reflection(
+
+                user_id=user_id,
+
+                username=(
+                    pending[
+                        "username"
+                    ]
+                ),
+
+                user_message=(
+                    pending[
+                        "user_message"
+                    ]
+                ),
+
+                evilnae_answer=(
+                    pending[
+                        "evilnae_answer"
+                    ]
+                ),
+
+                next_user_message=(
+                    next_user_message
+                ),
+
+                relationship_text=(
+                    pending[
+                        "relationship_text"
+                    ]
+                ),
+
+                inner_state_guidance=(
+                    pending[
+                        "inner_state_guidance"
+                    ]
+                ),
+
+                source="reaction"
+            )
+        )
+    )
+
+    track_reflection_task(
+        task
+    )
+
+    print(
+        "[REFLECTION FEEDBACK] "
+        f"user="
+        f"{pending['username']} "
+        f"age={age:.1f}s"
+    )
+
+    return True
+
+
+# =========================================================
 # MEMORY ARCHIVE
 # =========================================================
 
@@ -2752,10 +3810,6 @@ async def compact_old_memories(
     user_id,
     username
 ):
-
-    start_time = (
-        time.perf_counter()
-    )
 
     summary_count = (
         database.get_summary_count(
@@ -2813,17 +3867,14 @@ Bisheriges Langzeit-Archiv:
 Erstelle ein aktualisiertes,
 kompaktes Langzeit-Archiv.
 
-Regeln:
-
 - wichtige Fakten behalten
 - relevante Interessen behalten
 - wichtige Ereignisse behalten
 - Wiederholungen entfernen
-- belanglose Dinge entfernen
 - nichts erfinden
 - nichts vermuten
 
-Schreibe nur das aktualisierte Archiv.
+Schreibe nur das Archiv.
 """
 
     try:
@@ -2861,9 +3912,7 @@ Schreibe nur das aktualisierte Archiv.
         )
 
         rowids = [
-
             item["rowid"]
-
             for item
             in old_memories
         ]
@@ -2872,16 +3921,10 @@ Schreibe nur das aktualisierte Archiv.
             rowids
         )
 
-        duration = (
-            time.perf_counter()
-            - start_time
-        )
-
         print(
             "[MEMORY ARCHIVE] "
             f"user={username} "
-            f"compacted={len(old_memories)} "
-            f"duration={duration:.2f}s"
+            f"compacted={len(old_memories)}"
         )
 
     except Exception as error:
@@ -2904,10 +3947,6 @@ async def process_memory_batch(
     username,
     batch
 ):
-
-    batch_start = (
-        time.perf_counter()
-    )
 
     messages = [
         item["message"]
@@ -2965,17 +4004,14 @@ Du verwaltest Evilnaes Langzeitgedächtnis
 Diese Nachrichten stammen ausschließlich
 von {username}.
 
-Andere erwähnte Personen dürfen NICHT
-mit {username} verwechselt werden.
-
-Discord-Custom-Emote-Namen
-sind keine Fakten.
+Andere Personen nicht
+mit {username} verwechseln.
 
 LANGFRISTIGES PROFIL:
 
 {old_profile}
 
-ÄLTERE ERINNERUNGEN:
+ARCHIV:
 
 {memory_archive}
 
@@ -2998,14 +4034,12 @@ Nicht speichern:
 - Wiederholungen
 - Vermutungen
 - Evilnaes eigene Aussagen
-- Fakten über andere Personen,
-  die nichts über {username} aussagen
 
 Wenn nichts Neues relevant ist:
 
 {NO_MEMORY_MARKER}
 
-Sonst schreibe eine kurze Erinnerung.
+Sonst kurze Erinnerung.
 """
 
     summary_response = (
@@ -3017,7 +4051,9 @@ Sonst schreibe eine kurze Erinnerung.
 
             max_output_tokens=300,
 
-            timeout=OPENAI_MEMORY_TIMEOUT,
+            timeout=(
+                OPENAI_MEMORY_TIMEOUT
+            ),
 
             request_type="memory",
 
@@ -3032,17 +4068,12 @@ Sonst schreibe eine kurze Erinnerung.
     if (
         not new_summary
         or
-        new_summary == NO_MEMORY_MARKER
+        new_summary
+        == NO_MEMORY_MARKER
     ):
 
         database.delete_buffer_messages_by_ids(
             message_ids
-        )
-
-        print(
-            "[MEMORY] "
-            f"user={username} "
-            "result=no_new_memory"
         )
 
         return
@@ -3053,9 +4084,6 @@ Sonst schreibe eine kurze Erinnerung.
     )
 
     profile_prompt = f"""
-Du pflegst Evilnaes dauerhaftes Wissen
-über {username}.
-
 Bisheriges Profil:
 
 {old_profile}
@@ -3064,24 +4092,18 @@ Neue bestätigte Erinnerung:
 
 {new_summary}
 
-Aktualisiere das Profil.
+Aktualisiere Evilnaes dauerhaftes Wissen
+über {username}.
 
-- wichtige bestehende Fakten behalten
-- neue bestätigte Fakten ergänzen
-- Wiederholungen entfernen
-- nichts erfinden
-- nichts vermuten
-
+Nichts erfinden.
 Schreibe nur das Profil.
 """
 
     relationship_prompt = f"""
 Du bist Evilnae.
 
-Du entwickelst deine soziale Wahrnehmung
-von {username}.
-
-Bisher:
+Bisherige soziale Wahrnehmung
+von {username}:
 
 {old_social_impression}
 
@@ -3089,24 +4111,13 @@ Neue bestätigte Erinnerung:
 
 {new_summary}
 
-Beziehungen verändern sich langsam.
-
-Berücksichtige:
-
-- Vertrauen
-- gemeinsamen Humor
-- Vertrautheit
-- Teasing
-- wiederkehrende Dynamik
-- Sympathie
-- gelegentliche Reibung
+Aktualisiere deine soziale Wahrnehmung langsam.
 
 Keine Punkte.
 Keine XP.
 Keine Levels.
 
-Schreibe nur
-die aktualisierte Wahrnehmung.
+Schreibe nur die aktualisierte Wahrnehmung.
 """
 
     profile_task = (
@@ -3196,18 +4207,6 @@ die aktualisierte Wahrnehmung.
         message_ids
     )
 
-    duration = (
-        time.perf_counter()
-        - batch_start
-    )
-
-    print(
-        "[MEMORY] "
-        f"user={username} "
-        f"messages={len(batch)} "
-        f"duration={duration:.2f}s"
-    )
-
     await compact_old_memories(
         user_id,
         username
@@ -3282,10 +4281,6 @@ async def memory_worker(
         )
 
 
-# =========================================================
-# START MEMORY WORKER
-# =========================================================
-
 def start_memory_worker_if_needed(
     user_id,
     username
@@ -3341,10 +4336,187 @@ def get_writer_token_limit(
         "long": 400,
     }
 
-    return limits.get(
-        response_length,
-        150
+    base_limit = (
+        limits.get(
+            response_length,
+            150
+        )
     )
+
+    # -----------------------------------------------------
+    # LEARNED BREVITY
+    #
+    # Hohe Brevity Preference:
+    # tendenziell kürzer.
+    #
+    # Niedrige Brevity Preference:
+    # etwas mehr Raum.
+    #
+    # Nicht extrem verändern.
+    # -----------------------------------------------------
+
+    brevity = (
+        reflection_state
+        .brevity_preference
+    )
+
+    if brevity >= 0.75:
+
+        base_limit = int(
+            base_limit * 0.80
+        )
+
+    elif brevity <= 0.30:
+
+        base_limit = int(
+            base_limit * 1.15
+        )
+
+    return max(
+        50,
+        min(
+            450,
+            base_limit
+        )
+    )
+
+
+# =========================================================
+# APPLY LEARNED BEHAVIOR TO EXPRESSION
+# =========================================================
+
+def apply_learned_behavior_to_expression_plan(
+    plan,
+    *,
+    is_hanae=False
+):
+
+    learned = (
+        reflection_state
+    )
+
+    # -----------------------------------------------------
+    # SLANG
+    # -----------------------------------------------------
+
+    if learned.slang_preference >= 0.70:
+
+        plan.slang_level = "medium"
+
+        plan.notes.append(
+            "Gelerntes Verhalten erlaubt etwas mehr Slang."
+        )
+
+    elif learned.slang_preference <= 0.25:
+
+        plan.slang_level = "low"
+
+        plan.notes.append(
+            "Gelerntes Verhalten bevorzugt wenig Slang."
+        )
+
+    # -----------------------------------------------------
+    # EMOJIS
+    # -----------------------------------------------------
+
+    if learned.emoji_preference <= 0.20:
+
+        plan.emoji_level = "low"
+
+        plan.notes.append(
+            "Gelerntes Verhalten bevorzugt wenige Emojis."
+        )
+
+    elif (
+        learned.emoji_preference >= 0.70
+        and
+        plan.emoji_level != "low"
+    ):
+
+        plan.emoji_level = "natural"
+
+    # -----------------------------------------------------
+    # WARMTH
+    # -----------------------------------------------------
+
+    if learned.warmth_preference >= 0.70:
+
+        plan.notes.append(
+            "Etwas wärmere soziale Formulierungen funktionieren "
+            "im Durchschnitt gut."
+        )
+
+    elif learned.warmth_preference <= 0.25:
+
+        plan.notes.append(
+            "Nicht künstlich überfreundlich formulieren."
+        )
+
+    # -----------------------------------------------------
+    # TEASING
+    # -----------------------------------------------------
+
+    if learned.teasing_preference >= 0.70:
+
+        plan.notes.append(
+            "Leichtes Teasing funktioniert häufig gut, "
+            "wenn Kontext und Beziehung passen."
+        )
+
+    elif learned.teasing_preference <= 0.25:
+
+        plan.notes.append(
+            "Teasing aktuell eher sparsam einsetzen."
+        )
+
+    # -----------------------------------------------------
+    # BREVITY
+    # -----------------------------------------------------
+
+    if learned.brevity_preference >= 0.70:
+
+        if (
+            plan.sentence_shape
+            not in {
+                "fragmented",
+                "short",
+            }
+        ):
+
+            plan.sentence_shape = "short"
+
+        plan.notes.append(
+            "Eher kompakt antworten."
+        )
+
+    # -----------------------------------------------------
+    # HANAE SAFETY FLOOR
+    #
+    # Global Learning darf die feste
+    # Geschwisterbeziehung nicht kaputtlernen.
+    # -----------------------------------------------------
+
+    if is_hanae:
+
+        plan.notes.append(
+            "Bei Hanae bleibt vertraute Geschwisterwärme "
+            "unabhängig von globalem Learning bestehen."
+        )
+
+    # -----------------------------------------------------
+    # PERMANENT FAIR BAN
+    # -----------------------------------------------------
+
+    if (
+        "fair"
+        not in plan.avoid_words
+    ):
+
+        plan.avoid_words.append(
+            "fair"
+        )
+
+    return plan
 
 
 # =========================================================
@@ -3357,6 +4529,7 @@ def build_writer_context(
     decision,
     expression_plan,
     inner_state_guidance,
+    learned_behavior_text,
     username,
     user_text,
     emoji_context_text,
@@ -3409,6 +4582,10 @@ def build_writer_context(
 
         recent_memory_text = "Keine."
 
+    # -----------------------------------------------------
+    # QUESTION RULE
+    # -----------------------------------------------------
+
     if decision.ask_question:
 
         question_rule = """
@@ -3428,9 +4605,51 @@ Nicht:
 - und du?
 - oder?
 - was meinst du?
+- wie siehts bei dir aus?
 - was machst du?
 - was hast du vor?
+
+Die Nachricht darf einfach enden.
 """
+
+    # -----------------------------------------------------
+    # LEARNED QUESTION PREFERENCE
+    # -----------------------------------------------------
+
+    if (
+        reflection_state.question_preference
+        <= 0.20
+    ):
+
+        question_learning_rule = """
+Das gelernte Verhalten zeigt,
+dass unnötige Fragen eher vermieden werden sollten.
+
+Selbst wenn eine Frage erlaubt wäre,
+nur fragen wenn sie wirklich etwas bringt.
+"""
+
+    elif (
+        reflection_state.question_preference
+        >= 0.70
+    ):
+
+        question_learning_rule = """
+Natürliche Fragen können funktionieren,
+wenn das Brain sie erlaubt.
+
+Trotzdem keine Interview-Energie.
+"""
+
+    else:
+
+        question_learning_rule = (
+            "Keine starke gelernte Frage-Tendenz."
+        )
+
+    # -----------------------------------------------------
+    # CORRECTION
+    # -----------------------------------------------------
 
     if decision.acknowledge_correction:
 
@@ -3440,7 +4659,7 @@ Der User korrigiert dich.
 Akzeptiere den Fehler natürlich.
 
 Keine Ausrede.
-Keine erfundene Rechtfertigung.
+Keine neue Story erfinden.
 """
 
     else:
@@ -3448,6 +4667,10 @@ Keine erfundene Rechtfertigung.
         correction_rule = (
             "Keine besondere Korrektur nötig."
         )
+
+    # -----------------------------------------------------
+    # KNOWLEDGE
+    # -----------------------------------------------------
 
     if decision.knowledge_available:
 
@@ -3460,8 +4683,8 @@ Confidence:
 Source:
 {decision.knowledge_source}
 
-Nutze nur das,
-was wirklich daraus folgt.
+Nutze nur,
+was wirklich daraus ableitbar ist.
 """
 
     elif (
@@ -3497,14 +4720,21 @@ Keine sichere Behauptung.
         knowledge_rule = """
 Du weißt die aktuelle Antwort nicht.
 
-Keine Fakten über andere Personen erfinden.
+Keine aktuellen Fakten erfinden.
+
+Es ist okay zu sagen,
+dass du etwas gerade nicht weißt.
 """
+
+    # -----------------------------------------------------
+    # SOCIAL ACTION
+    # -----------------------------------------------------
 
     if decision.should_ask_person:
 
         social_action_rule = f"""
 Das Brain möchte eventuell
-eine Person selbst fragen.
+eine andere Person fragen.
 
 Target:
 {decision.target_user_name}
@@ -3512,14 +4742,33 @@ Target:
 Discord-ID:
 {decision.target_user_id}
 
-Die Hauptantwort muss auch ohne Ping funktionieren.
+Die Hauptantwort muss auch funktionieren,
+wenn der Ping technisch NICHT ausgeführt wird.
+
+Behaupte nicht:
+
+- ich hab sie gefragt
+- ich frag sie jetzt
+- ich check das kurz
+- warte ich hol sie
+
+Die tatsächliche Social Action
+läuft separat.
 """
 
     else:
 
-        social_action_rule = (
-            "Keine Social Action geplant."
-        )
+        social_action_rule = """
+Keine Social Action geplant.
+
+Behaupte NICHT,
+dass du jemanden fragst,
+nachschaust oder kontaktierst.
+"""
+
+    # -----------------------------------------------------
+    # LENGTH
+    # -----------------------------------------------------
 
     length_rules = {
 
@@ -3556,6 +4805,26 @@ INNER STATE
 ==================================================
 
 {inner_state_guidance}
+
+
+==================================================
+LEARNED BEHAVIOR
+==================================================
+
+{learned_behavior_text}
+
+Diese Werte sind gelernte Tendenzen.
+
+Sie sind KEINE unveränderlichen Regeln.
+
+Priorität:
+
+1. Sicherheit
+2. aktuelle Situation
+3. Beziehung
+4. Inner State
+5. Kernpersönlichkeit
+6. gelerntes Verhalten
 
 
 ==================================================
@@ -3659,6 +4928,8 @@ QUESTION RULE
 
 {question_rule}
 
+{question_learning_rule}
+
 
 ==================================================
 CORRECTION RULE
@@ -3705,18 +4976,30 @@ Kein JSON.
 Keine Analyse.
 Kein "Evilnae:".
 
-Kein "fair".
+Das Wort "fair" ist verboten.
 
-Wenn Inner State warm ist:
+Learning soll subtil sein.
+
+Nicht plötzlich eine gelernte Regel
+laut erwähnen.
+
+Nicht sagen:
+
+- ich habe gelernt
+- mein Reflection-System sagt
+- laut meinen Daten
+- meine Präferenz ist
+
+Wenn Inner State warm ist,
 nicht künstlich kalt wirken.
 
 Wenn gereizt:
 trocken okay,
-aber nicht Fake-Friend-Vibe.
+aber nicht automatisch Ablehnung.
 
 Bei Hanae:
 Geschwister-Genervtheit,
-nicht Ablehnung.
+keine Fake-Friend-Distanz.
 
 Nicht automatisch fragen.
 Nicht automatisch Emoji.
@@ -3811,7 +5094,9 @@ async def execute_social_action(
 
         return False
 
-    guild = message.guild
+    guild = (
+        message.guild
+    )
 
     if guild is None:
 
@@ -3819,8 +5104,10 @@ async def execute_social_action(
 
     try:
 
-        member = guild.get_member(
-            int(target_user_id)
+        member = (
+            guild.get_member(
+                int(target_user_id)
+            )
         )
 
     except ValueError:
@@ -3892,9 +5179,6 @@ async def initiative_loop():
         "[INITIATIVE LOOP] status=started"
     )
 
-    # Erst ein bisschen warten,
-    # damit der Bot sauber hochfahren kann.
-
     await asyncio.sleep(
         15
     )
@@ -3908,10 +5192,6 @@ async def initiative_loop():
             )
 
             apply_time_decay()
-
-            # -------------------------------------------------
-            # KEIN ZIEL-CHANNEL BEKANNT
-            # -------------------------------------------------
 
             if not initiative_target_channel_id:
 
@@ -3951,10 +5231,6 @@ async def initiative_loop():
 
                     continue
 
-            # -------------------------------------------------
-            # INITIATIVE CHECK + SEND
-            # -------------------------------------------------
-
             await execute_initiative(
                 channel=channel
             )
@@ -3993,10 +5269,6 @@ async def on_ready():
 
     apply_time_decay()
 
-    # -----------------------------------------------------
-    # TARGET CHANNEL
-    # -----------------------------------------------------
-
     if ALLOWED_CHANNEL_ID:
 
         initiative_target_channel_id = (
@@ -4004,10 +5276,6 @@ async def on_ready():
                 ALLOWED_CHANNEL_ID
             )
         )
-
-    # -----------------------------------------------------
-    # START INITIATIVE LOOP ONCE
-    # -----------------------------------------------------
 
     if (
         initiative_task is None
@@ -4067,6 +5335,10 @@ async def on_ready():
     )
 
     print(
+        "Reflection / Learning v1: ACTIVE"
+    )
+
+    print(
         "Random Mood System: DISABLED"
     )
 
@@ -4079,8 +5351,23 @@ async def on_ready():
     )
 
     print(
-        f"Initiative check interval: "
-        f"{INITIATIVE_CHECK_INTERVAL}s"
+        f"Reflection feedback window: "
+        f"{REFLECTION_REACTION_WINDOW}s"
+    )
+
+    print(
+        f"Pending reflections: "
+        f"{len(pending_reflections)}"
+    )
+
+    print(
+        format_inner_state_debug(
+            evilnae_state
+        )
+    )
+
+    print(
+        format_reflection_debug()
     )
 
     if initiative_target_channel_id:
@@ -4096,12 +5383,6 @@ async def on_ready():
             "Initiative Channel: "
             "UNKNOWN UNTIL FIRST MESSAGE"
         )
-
-    print(
-        format_inner_state_debug(
-            evilnae_state
-        )
-    )
 
     print(
         "============================================"
@@ -4120,7 +5401,7 @@ async def on_message(message):
     global initiative_target_channel_id
 
     # -----------------------------------------------------
-    # IGNORE OWN MESSAGE
+    # IGNORE BOT ITSELF
     # -----------------------------------------------------
 
     if (
@@ -4146,11 +5427,7 @@ async def on_message(message):
             return
 
     # -----------------------------------------------------
-    # AUTONOMY CHANNEL
-    #
-    # Wenn kein fester Channel in .env gesetzt ist,
-    # nimmt Evilnae den ersten Channel,
-    # in dem sie regulär Aktivität sieht.
+    # AUTONOMY TARGET CHANNEL
     # -----------------------------------------------------
 
     if not initiative_target_channel_id:
@@ -4163,11 +5440,12 @@ async def on_message(message):
 
         print(
             "[INITIATIVE CHANNEL] "
-            f"set={initiative_target_channel_id}"
+            f"set="
+            f"{initiative_target_channel_id}"
         )
 
     # -----------------------------------------------------
-    # CHANNEL ACTIVITY REGISTER
+    # CHANNEL ACTIVITY
     # -----------------------------------------------------
 
     register_channel_message(
@@ -4239,9 +5517,62 @@ async def on_message(message):
         )
     )
 
+    # -----------------------------------------------------
+    # Ambient Group Chat wird weiterhin beobachtet,
+    # aber nicht automatisch als Feedback auf Evilnaes
+    # direkte Antwort interpretiert.
+    # -----------------------------------------------------
+
     if not perception.should_reply:
 
         return
+
+    # =====================================================
+    # CURRENT USER TEXT
+    #
+    # Brauchen wir schon VOR dem Lock,
+    # weil diese Nachricht Feedback auf
+    # Evilnaes vorherige Antwort sein kann.
+    # =====================================================
+
+    feedback_text = (
+        perception.text.strip()
+    )
+
+    if not feedback_text:
+
+        if perception.custom_emojis:
+
+            feedback_text = (
+                "[nonverbale Discord-Emote-Reaktion]"
+            )
+
+        else:
+
+            feedback_text = (
+                "[nonverbale Reaktion]"
+            )
+
+    # =====================================================
+    # 3. REFLECT ON PREVIOUS INTERACTION
+    #
+    # WICHTIG:
+    # läuft im Hintergrund.
+    #
+    # Diese neue Nachricht wird als mögliche
+    # Reaktion auf Evilnaes LETZTE Antwort benutzt.
+    # =====================================================
+
+    feedback_detected = (
+        consume_pending_reflection(
+
+            user_id=user_id,
+
+            next_user_message=(
+                feedback_text
+            )
+        )
+    )
 
     # =====================================================
     # RESPONSE LOCK
@@ -4392,7 +5723,7 @@ async def on_message(message):
         )
 
         # =================================================
-        # 3. INNER STATE
+        # 4. INNER STATE
         # =================================================
 
         is_hanae = (
@@ -4496,7 +5827,7 @@ Nachricht:
         )
 
         # =================================================
-        # 4. STATE
+        # 5. CONVERSATION STATE
         # =================================================
 
         state = (
@@ -4557,7 +5888,7 @@ Nachricht:
         )
 
         # =================================================
-        # 5. BRAIN
+        # 6. BRAIN
         # =================================================
 
         brain_start = (
@@ -4611,7 +5942,7 @@ Nachricht:
                     decision.action = "reply"
 
         # =================================================
-        # 6. EXPRESSION
+        # 7. EXPRESSION PLAN
         # =================================================
 
         recent_expression_messages = (
@@ -4668,20 +5999,28 @@ Nachricht:
                 inner_style_hint
             )
 
-        if (
-            "fair"
-            not in expression_plan.avoid_words
-        ):
+        # =================================================
+        # APPLY LEARNING
+        # =================================================
 
-            expression_plan.avoid_words.append(
-                "fair"
+        expression_plan = (
+            apply_learned_behavior_to_expression_plan(
+
+                expression_plan,
+
+                is_hanae=is_hanae
             )
+        )
 
         print(
             format_expression_debug(
                 expression_plan
             )
         )
+
+        # =================================================
+        # INNER STATE GUIDANCE
+        # =================================================
 
         inner_state_guidance = (
             build_inner_state_guidance(
@@ -4691,7 +6030,15 @@ Nachricht:
         )
 
         # =================================================
-        # 7. WRITER CONTEXT
+        # LEARNED BEHAVIOR
+        # =================================================
+
+        learned_behavior_text = (
+            format_learned_behavior()
+        )
+
+        # =================================================
+        # 8. WRITER CONTEXT
         # =================================================
 
         writer_context = (
@@ -4707,6 +6054,10 @@ Nachricht:
 
                 inner_state_guidance=(
                     inner_state_guidance
+                ),
+
+                learned_behavior_text=(
+                    learned_behavior_text
                 ),
 
                 username=username,
@@ -4759,7 +6110,7 @@ Nachricht:
         )
 
         # =================================================
-        # 8. WRITER
+        # 9. WRITER
         # =================================================
 
         try:
@@ -4848,7 +6199,7 @@ Nachricht:
             return
 
         # =================================================
-        # 9. GUARDS
+        # 10. GUARDS
         # =================================================
 
         answer = (
@@ -4887,6 +6238,10 @@ Nachricht:
 
             answer = "mhm"
 
+        # =================================================
+        # EXPRESSION VIOLATIONS
+        # =================================================
+
         violation_reasons = (
             expression_violation_reasons(
                 answer,
@@ -4904,11 +6259,37 @@ Nachricht:
                 "[EXPRESSION VIOLATION] "
                 f"user={username} "
                 f"reasons="
-                f"{violation_reasons}"
+                f"{violation_reasons} "
+                f"answer={answer!r}"
             )
 
         # =================================================
-        # 10. CONTEXT UPDATE
+        # 11. SEND
+        # =================================================
+
+        try:
+
+            await message.reply(
+                answer[:1900],
+                mention_author=False
+            )
+
+        except discord.HTTPException as error:
+
+            print(
+                "[DISCORD SEND ERROR] "
+                f"user={username} "
+                f"error={error}"
+            )
+
+            return
+
+        register_channel_message(
+            is_bot=True
+        )
+
+        # =================================================
+        # 12. CONTEXT UPDATE
         # =================================================
 
         user_context.append({
@@ -4943,35 +6324,33 @@ Nachricht:
         )
 
         # =================================================
-        # 11. SEND
+        # 13. REGISTER NEW PENDING REFLECTION
+        #
+        # Diese AKTUELLE Antwort wartet jetzt darauf,
+        # wie der User als Nächstes reagiert.
         # =================================================
 
-        try:
+        register_pending_reflection(
 
-            await message.reply(
-                answer[:1900],
-                mention_author=False
+            user_id=user_id,
+
+            username=username,
+
+            user_message=user_text,
+
+            evilnae_answer=answer,
+
+            relationship_text=(
+                social_impression
+            ),
+
+            inner_state_guidance=(
+                inner_state_guidance
             )
-
-        except discord.HTTPException as error:
-
-            print(
-                "[DISCORD SEND ERROR] "
-                f"user={username} "
-                f"error={error}"
-            )
-
-            return
-
-        # Unsere eigene Antwort zählt ebenfalls
-        # als Channel-Aktivität.
-
-        register_channel_message(
-            is_bot=True
         )
 
         # =================================================
-        # 12. SOCIAL ACTION
+        # 14. SOCIAL ACTION
         # =================================================
 
         social_action_executed = False
@@ -5009,7 +6388,7 @@ Nachricht:
                 )
 
         # =================================================
-        # 13. LOG
+        # 15. FINAL LOG
         # =================================================
 
         total_duration = (
@@ -5035,12 +6414,22 @@ Nachricht:
             f"{get_dominant_feeling(current_inner_state)} "
             f"expression="
             f"{expression_plan.style} "
+            f"feedback_previous="
+            f"{feedback_detected} "
+            f"pending_reflections="
+            f"{len(pending_reflections)} "
+            f"reflection_jobs="
+            f"{len(reflection_background_tasks)} "
             f"social="
             f"{social_action_executed}"
         )
 
+        print(
+            format_reflection_debug()
+        )
+
         # =================================================
-        # 14. MEMORY WORKER
+        # 16. MEMORY WORKER
         # =================================================
 
         start_memory_worker_if_needed(
