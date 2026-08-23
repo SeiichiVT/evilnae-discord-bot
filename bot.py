@@ -49,6 +49,15 @@ from inner_state import (
     evilnae_state,
 )
 
+from initiative import (
+    register_channel_message,
+    should_initiate,
+    register_initiative,
+    choose_initiative_type,
+    build_initiative_prompt,
+    format_initiative_debug,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -64,7 +73,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.6-inner-state"
+BOT_VERSION = "2.7-autonomy"
 
 
 # =========================================================
@@ -195,10 +204,31 @@ EXPRESSION_VIOLATION_LOGGING = True
 
 
 # =========================================================
-# PERMANENT EXPRESSION BANS
+# INITIATIVE CONFIG
+# =========================================================
+
+# Wie oft der Hintergrund-Loop prüft,
+# ob Evilnae selbst etwas sagen möchte.
 #
-# Diese Wörter sollen auch dann nicht rausgehen,
-# wenn das Modell sie trotzdem produziert.
+# Das ist KEIN Nachrichtenintervall.
+#
+# initiative.py besitzt weiterhin:
+#
+# - 45 Minuten Cooldown
+# - max. 8 Initiativen/Tag
+# - Channel Silence Regeln
+# - Zufalls-Gate
+#
+# Hier wird nur alle 3 Minuten geprüft,
+# ob die Bedingungen erfüllt sind.
+
+INITIATIVE_CHECK_INTERVAL = (
+    3 * 60
+)
+
+
+# =========================================================
+# PERMANENT EXPRESSION BANS
 # =========================================================
 
 PERMANENTLY_BANNED_EXPRESSIONS = {
@@ -308,6 +338,15 @@ participant_contexts = {}
 
 
 # =========================================================
+# AUTONOMY RUNTIME STATE
+# =========================================================
+
+initiative_task = None
+
+initiative_target_channel_id = None
+
+
+# =========================================================
 # LIVE MONITORING
 # =========================================================
 
@@ -331,14 +370,6 @@ memory_semaphore = asyncio.Semaphore(
 
 # =========================================================
 # INNER STATE -> LEGACY MOOD BRIDGE
-#
-# conversation_state.py / Brain kennen aktuell
-# noch das alte Feld "mood".
-#
-# Statt eines RANDOM Mood wird dieses Feld jetzt
-# aus Evilnaes echtem Inner State abgeleitet.
-#
-# Später können wir den Bridge-Layer komplett entfernen.
 # =========================================================
 
 def inner_state_to_mood(
@@ -486,6 +517,30 @@ Gefühle haben Abstufungen.
 
 
 ==================================================
+AUTONOMIE
+==================================================
+
+Du kannst gelegentlich
+selbst entscheiden etwas zu sagen,
+auch wenn dich gerade niemand
+direkt angesprochen hat.
+
+Solche spontanen Nachrichten sollen wirken,
+als wäre dir selbst gerade
+etwas durch den Kopf gegangen.
+
+Du sollst dabei NICHT:
+
+- um Aufmerksamkeit betteln
+- ständig fragen warum niemand schreibt
+- needy wirken
+- künstlich Gespräche erzwingen
+- irgendeine Person ohne Grund pingen
+
+Du darfst einfach einen Gedanken haben.
+
+
+==================================================
 HANAE
 ==================================================
 
@@ -496,16 +551,10 @@ Ihr wohnt zusammen.
 Zwischen euch liegt eine stabile,
 vertraute Geschwisterbindung.
 
-Du darfst zu Hanae sagen:
-
-"du nervst 😭"
-
-"halt dein maul"
-
-"geh weg"
-
-wenn es eindeutig scherzhaft
-und zur Situation passend ist.
+Du darfst frech,
+genervt,
+chaotisch
+oder soft mit ihr sein.
 
 Aber die Grunddynamik soll wirken wie:
 
@@ -521,10 +570,9 @@ Nicht wie:
 DYNAMISCHE SPRACHE
 ==================================================
 
-Du besitzt zusätzlich
-einen Expression Layer.
+Du besitzt einen Expression Layer.
 
-Dieser entscheidet:
+Dieser steuert:
 
 - Stil
 - Slangmenge
@@ -541,39 +589,16 @@ Halte dich daran.
 FAIR IST VERBOTEN
 ==================================================
 
-Benutze niemals das Wort:
+Benutze niemals:
 
 fair
 
-Auch nicht:
+oder:
 
 fair enough
 
-Auch nicht als einzelne Reaktion.
-
 Dieses Wort gehört nicht
 zu Evilnaes Sprachstil.
-
-Benutze stattdessen abhängig
-vom Kontext natürliche Alternativen wie:
-
-"okay"
-
-"ja gut"
-
-"true"
-
-"passt"
-
-"seh ich"
-
-"verständlich"
-
-oder antworte einfach direkt.
-
-Aber ersetze "fair"
-NICHT mechanisch immer
-durch dasselbe Wort.
 
 
 ==================================================
@@ -595,15 +620,10 @@ Mögliche Wörter:
 - HELP
 - rip
 
-Aber:
+Aber diese Wörter
+sind nur Gewürz.
 
-Diese Wörter sind Gewürz,
-nicht die komplette Mahlzeit.
-
-Wenn der Expression Layer
-ein Wort als überbenutzt markiert:
-
-verwende es NICHT.
+Nicht spammen.
 
 
 ==================================================
@@ -613,14 +633,6 @@ EMOJIS
 Emojis sind Reaktionen.
 
 Keine Satzzeichenpflicht.
-
-Du kannst:
-
-- gar kein Emoji
-- ein Emoji
-- selten mehrere Emojis
-
-verwenden.
 
 Nicht jede Antwort braucht:
 
@@ -652,35 +664,6 @@ Vermeide generische Formulierungen wie:
 wenn sie nur benutzt werden,
 um irgendwie nett zu klingen.
 
-Reagiere lieber
-auf das konkrete Gespräch.
-
-
-==================================================
-ANTWORTEN WIE EIN MENSCH
-==================================================
-
-Manche Antworten dürfen sein:
-
-"mhm"
-
-"ja ne"
-
-"real"
-
-"bro..."
-
-"WAIT"
-
-"okay das is cursed"
-
-"du bist so lost 😭"
-
-Manche dürfen länger sein.
-
-Nicht jede Nachricht
-verdient dieselbe Antwortlänge.
-
 
 ==================================================
 FRAGEN
@@ -695,37 +678,8 @@ bedeutet:
 
 KEINE Gegenfrage.
 
-Nicht:
-
-"und du?"
-
-"oder?"
-
-"was meinst du?"
-
-nur um das Gespräch
-künstlich weiterzuführen.
-
-
-==================================================
-KORREKTUREN
-==================================================
-
-Wenn du falsch lagst:
-
-akzeptiere es.
-
-Natürlich.
-
-Zum Beispiel:
-
-"OH stimmt"
-
-"ja okay mein fehler"
-
-"wait hab euch verwechselt 😭"
-
-Keine Ausreden.
+Nicht künstlich
+Gespräche verlängern.
 
 
 ==================================================
@@ -737,13 +691,6 @@ Wenn du etwas nicht weißt:
 weißt du es nicht.
 
 Erfinde keine aktuellen Tatsachen.
-
-"kp"
-
-ist erlaubt.
-
-Unwissenheit macht dich
-nicht weniger intelligent.
 
 
 ==================================================
@@ -759,10 +706,7 @@ Aber du weißt nicht immer,
 was sie gerade tut.
 
 cohabitation_inference
-
 ist nur eine Vermutung.
-
-Formuliere entsprechend unsicher.
 
 
 ==================================================
@@ -773,7 +717,7 @@ Du kannst selbst entscheiden,
 jemanden zu fragen.
 
 Der technische Layer entscheidet,
-ob das tatsächlich möglich ist.
+ob das wirklich ausgeführt wird.
 
 Erwähne niemals technische Dinge
 wie Cooldowns oder Limits.
@@ -783,17 +727,13 @@ wie Cooldowns oder Limits.
 REPETITION
 ==================================================
 
-Vermeide mechanische Muster.
-
-Nicht immer:
+Vermeide mechanische Muster:
 
 - derselbe Opener
 - derselbe Emoji
 - dasselbe Slangwort
 - derselbe Joke
 - dieselbe Rückfrage
-
-Du bist keine Phrase-Maschine.
 
 
 ==================================================
@@ -802,10 +742,6 @@ CUSTOM EMOTES
 
 Discord-Emote-Namen
 sind keine Tatsachen.
-
-Ein Emote namens HanaeLeave
-beweist nicht,
-dass Hanae gegangen ist.
 
 
 ==================================================
@@ -865,18 +801,10 @@ Du darfst:
 - genervt von ihr sein
 - soft sein
 - sie verteidigen
-- komplett normal mit ihr reden
-
-WICHTIG:
+- normal mit ihr reden
 
 Leichte Gereiztheit darf NICHT
 wie echte soziale Ablehnung wirken.
-
-Du musst nicht ständig betonen,
-dass ihr Schwestern seid.
-
-Die Beziehung soll
-durch das Verhalten sichtbar sein.
 
 Keine automatische Erwähnung von:
 
@@ -889,9 +817,6 @@ Keine automatische Erwähnung von:
 
 # =========================================================
 # MOOD PROMPTS
-#
-# Nur noch Bridge für bestehende Writer-Struktur.
-# Der Mood selbst stammt jetzt aus Inner State.
 # =========================================================
 
 MOOD_PROMPTS = {
@@ -1035,9 +960,7 @@ async def safe_openai_request(
                             f"[API MEMORY] "
                             f"user={username} "
                             f"duration={duration:.2f}s "
-                            f"attempt={attempt} "
-                            f"active="
-                            f"{active_memory_requests}"
+                            f"attempt={attempt}"
                         )
 
                     else:
@@ -1046,9 +969,7 @@ async def safe_openai_request(
                             f"[API RESPONSE] "
                             f"user={username} "
                             f"duration={duration:.2f}s "
-                            f"attempt={attempt} "
-                            f"active="
-                            f"{active_response_requests}"
+                            f"attempt={attempt}"
                         )
 
                     return response
@@ -1090,7 +1011,7 @@ async def safe_openai_request(
         except Exception as error:
 
             print(
-                f"[OPENAI FATAL] "
+                "[OPENAI FATAL] "
                 f"type={request_type} "
                 f"user={username} "
                 f"error="
@@ -1117,13 +1038,6 @@ async def safe_openai_request(
             delay += random.uniform(
                 0.0,
                 0.75
-            )
-
-            print(
-                f"[API RETRY] "
-                f"type={request_type} "
-                f"user={username} "
-                f"in={delay:.2f}s"
             )
 
             await asyncio.sleep(
@@ -2065,6 +1979,42 @@ def add_channel_bot_message(
     })
 
 
+def add_channel_initiative_message(
+    channel_id,
+    answer
+):
+
+    context = (
+        get_channel_context(
+            channel_id
+        )
+    )
+
+    context.append({
+
+        "type":
+            "bot",
+
+        "user_id":
+            "EVILNAE",
+
+        "username":
+            "Evilnae",
+
+        "content":
+            answer[:1000],
+
+        "reply_to_id":
+            None,
+
+        "reply_to_name":
+            None,
+
+        "reply_to_content":
+            None
+    })
+
+
 # =========================================================
 # FORMAT CHANNEL CONTEXT
 # =========================================================
@@ -2114,11 +2064,21 @@ def format_channel_context(
                 )
             )
 
-            lines.append(
-                f"Evilnae "
-                f"[antwortet auf {reply_name}]: "
-                f"{content}"
-            )
+            if reply_name:
+
+                lines.append(
+                    f"Evilnae "
+                    f"[antwortet auf {reply_name}]: "
+                    f"{content}"
+                )
+
+            else:
+
+                lines.append(
+                    f"Evilnae "
+                    f"[spontane Nachricht]: "
+                    f"{content}"
+                )
 
             continue
 
@@ -2246,8 +2206,6 @@ def clean_generated_answer(
 
 # =========================================================
 # PERMANENT EXPRESSION GUARD
-#
-# FAIR DIES HERE.
 # =========================================================
 
 def enforce_permanent_expression_bans(
@@ -2260,10 +2218,6 @@ def enforce_permanent_expression_bans(
 
     original = answer
 
-    # -----------------------------------------------------
-    # "fair enough"
-    # -----------------------------------------------------
-
     answer = re.sub(
         r"\bfair\s+enough\b",
         "",
@@ -2271,20 +2225,12 @@ def enforce_permanent_expression_bans(
         flags=re.IGNORECASE
     )
 
-    # -----------------------------------------------------
-    # standalone "fair"
-    # -----------------------------------------------------
-
     answer = re.sub(
         r"\bfair\b",
         "",
         answer,
         flags=re.IGNORECASE
     )
-
-    # -----------------------------------------------------
-    # CLEAN RESULT
-    # -----------------------------------------------------
 
     answer = re.sub(
         r"\s+",
@@ -2301,13 +2247,6 @@ def enforce_permanent_expression_bans(
     answer = answer.strip(
         " ,"
     )
-
-    # -----------------------------------------------------
-    # FALLBACK
-    #
-    # Falls Writer wirklich NUR "fair"
-    # geschrieben hat.
-    # -----------------------------------------------------
 
     if not answer:
 
@@ -2481,6 +2420,331 @@ def build_social_ping_message(
 
 
 # =========================================================
+# INITIATIVE OUTPUT CLEANUP
+# =========================================================
+
+def clean_initiative_answer(
+    answer
+):
+
+    answer = (
+        clean_generated_answer(
+            answer
+        )
+    )
+
+    answer = (
+        enforce_permanent_expression_bans(
+            answer
+        )
+    )
+
+    if not answer:
+
+        return ""
+
+    if (
+        answer.strip().upper()
+        == "NO_INITIATIVE"
+    ):
+
+        return ""
+
+    # Keine direkten Mentions
+    # in Initiative v1.
+
+    answer = re.sub(
+        r"<@!?\d+>",
+        "",
+        answer
+    )
+
+    answer = re.sub(
+        r"@\w+",
+        "",
+        answer
+    )
+
+    answer = re.sub(
+        r"\s+",
+        " ",
+        answer
+    ).strip()
+
+    return answer
+
+
+# =========================================================
+# BUILD INITIATIVE RECENT MESSAGES
+# =========================================================
+
+def get_recent_evilnae_channel_messages(
+    channel_id,
+    limit=8
+):
+
+    context = list(
+        get_channel_context(
+            channel_id
+        )
+    )
+
+    messages = []
+
+    for item in reversed(
+        context
+    ):
+
+        if (
+            item.get(
+                "type"
+            )
+            != "bot"
+        ):
+
+            continue
+
+        content = (
+            item.get(
+                "content",
+                ""
+            )
+        ).strip()
+
+        if not content:
+
+            continue
+
+        messages.append(
+            content
+        )
+
+        if (
+            len(messages)
+            >= limit
+        ):
+
+            break
+
+    messages.reverse()
+
+    return messages
+
+
+# =========================================================
+# GENERATE INITIATIVE MESSAGE
+# =========================================================
+
+async def generate_initiative_message(
+    *,
+    channel_id
+):
+
+    apply_time_decay()
+
+    allowed, reason, score = (
+        should_initiate(
+            evilnae_state
+        )
+    )
+
+    if not allowed:
+
+        print(
+            format_initiative_debug(
+                allowed=False,
+                reason=reason,
+                score=score
+            )
+        )
+
+        return None
+
+    initiative_type = (
+        choose_initiative_type(
+            evilnae_state
+        )
+    )
+
+    print(
+        format_initiative_debug(
+            allowed=True,
+            reason="allowed",
+            score=score,
+            initiative_type=initiative_type
+        )
+    )
+
+    channel_snapshot = list(
+        get_channel_context(
+            channel_id
+        )
+    )
+
+    channel_context_text = (
+        format_channel_context(
+            channel_snapshot
+        )
+    )
+
+    recent_evilnae_messages = (
+        get_recent_evilnae_channel_messages(
+            channel_id,
+            limit=8
+        )
+    )
+
+    inner_guidance = (
+        build_inner_state_guidance(
+            evilnae_state,
+            is_hanae=False
+        )
+    )
+
+    prompt = (
+        build_initiative_prompt(
+
+            initiative_type=(
+                initiative_type
+            ),
+
+            inner_state_guidance=(
+                inner_guidance
+            ),
+
+            channel_context=(
+                channel_context_text
+            ),
+
+            recent_evilnae_messages=(
+                recent_evilnae_messages
+            )
+        )
+    )
+
+    try:
+
+        response = (
+            await safe_openai_request(
+
+                model="gpt-4o-mini",
+
+                instructions=(
+                    SYSTEM_PROMPT
+                ),
+
+                input=prompt,
+
+                max_output_tokens=120,
+
+                timeout=(
+                    OPENAI_RESPONSE_TIMEOUT
+                ),
+
+                request_type="response",
+
+                username="initiative"
+            )
+        )
+
+    except Exception as error:
+
+        print(
+            "[INITIATIVE GENERATION ERROR] "
+            f"{type(error).__name__}: "
+            f"{error}"
+        )
+
+        return None
+
+    answer = (
+        clean_initiative_answer(
+            response.output_text
+        )
+    )
+
+    if not answer:
+
+        print(
+            "[INITIATIVE] "
+            "writer_declined=yes"
+        )
+
+        return None
+
+    return (
+        answer,
+        initiative_type,
+        score
+    )
+
+
+# =========================================================
+# EXECUTE INITIATIVE
+# =========================================================
+
+async def execute_initiative(
+    *,
+    channel
+):
+
+    result = (
+        await generate_initiative_message(
+            channel_id=str(
+                channel.id
+            )
+        )
+    )
+
+    if not result:
+
+        return False
+
+    (
+        answer,
+        initiative_type,
+        score
+    ) = result
+
+    try:
+
+        await channel.send(
+            answer[:1900]
+        )
+
+    except discord.HTTPException as error:
+
+        print(
+            "[INITIATIVE SEND ERROR] "
+            f"{error}"
+        )
+
+        return False
+
+    register_initiative()
+
+    register_channel_message(
+        is_bot=True
+    )
+
+    add_channel_initiative_message(
+        str(
+            channel.id
+        ),
+        answer
+    )
+
+    print(
+        "[INITIATIVE EXECUTED] "
+        f"type={initiative_type} "
+        f"score={score:.2f} "
+        f"answer={answer!r}"
+    )
+
+    return True
+
+
+# =========================================================
 # MEMORY ARCHIVE
 # =========================================================
 
@@ -2529,7 +2793,8 @@ async def compact_old_memories(
     memory_text = (
         "\n\n".join(
             item["memory"]
-            for item in old_memories
+            for item
+            in old_memories
         )
     )
 
@@ -2541,11 +2806,9 @@ Bisheriges Langzeit-Archiv:
 
 {old_archive}
 
-
 Ältere Erinnerungen:
 
 {memory_text}
-
 
 Erstelle ein aktualisiertes,
 kompaktes Langzeit-Archiv.
@@ -2574,7 +2837,9 @@ Schreibe nur das aktualisierte Archiv.
 
                 max_output_tokens=500,
 
-                timeout=OPENAI_MEMORY_TIMEOUT,
+                timeout=(
+                    OPENAI_MEMORY_TIMEOUT
+                ),
 
                 request_type="memory",
 
@@ -2646,12 +2911,14 @@ async def process_memory_batch(
 
     messages = [
         item["message"]
-        for item in batch
+        for item
+        in batch
     ]
 
     message_ids = [
         item["id"]
-        for item in batch
+        for item
+        in batch
     ]
 
     old_profile = (
@@ -2785,12 +3052,6 @@ Sonst schreibe eine kurze Erinnerung.
         new_summary
     )
 
-    print(
-        "[MEMORY SUMMARY] "
-        f"user={username} "
-        "saved=yes"
-    )
-
     profile_prompt = f"""
 Du pflegst Evilnaes dauerhaftes Wissen
 über {username}.
@@ -2858,7 +3119,9 @@ die aktualisierte Wahrnehmung.
 
                 max_output_tokens=350,
 
-                timeout=OPENAI_MEMORY_TIMEOUT,
+                timeout=(
+                    OPENAI_MEMORY_TIMEOUT
+                ),
 
                 request_type="memory",
 
@@ -2877,7 +3140,9 @@ die aktualisierte Wahrnehmung.
 
                 max_output_tokens=350,
 
-                timeout=OPENAI_MEMORY_TIMEOUT,
+                timeout=(
+                    OPENAI_MEMORY_TIMEOUT
+                ),
 
                 request_type="memory",
 
@@ -2911,12 +3176,6 @@ die aktualisierte Wahrnehmung.
                 new_profile
             )
 
-            print(
-                "[PROFILE] "
-                f"user={username} "
-                "updated=yes"
-            )
-
     if not isinstance(
         relationship_result,
         Exception
@@ -2933,12 +3192,6 @@ die aktualisierte Wahrnehmung.
                 new_relationship
             )
 
-            print(
-                "[RELATIONSHIP] "
-                f"user={username} "
-                "updated=yes"
-            )
-
     database.delete_buffer_messages_by_ids(
         message_ids
     )
@@ -2952,7 +3205,6 @@ die aktualisierte Wahrnehmung.
         "[MEMORY] "
         f"user={username} "
         f"messages={len(batch)} "
-        f"result=processed "
         f"duration={duration:.2f}s"
     )
 
@@ -2970,16 +3222,6 @@ async def memory_worker(
     user_id,
     username
 ):
-
-    worker_start = (
-        time.perf_counter()
-    )
-
-    print(
-        "[MEMORY WORKER] "
-        f"user={username} "
-        "status=started"
-    )
 
     try:
 
@@ -3012,13 +3254,6 @@ async def memory_worker(
 
                 break
 
-            print(
-                "[MEMORY] START "
-                f"user={username} "
-                f"messages={len(batch)} "
-                f"buffer_total={buffer_count}"
-            )
-
             try:
 
                 await process_memory_batch(
@@ -3044,25 +3279,6 @@ async def memory_worker(
         memory_tasks.pop(
             user_id,
             None
-        )
-
-        duration = (
-            time.perf_counter()
-            - worker_start
-        )
-
-        remaining = (
-            database.get_buffer_count(
-                user_id
-            )
-        )
-
-        print(
-            "[MEMORY WORKER] "
-            f"user={username} "
-            "status=finished "
-            f"remaining_buffer={remaining} "
-            f"duration={duration:.2f}s"
         )
 
 
@@ -3110,131 +3326,6 @@ def start_memory_worker_if_needed(
             username
         )
     )
-
-
-# =========================================================
-# READY
-# =========================================================
-
-@bot.event
-async def on_ready():
-
-    apply_time_decay()
-
-    print("")
-    print(
-        "============================================"
-    )
-
-    print(
-        f"Evilnae ist online als {bot.user}"
-    )
-
-    print(
-        f"Bot Version: {BOT_VERSION}"
-    )
-
-    print(
-        "============================================"
-    )
-
-    print(
-        f"Memory Buffer: "
-        f"{MEMORY_BUFFER_THRESHOLD}"
-    )
-
-    print(
-        f"Channel Context: "
-        f"{CHANNEL_CONTEXT_LIMIT}"
-    )
-
-    print(
-        f"Direct User Context: "
-        f"{USER_CONTEXT_LIMIT}"
-    )
-
-    print(
-        f"Participant Cache: "
-        f"{PARTICIPANT_MESSAGE_LIMIT}"
-    )
-
-    print(
-        f"Expression history: "
-        f"{EXPRESSION_HISTORY_LIMIT}"
-    )
-
-    print(
-        "Perception Layer: ACTIVE"
-    )
-
-    print(
-        "Conversation State: ACTIVE"
-    )
-
-    print(
-        "Brain v2.1 Knowledge Guard: ACTIVE"
-    )
-
-    print(
-        "Expression Layer v1: ACTIVE"
-    )
-
-    print(
-        "Inner State v1: ACTIVE"
-    )
-
-    print(
-        "Random Mood System: DISABLED"
-    )
-
-    print(
-        "Question Guard: ACTIVE"
-    )
-
-    print(
-        "Permanent FAIR Ban: ACTIVE 💀"
-    )
-
-    print(
-        "Social Actions: ACTIVE"
-    )
-
-    print(
-        format_inner_state_debug(
-            evilnae_state
-        )
-    )
-
-    social_status = (
-        get_social_action_status(
-            HANAE_USER_ID
-        )
-    )
-
-    print(
-        "Autonomous Ping Limit: "
-        f"{social_status['daily_count']}/"
-        f"{social_status['daily_limit']} today"
-    )
-
-    if ALLOWED_CHANNEL_ID:
-
-        print(
-            f"Allowed Channel: "
-            f"{ALLOWED_CHANNEL_ID}"
-        )
-
-    else:
-
-        print(
-            "Allowed Channel: ALL"
-        )
-
-    print(
-        "============================================"
-    )
-
-    print("")
     # =========================================================
 # WRITER TOKEN LIMIT
 # =========================================================
@@ -3318,16 +3409,10 @@ def build_writer_context(
 
         recent_memory_text = "Keine."
 
-    # -----------------------------------------------------
-    # QUESTION RULE
-    # -----------------------------------------------------
-
     if decision.ask_question:
 
         question_rule = """
-Das Brain erlaubt eine Frage.
-
-Eine Frage ist möglich,
+Eine Frage ist erlaubt,
 aber nicht verpflichtend.
 
 Höchstens eine natürliche Frage.
@@ -3336,25 +3421,16 @@ Höchstens eine natürliche Frage.
     else:
 
         question_rule = """
-ask_question = false
-
 Keine Gegenfrage.
 
-Keine Varianten wie:
+Nicht:
 
 - und du?
 - oder?
 - was meinst du?
-- wie siehts bei dir aus?
 - was machst du?
 - was hast du vor?
-
-Die Nachricht darf einfach enden.
 """
-
-    # -----------------------------------------------------
-    # CORRECTION RULE
-    # -----------------------------------------------------
 
     if decision.acknowledge_correction:
 
@@ -3363,8 +3439,8 @@ Der User korrigiert dich.
 
 Akzeptiere den Fehler natürlich.
 
-Keine Rechtfertigung.
-Keine neue Story erfinden.
+Keine Ausrede.
+Keine erfundene Rechtfertigung.
 """
 
     else:
@@ -3373,14 +3449,10 @@ Keine neue Story erfinden.
             "Keine besondere Korrektur nötig."
         )
 
-    # -----------------------------------------------------
-    # KNOWLEDGE RULE
-    # -----------------------------------------------------
-
     if decision.knowledge_available:
 
         knowledge_rule = f"""
-Wissen ist verfügbar.
+Relevantes Wissen ist verfügbar.
 
 Confidence:
 {decision.knowledge_confidence}
@@ -3389,7 +3461,7 @@ Source:
 {decision.knowledge_source}
 
 Nutze nur das,
-was daraus wirklich ableitbar ist.
+was wirklich daraus folgt.
 """
 
     elif (
@@ -3402,12 +3474,11 @@ Kein gesichertes Wissen.
 
 Nur vorsichtige Vermutung erlaubt.
 
-Formulierungen eher wie:
+Zum Beispiel:
 
 - glaub ...
 - müsste eig ...
 - soweit ich weiß ...
-- hab sie vorhin noch ...
 
 Keine sichere Behauptung.
 """
@@ -3426,25 +3497,14 @@ Keine sichere Behauptung.
         knowledge_rule = """
 Du weißt die aktuelle Antwort nicht.
 
-Keine Fakten erfinden.
-
-Es ist völlig okay zu sagen:
-
-- kp
-- weiß ich grad nicht
-- hab keine ahnung
-- hab sie grad nicht gesehen
+Keine Fakten über andere Personen erfinden.
 """
-
-    # -----------------------------------------------------
-    # SOCIAL ACTION RULE
-    # -----------------------------------------------------
 
     if decision.should_ask_person:
 
         social_action_rule = f"""
 Das Brain möchte eventuell
-eine andere Person selbst fragen.
+eine Person selbst fragen.
 
 Target:
 {decision.target_user_name}
@@ -3452,11 +3512,7 @@ Target:
 Discord-ID:
 {decision.target_user_id}
 
-Die Hauptantwort muss
-auch ohne tatsächlich ausgeführten Ping funktionieren.
-
-Nicht behaupten,
-dass du die Person bereits gefragt hast.
+Die Hauptantwort muss auch ohne Ping funktionieren.
 """
 
     else:
@@ -3465,33 +3521,19 @@ dass du die Person bereits gefragt hast.
             "Keine Social Action geplant."
         )
 
-    # -----------------------------------------------------
-    # LENGTH RULE
-    # -----------------------------------------------------
-
     length_rules = {
 
         "tiny":
-            """
-Extrem kurz.
-Oft nur wenige Wörter.
-""",
+            "Extrem kurz.",
 
         "short":
-            """
-Kurzer Discord-Reply.
-""",
+            "Kurzer Discord-Reply.",
 
         "medium":
-            """
-Normale kompakte Antwort.
-""",
+            "Normale kompakte Antwort.",
 
         "long":
-            """
-Länger erlaubt,
-aber kein unnötiger Essay.
-"""
+            "Länger erlaubt, aber kein Essay."
     }
 
     length_rule = (
@@ -3521,23 +3563,6 @@ EXPRESSION PLAN
 ==================================================
 
 {expression_text}
-
-
-==================================================
-ROLLE
-==================================================
-
-Das Brain bestimmt WAS du sagen willst.
-
-Der Inner State beeinflusst,
-wie du dich gerade wirklich fühlst.
-
-Der Expression Layer bestimmt,
-wie du es sprachlich ausdrückst.
-
-Du bist jetzt der Writer.
-
-Alle drei Ebenen müssen zusammenpassen.
 
 
 ==================================================
@@ -3678,26 +3703,24 @@ Schreibe nur die Discord-Nachricht.
 
 Kein JSON.
 Keine Analyse.
-Keine Erklärung.
 Kein "Evilnae:".
 
-Das Wort "fair" ist verboten.
+Kein "fair".
 
-Wenn der Inner State warm ist,
-wirke nicht künstlich distanziert.
+Wenn Inner State warm ist:
+nicht künstlich kalt wirken.
 
-Wenn der Inner State gereizt ist,
-darfst du trocken reagieren,
-aber leichte Gereiztheit ist keine Ablehnung.
+Wenn gereizt:
+trocken okay,
+aber nicht Fake-Friend-Vibe.
 
 Bei Hanae:
 Geschwister-Genervtheit,
-keine Fake-Friend-Distanz.
+nicht Ablehnung.
 
 Nicht automatisch fragen.
 Nicht automatisch Emoji.
 Nicht automatisch Slang.
-Nicht automatisch Joke.
 """.strip()
 
 
@@ -3808,8 +3831,10 @@ async def execute_social_action(
 
         try:
 
-            member = await guild.fetch_member(
-                int(target_user_id)
+            member = (
+                await guild.fetch_member(
+                    int(target_user_id)
+                )
             )
 
         except (
@@ -3856,20 +3881,253 @@ async def execute_social_action(
 
 
 # =========================================================
+# INITIATIVE BACKGROUND LOOP
+# =========================================================
+
+async def initiative_loop():
+
+    global initiative_target_channel_id
+
+    print(
+        "[INITIATIVE LOOP] status=started"
+    )
+
+    # Erst ein bisschen warten,
+    # damit der Bot sauber hochfahren kann.
+
+    await asyncio.sleep(
+        15
+    )
+
+    while not bot.is_closed():
+
+        try:
+
+            await asyncio.sleep(
+                INITIATIVE_CHECK_INTERVAL
+            )
+
+            apply_time_decay()
+
+            # -------------------------------------------------
+            # KEIN ZIEL-CHANNEL BEKANNT
+            # -------------------------------------------------
+
+            if not initiative_target_channel_id:
+
+                continue
+
+            try:
+
+                channel_id_int = int(
+                    initiative_target_channel_id
+                )
+
+            except ValueError:
+
+                continue
+
+            channel = (
+                bot.get_channel(
+                    channel_id_int
+                )
+            )
+
+            if channel is None:
+
+                try:
+
+                    channel = (
+                        await bot.fetch_channel(
+                            channel_id_int
+                        )
+                    )
+
+                except (
+                    discord.NotFound,
+                    discord.Forbidden,
+                    discord.HTTPException
+                ):
+
+                    continue
+
+            # -------------------------------------------------
+            # INITIATIVE CHECK + SEND
+            # -------------------------------------------------
+
+            await execute_initiative(
+                channel=channel
+            )
+
+        except asyncio.CancelledError:
+
+            print(
+                "[INITIATIVE LOOP] "
+                "status=cancelled"
+            )
+
+            break
+
+        except Exception as error:
+
+            print(
+                "[INITIATIVE LOOP ERROR] "
+                f"{type(error).__name__}: "
+                f"{error}"
+            )
+
+            await asyncio.sleep(
+                30
+            )
+
+
+# =========================================================
+# READY
+# =========================================================
+
+@bot.event
+async def on_ready():
+
+    global initiative_task
+    global initiative_target_channel_id
+
+    apply_time_decay()
+
+    # -----------------------------------------------------
+    # TARGET CHANNEL
+    # -----------------------------------------------------
+
+    if ALLOWED_CHANNEL_ID:
+
+        initiative_target_channel_id = (
+            str(
+                ALLOWED_CHANNEL_ID
+            )
+        )
+
+    # -----------------------------------------------------
+    # START INITIATIVE LOOP ONCE
+    # -----------------------------------------------------
+
+    if (
+        initiative_task is None
+        or
+        initiative_task.done()
+    ):
+
+        initiative_task = (
+            asyncio.create_task(
+                initiative_loop()
+            )
+        )
+
+    print("")
+    print(
+        "============================================"
+    )
+
+    print(
+        f"Evilnae ist online als {bot.user}"
+    )
+
+    print(
+        f"Bot Version: {BOT_VERSION}"
+    )
+
+    print(
+        "============================================"
+    )
+
+    print(
+        "Perception Layer: ACTIVE"
+    )
+
+    print(
+        "Conversation State: ACTIVE"
+    )
+
+    print(
+        "Brain v2.1: ACTIVE"
+    )
+
+    print(
+        "Knowledge Guard: ACTIVE"
+    )
+
+    print(
+        "Expression Layer v1: ACTIVE"
+    )
+
+    print(
+        "Inner State v1: ACTIVE"
+    )
+
+    print(
+        "Autonomy / Initiative v1: ACTIVE"
+    )
+
+    print(
+        "Random Mood System: DISABLED"
+    )
+
+    print(
+        "Permanent FAIR Ban: ACTIVE"
+    )
+
+    print(
+        "Social Actions: ACTIVE"
+    )
+
+    print(
+        f"Initiative check interval: "
+        f"{INITIATIVE_CHECK_INTERVAL}s"
+    )
+
+    if initiative_target_channel_id:
+
+        print(
+            "Initiative Channel: "
+            f"{initiative_target_channel_id}"
+        )
+
+    else:
+
+        print(
+            "Initiative Channel: "
+            "UNKNOWN UNTIL FIRST MESSAGE"
+        )
+
+    print(
+        format_inner_state_debug(
+            evilnae_state
+        )
+    )
+
+    print(
+        "============================================"
+    )
+
+    print("")
+
+
+# =========================================================
 # MESSAGE EVENT
 # =========================================================
 
 @bot.event
 async def on_message(message):
 
+    global initiative_target_channel_id
+
     # -----------------------------------------------------
-    # IGNORE OWN MESSAGES
+    # IGNORE OWN MESSAGE
     # -----------------------------------------------------
 
     if (
         bot.user
         and
-        message.author.id == bot.user.id
+        message.author.id
+        == bot.user.id
     ):
 
         return
@@ -3886,6 +4144,35 @@ async def on_message(message):
         ):
 
             return
+
+    # -----------------------------------------------------
+    # AUTONOMY CHANNEL
+    #
+    # Wenn kein fester Channel in .env gesetzt ist,
+    # nimmt Evilnae den ersten Channel,
+    # in dem sie regulär Aktivität sieht.
+    # -----------------------------------------------------
+
+    if not initiative_target_channel_id:
+
+        initiative_target_channel_id = (
+            str(
+                message.channel.id
+            )
+        )
+
+        print(
+            "[INITIATIVE CHANNEL] "
+            f"set={initiative_target_channel_id}"
+        )
+
+    # -----------------------------------------------------
+    # CHANNEL ACTIVITY REGISTER
+    # -----------------------------------------------------
+
+    register_channel_message(
+        is_bot=False
+    )
 
     # =====================================================
     # 1. PERCEPTION
@@ -3905,8 +4192,10 @@ async def on_message(message):
 
         print(
             "[PERCEPTION ERROR] "
-            f"user={message.author.display_name} "
-            f"error={type(error).__name__}: "
+            f"user="
+            f"{message.author.display_name} "
+            f"error="
+            f"{type(error).__name__}: "
             f"{error}"
         )
 
@@ -3931,7 +4220,7 @@ async def on_message(message):
     )
 
     # =====================================================
-    # 2. OBSERVE EVERY MESSAGE
+    # 2. OBSERVE
     # =====================================================
 
     add_channel_user_message(
@@ -3988,7 +4277,9 @@ async def on_message(message):
             if perception.custom_emojis:
 
                 emoji_names = [
+
                     emoji.name
+
                     for emoji
                     in perception.custom_emojis
                 ]
@@ -3996,7 +4287,9 @@ async def on_message(message):
                 user_text = (
                     "[nonverbale Reaktion mit "
                     "Discord-Custom-Emote(s): "
-                    + ", ".join(emoji_names)
+                    + ", ".join(
+                        emoji_names
+                    )
                     + "]"
                 )
 
@@ -4070,7 +4363,7 @@ async def on_message(message):
             )
 
         # =================================================
-        # LONG-TERM USER CONTEXT
+        # USER MEMORY
         # =================================================
 
         user_profile = (
@@ -4099,7 +4392,7 @@ async def on_message(message):
         )
 
         # =================================================
-        # 3. INNER STATE UPDATE
+        # 3. INNER STATE
         # =================================================
 
         is_hanae = (
@@ -4203,7 +4496,7 @@ Nachricht:
         )
 
         # =================================================
-        # 4. CONVERSATION STATE
+        # 4. STATE
         # =================================================
 
         state = (
@@ -4318,7 +4611,7 @@ Nachricht:
                     decision.action = "reply"
 
         # =================================================
-        # 6. EXPRESSION PLAN
+        # 6. EXPRESSION
         # =================================================
 
         recent_expression_messages = (
@@ -4353,12 +4646,11 @@ Nachricht:
                     state.memory.relationship
                 ),
 
-                is_hanae=is_hanae
+                is_hanae=(
+                    is_hanae
+                )
             )
         )
-
-        # Inner State darf den Style
-        # leicht beeinflussen.
 
         if (
             inner_style_hint
@@ -4376,9 +4668,6 @@ Nachricht:
                 inner_style_hint
             )
 
-        # "fair" unabhängig von History
-        # permanent blockieren.
-
         if (
             "fair"
             not in expression_plan.avoid_words
@@ -4393,10 +4682,6 @@ Nachricht:
                 expression_plan
             )
         )
-
-        # =================================================
-        # INNER STATE GUIDANCE
-        # =================================================
 
         inner_state_guidance = (
             build_inner_state_guidance(
@@ -4449,7 +4734,7 @@ Nachricht:
         )
 
         # =================================================
-        # HUMAN TYPING DELAY
+        # TYPING DELAY
         # =================================================
 
         message_length = len(
@@ -4552,7 +4837,7 @@ Nachricht:
 
                 await message.reply(
                     "mein hirn hat grad kurz "
-                    "den windows-sound gemacht 💀",
+                    "bluescreen gemacht 💀",
                     mention_author=False
                 )
 
@@ -4563,7 +4848,7 @@ Nachricht:
             return
 
         # =================================================
-        # 9. CLEAN + HARD GUARDS
+        # 9. GUARDS
         # =================================================
 
         answer = (
@@ -4592,10 +4877,6 @@ Nachricht:
             )
         )
 
-        # Noch einmal,
-        # falls ein anderer Guard zufällig
-        # "fair" produziert hätte.
-
         answer = (
             enforce_permanent_expression_bans(
                 answer
@@ -4605,10 +4886,6 @@ Nachricht:
         if not answer:
 
             answer = "mhm"
-
-        # =================================================
-        # 10. EXPRESSION CHECK
-        # =================================================
 
         violation_reasons = (
             expression_violation_reasons(
@@ -4627,13 +4904,11 @@ Nachricht:
                 "[EXPRESSION VIOLATION] "
                 f"user={username} "
                 f"reasons="
-                f"{violation_reasons} "
-                f"answer="
-                f"{answer!r}"
+                f"{violation_reasons}"
             )
 
         # =================================================
-        # 11. CONTEXT UPDATE
+        # 10. CONTEXT UPDATE
         # =================================================
 
         user_context.append({
@@ -4668,88 +4943,15 @@ Nachricht:
         )
 
         # =================================================
-        # 12. SEND
+        # 11. SEND
         # =================================================
 
         try:
 
-            if (
-                decision.response_length
-                in {
-                    "tiny",
-                    "short"
-                }
-            ):
-
-                await message.reply(
-                    answer[:1900],
-                    mention_author=False
-                )
-
-            elif (
-                random.randint(
-                    1,
-                    SPLIT_CHANCE
-                )
-                == 1
-                and
-                len(answer) > 80
-            ):
-
-                split_point = (
-                    answer.find(
-                        ". "
-                    )
-                )
-
-                if (
-                    split_point
-                    != -1
-                ):
-
-                    first_part = (
-                        answer[
-                            :split_point + 1
-                        ]
-                    )
-
-                    second_part = (
-                        answer[
-                            split_point + 2:
-                        ]
-                    )
-
-                    await message.reply(
-                        first_part[:1900],
-                        mention_author=False
-                    )
-
-                    await asyncio.sleep(
-                        random.uniform(
-                            0.7,
-                            1.6
-                        )
-                    )
-
-                    if second_part:
-
-                        await message.channel.send(
-                            second_part[:1900]
-                        )
-
-                else:
-
-                    await message.reply(
-                        answer[:1900],
-                        mention_author=False
-                    )
-
-            else:
-
-                await message.reply(
-                    answer[:1900],
-                    mention_author=False
-                )
+            await message.reply(
+                answer[:1900],
+                mention_author=False
+            )
 
         except discord.HTTPException as error:
 
@@ -4761,8 +4963,15 @@ Nachricht:
 
             return
 
+        # Unsere eigene Antwort zählt ebenfalls
+        # als Channel-Aktivität.
+
+        register_channel_message(
+            is_bot=True
+        )
+
         # =================================================
-        # 13. SOCIAL ACTION
+        # 12. SOCIAL ACTION
         # =================================================
 
         social_action_executed = False
@@ -4800,7 +5009,7 @@ Nachricht:
                 )
 
         # =================================================
-        # 14. FINAL LOG
+        # 13. LOG
         # =================================================
 
         total_duration = (
@@ -4817,32 +5026,21 @@ Nachricht:
         print(
             "[RESPONSE DONE] "
             f"user={username} "
-            f"id={user_id} "
             f"duration={total_duration:.2f}s "
             f"brain={brain_duration:.2f}s "
             f"buffer="
             f"{buffer_count}/"
             f"{MEMORY_BUFFER_THRESHOLD} "
-            f"inner_feeling="
+            f"inner="
             f"{get_dominant_feeling(current_inner_state)} "
-            f"mood_bridge="
-            f"{current_mood} "
-            f"action="
-            f"{decision.action} "
-            f"length="
-            f"{decision.response_length} "
-            f"tone="
-            f"{decision.tone} "
             f"expression="
             f"{expression_plan.style} "
-            f"violations="
-            f"{len(violation_reasons)} "
             f"social="
             f"{social_action_executed}"
         )
 
         # =================================================
-        # 15. BACKGROUND MEMORY
+        # 14. MEMORY WORKER
         # =================================================
 
         start_memory_worker_if_needed(
