@@ -9,3 +9,4 @@ initiative_state.json
 social_actions_state.json
 reflection_state.json
 voice_memory.json
+*.bak

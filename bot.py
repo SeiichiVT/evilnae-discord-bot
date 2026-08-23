@@ -77,6 +77,20 @@ from participation import (
     format_participation_debug,
 )
 
+from local_voice import (
+    LOCAL_VOICE_VERSION,
+    LOCAL_VOICE_ENABLED,
+    humanize_evilnae_response,
+    format_local_voice_debug,
+    warm_local_voice,
+)
+
+from voice_memory import (
+    VOICE_MEMORY_VERSION,
+    register_voice_feedback,
+    format_voice_memory_debug,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -92,7 +106,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.9.1-natural-conversation"
+BOT_VERSION = "2.10.0-local-voice"
 
 
 # =========================================================
@@ -6651,6 +6665,162 @@ async def initiative_loop():
 
 
 # =========================================================
+# LOCAL VOICE FEEDBACK PAIR
+#
+# Findet die letzte Evilnae-Antwort im Channel
+# und die User-Nachricht, auf die sie reagiert hat.
+#
+# Dadurch kann auch jemand anderes sagen:
+#
+# "das klang wie ein Bot"
+#
+# oder:
+#
+# "das klang menschlich"
+# =========================================================
+
+def find_latest_voice_training_pair(
+    channel_snapshot
+):
+
+    if not channel_snapshot:
+
+        return None
+
+    # -----------------------------------------------------
+    # Die aktuelle User-Nachricht wurde
+    # bereits in den Channel Context geschrieben.
+    # -----------------------------------------------------
+
+    previous_items = (
+        channel_snapshot[:-1]
+    )
+
+    bot_index = None
+
+    bot_item = None
+
+    # -----------------------------------------------------
+    # LETZTE EVILNAE-NACHRICHT
+    # -----------------------------------------------------
+
+    for index in range(
+        len(previous_items) - 1,
+        -1,
+        -1
+    ):
+
+        item = (
+            previous_items[
+                index
+            ]
+        )
+
+        if (
+            item.get(
+                "type"
+            )
+            != "bot"
+        ):
+
+            continue
+
+        # -------------------------------------------------
+        # Initiative hat nicht zwingend
+        # eine konkrete User-Nachricht als Ursprung.
+        # -------------------------------------------------
+
+        if (
+            item.get(
+                "origin"
+            )
+            == "initiative"
+        ):
+
+            return None
+
+        bot_index = (
+            index
+        )
+
+        bot_item = (
+            item
+        )
+
+        break
+
+    if bot_item is None:
+
+        return None
+
+    evilnae_response = str(
+        bot_item.get(
+            "content",
+            ""
+        )
+    ).strip()
+
+    if not evilnae_response:
+
+        return None
+
+    # -----------------------------------------------------
+    # USER-NACHRICHT VOR DER EVILNAE-ANTWORT
+    # -----------------------------------------------------
+
+    for index in range(
+        bot_index - 1,
+        -1,
+        -1
+    ):
+
+        item = (
+            previous_items[
+                index
+            ]
+        )
+
+        if (
+            item.get(
+                "type"
+            )
+            != "user"
+        ):
+
+            continue
+
+        user_message = str(
+            item.get(
+                "content",
+                ""
+            )
+        ).strip()
+
+        if not user_message:
+
+            continue
+
+        return {
+
+            "username":
+                str(
+                    item.get(
+                        "username",
+                        "unknown"
+                    )
+                ),
+
+            "user_message":
+                user_message,
+
+            "evilnae_response":
+                evilnae_response
+        }
+
+    return None
+
+
+# =========================================================
 # READY
 # =========================================================
 
@@ -6661,6 +6831,19 @@ async def on_ready():
     global initiative_target_channel_id
 
     apply_time_decay()
+
+    # -----------------------------------------------------
+    # LOCAL VOICE WARMUP
+    #
+    # Qwen wird im Hintergrund vorgeladen.
+    # Discord-Startup wird nicht blockiert.
+    # -----------------------------------------------------
+
+    if LOCAL_VOICE_ENABLED:
+
+        asyncio.create_task(
+            warm_local_voice()
+        )
 
     if ALLOWED_CHANNEL_ID:
 
@@ -6774,6 +6957,23 @@ async def on_ready():
 
     print(
         "Social Actions: ACTIVE"
+    )
+
+    print(
+        f"Local Voice v{LOCAL_VOICE_VERSION}: "
+        f"{'ACTIVE' if LOCAL_VOICE_ENABLED else 'DISABLED'}"
+    )
+
+    print(
+        f"Voice Memory v{VOICE_MEMORY_VERSION}: ACTIVE"
+    )
+
+    print(
+        format_local_voice_debug()
+    )
+
+    print(
+        format_voice_memory_debug()
     )
 
     print(
@@ -7031,6 +7231,62 @@ async def on_message(
             in crisis_words
         )
     )
+
+    # =====================================================
+    # VOICE FEEDBACK LEARNING
+    #
+    # Nur explizite Voice-Signale werden gespeichert.
+    #
+    # Beispiele:
+    #
+    # "das klingt wie ein Bot"
+    # "das klang richtig menschlich"
+    #
+    # Normale Gespräche ändern nichts.
+    # =====================================================
+
+    voice_feedback_saved = False
+
+    if feedback_safe_for_learning:
+
+        voice_pair = (
+            find_latest_voice_training_pair(
+                channel_snapshot
+            )
+        )
+
+        if voice_pair:
+
+            voice_feedback_saved = (
+                register_voice_feedback(
+
+                    username=username,
+
+                    user_message=(
+                        voice_pair[
+                            "user_message"
+                        ]
+                    ),
+
+                    evilnae_response=(
+                        voice_pair[
+                            "evilnae_response"
+                        ]
+                    ),
+
+                    feedback_text=(
+                        feedback_text
+                    )
+                )
+            )
+
+            if voice_feedback_saved:
+
+                print(
+                    "[VOICE FEEDBACK] "
+                    f"user={username} "
+                    "saved=yes"
+                )
 
     if feedback_safe_for_learning:
 
@@ -7860,6 +8116,162 @@ Participation-Entscheidung nötig.
             )
 
             return
+
+        # =================================================
+        # 11.5 LOCAL VOICE / HUMANIZATION
+        #
+        # OpenAI hat:
+        #
+        # - Inhalt
+        # - Wissen
+        # - Brain Decision
+        # - Inner State
+        #
+        # bereits festgelegt.
+        #
+        # Qwen darf nur die sprachliche Oberfläche
+        # natürlicher machen.
+        #
+        # Danach läuft erneut Evilnaes Hard Guard.
+        # =================================================
+
+        if autonomous_participation:
+
+            voice_conversation_mode = (
+                "participation"
+            )
+
+        elif conversation_continuation:
+
+            voice_conversation_mode = (
+                "continuation"
+            )
+
+        else:
+
+            voice_conversation_mode = (
+                "direct"
+            )
+
+        original_writer_answer = (
+            answer
+        )
+
+        try:
+
+            voice_result = (
+                await humanize_evilnae_response(
+
+                    user_message=(
+                        user_text
+                    ),
+
+                    draft=(
+                        answer
+                    ),
+
+                    conversation_mode=(
+                        voice_conversation_mode
+                    ),
+
+                    response_goal=(
+                        decision.response_goal
+                        or
+                        decision.intent
+                    ),
+
+                    allow_question=(
+                        decision.ask_question
+                    ),
+
+                    inner_state_guidance=(
+                        inner_state_guidance
+                    ),
+
+                    recent_evilnae_messages=(
+                        state.history
+                        .recent_evilnae_messages
+                    )
+                )
+            )
+
+            voice_candidate = (
+                clean_generated_answer(
+                    voice_result.output_text
+                )
+            )
+
+            voice_candidate = (
+                enforce_permanent_expression_bans(
+                    voice_candidate
+                )
+            )
+
+            # ---------------------------------------------
+            # FINAL EVILNAE HARD GUARD
+            #
+            # Der lokale Writer darf weiterhin nicht:
+            #
+            # - fair benutzen
+            # - unerlaubte Fragen erzeugen
+            # - unbekannte aktuelle Fakten behaupten
+            # - Füllantwort erzeugen
+            # - Participation falsch beginnen
+            # ---------------------------------------------
+
+            voice_guard_reasons = (
+                get_writer_violation_reasons(
+
+                    answer=(
+                        voice_candidate
+                    ),
+
+                    decision=(
+                        decision
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if voice_guard_reasons:
+
+                print(
+                    "[LOCAL VOICE REJECTED] "
+                    f"user={username} "
+                    f"reasons="
+                    f"{voice_guard_reasons}"
+                )
+
+                answer = (
+                    original_writer_answer
+                )
+
+            elif voice_candidate:
+
+                answer = (
+                    voice_candidate
+                )
+
+        except Exception as error:
+
+            print(
+                "[LOCAL VOICE INTEGRATION ERROR] "
+                f"user={username} "
+                f"error="
+                f"{type(error).__name__}: "
+                f"{error}"
+            )
+
+            # ---------------------------------------------
+            # Qwen darf den Hauptbot niemals kaputt machen.
+            # ---------------------------------------------
+
+            answer = (
+                original_writer_answer
+            )
 
         # =================================================
         # EXPRESSION LOGGING

@@ -19,7 +19,7 @@ from voice_memory import (
 # VERSION
 # =========================================================
 
-LOCAL_VOICE_VERSION = "1.0"
+LOCAL_VOICE_VERSION = "1.1"
 
 
 # =========================================================
@@ -33,13 +33,11 @@ def env_bool(
     name,
     default=False
 ):
-
     value = os.getenv(
         name
     )
 
     if value is None:
-
         return default
 
     return (
@@ -78,7 +76,14 @@ LOCAL_VOICE_MODEL = (
 LOCAL_VOICE_TIMEOUT = float(
     os.getenv(
         "LOCAL_VOICE_TIMEOUT",
-        "12"
+        "60"
+    )
+)
+
+LOCAL_VOICE_QUEUE_TIMEOUT = float(
+    os.getenv(
+        "LOCAL_VOICE_QUEUE_TIMEOUT",
+        "5"
     )
 )
 
@@ -99,7 +104,7 @@ LOCAL_VOICE_NUM_CTX = int(
 LOCAL_VOICE_NUM_PREDICT = int(
     os.getenv(
         "LOCAL_VOICE_NUM_PREDICT",
-        "220"
+        "160"
     )
 )
 
@@ -131,6 +136,30 @@ LOCAL_VOICE_MATCH_THRESHOLD = float(
     )
 )
 
+LOCAL_VOICE_MEANING_THRESHOLD = float(
+    os.getenv(
+        "LOCAL_VOICE_MEANING_THRESHOLD",
+        "0.82"
+    )
+)
+
+
+# =========================================================
+# LOCAL MODEL CONCURRENCY
+#
+# Wir lassen bewusst nur einen Voice-Request gleichzeitig
+# auf die lokale GPU.
+#
+# Wenn zu viele Leute gleichzeitig schreiben,
+# wartet Evilnae nicht ewig:
+# Nach LOCAL_VOICE_QUEUE_TIMEOUT wird einfach
+# der normale Writer-Text verwendet.
+# =========================================================
+
+_voice_semaphore = asyncio.Semaphore(
+    1
+)
+
 
 # =========================================================
 # RESULT
@@ -151,6 +180,10 @@ class LocalVoiceResult:
 
     evilnae_match: float
 
+    meaning_preserved: float
+
+    new_facts: bool
+
     reason: str
 
     duration: float = 0.0
@@ -166,7 +199,6 @@ def clamp01(
 ):
 
     try:
-
         value = float(
             value
         )
@@ -175,7 +207,6 @@ def clamp01(
         TypeError,
         ValueError
     ):
-
         return default
 
     return max(
@@ -197,7 +228,6 @@ def clean_response_text(
     ).strip()
 
     if not text:
-
         return ""
 
     text = re.sub(
@@ -241,9 +271,7 @@ def clean_response_text(
             )
 
             if candidate:
-
                 text = candidate
-
                 break
 
     return (
@@ -323,13 +351,9 @@ async def ollama_chat(
 
 def _ollama_version_sync():
 
-    url = (
-        LOCAL_VOICE_URL
-        + "/api/version"
-    )
-
     request = urllib.request.Request(
-        url,
+        LOCAL_VOICE_URL
+        + "/api/version",
         method="GET"
     )
 
@@ -338,7 +362,7 @@ def _ollama_version_sync():
         timeout=2.5
     ) as response:
 
-        raw = (
+        return json.loads(
             response
             .read()
             .decode(
@@ -346,15 +370,10 @@ def _ollama_version_sync():
             )
         )
 
-    return json.loads(
-        raw
-    )
-
 
 async def is_local_voice_available():
 
     if not LOCAL_VOICE_ENABLED:
-
         return False
 
     try:
@@ -371,55 +390,134 @@ async def is_local_voice_available():
         return True
 
     except Exception:
+        return False
+
+
+# =========================================================
+# MODEL WARMUP
+#
+# Wird beim Botstart im Hintergrund ausgeführt.
+#
+# Dadurch ist der erste echte User nicht derjenige,
+# der auf das Laden von Qwen warten muss.
+# =========================================================
+
+async def warm_local_voice():
+
+    if not LOCAL_VOICE_ENABLED:
+        return False
+
+    payload = {
+
+        "model":
+            LOCAL_VOICE_MODEL,
+
+        "stream":
+            False,
+
+        "format":
+            "json",
+
+        "keep_alive":
+            LOCAL_VOICE_KEEP_ALIVE,
+
+        "messages": [
+
+            {
+                "role":
+                    "user",
+
+                "content":
+                    (
+                        "Antworte ausschließlich "
+                        'mit JSON: {"ok": true}'
+                    )
+            }
+        ],
+
+        "options": {
+
+            "temperature":
+                0.0,
+
+            "num_ctx":
+                512,
+
+            "num_predict":
+                20
+        }
+    }
+
+    start = (
+        time.perf_counter()
+    )
+
+    try:
+
+        await ollama_chat(
+            payload
+        )
+
+        print(
+            "[LOCAL VOICE WARM] "
+            f"model={LOCAL_VOICE_MODEL} "
+            f"duration="
+            f"{time.perf_counter() - start:.2f}s "
+            "status=ready"
+        )
+
+        return True
+
+    except Exception as error:
+
+        print(
+            "[LOCAL VOICE WARM] "
+            f"model={LOCAL_VOICE_MODEL} "
+            "status=failed "
+            f"error="
+            f"{type(error).__name__}: "
+            f"{error}"
+        )
 
         return False
 
 
 # =========================================================
-# VOICE SYSTEM PROMPT
+# VOICE SYSTEM
 # =========================================================
 
 VOICE_SYSTEM_PROMPT = """
-Du bist NICHT Evilnaes Brain.
+Du bist Evilnaes interner Voice Editor,
+NICHT ihr Brain.
 
-Du bist ihr interner Voice Editor.
+Du bekommst einen bereits
+inhaltlich entschiedenen Discord-Entwurf.
 
-Deine einzige Aufgabe:
+Deine Aufgabe ist ausschließlich,
+ihn weniger botartig
+und natürlicher klingen zu lassen.
 
-Prüfe einen bereits fertigen,
-inhaltlich entschiedenen Discord-Entwurf
-und entscheide,
-ob er zu botartig klingt.
 
-Falls nötig,
-formulierst du denselben Gedanken
-menschlicher und Evilnae-typischer.
-
-Du darfst NICHT:
+==================================================
+DU DARFST NICHT
+==================================================
 
 - neue Fakten erfinden
-- bestehende Fakten verändern
-- Namen oder Beziehungen erfinden
-- neue aktuelle Ereignisse erfinden
-- die Absicht der Antwort verändern
-- Sicherheitsgrenzen verändern
-- neue Versprechen machen
-- zusätzliche Aktionen ankündigen
-
-Du optimierst nur:
-
-- Natürlichkeit
-- Discord-Rhythmus
-- Evilnae-Voice
-- weniger Bot-Sprache
-- weniger Wiederholung
+- Fakten verändern
+- neue Namen oder Beziehungen einführen
+- neue aktuelle Ereignisse behaupten
+- Versprechen hinzufügen
+- Aktionen hinzufügen
+- die inhaltliche Absicht verändern
+- eine Frage hinzufügen,
+  wenn sie nicht erlaubt ist
 
 
 ==================================================
-WAS OFT BOTARTIG WIRKT
+TYPISCHE BOT-MUSTER
 ==================================================
 
-Typische schlechte Muster:
+Zum Beispiel:
 
 - "Das klingt spannend!"
 - "Das klingt super!"
@@ -427,34 +525,45 @@ Typische schlechte Muster:
 - "Viel Erfolg!"
 - "Alles klar!"
 - "Das freut mich zu hören!"
-- User-Aussage nochmal zusammenfassen
-- erst bestätigen, dann paraphrasieren,
+
+Außerdem botartig:
+
+- User-Aussage paraphrasieren
+- erst bestätigen,
+  dann zusammenfassen,
   dann freundlich abschließen
 - jede Antwort perfekt rund machen
-- jede Nachricht maximal hilfreich machen
+- immer maximal hilfreich sein
 - immer vollständige saubere Sätze
-- künstlich optimistische Abschlussfloskeln
 - ständig Gegenfragen
-- denselben Gedanken wie
-  Evilnaes letzte Nachricht nochmal sagen
+- dieselbe Aussage mehrfach anders formulieren
 
 
 ==================================================
-WAS MENSCHLICHER WIRKT
+NATÜRLICHERE DISCORD-SPRACHE
 ==================================================
 
-Menschen im Discord:
+Menschen:
 
-- reagieren oft nur auf einen Teil
-- haben eigene kleine Gedanken
+- reagieren manchmal nur auf einen Teil
+- haben eigene kleine Reaktionen
 - schreiben manchmal Fragmente
 - lassen Aussagen einfach stehen
 - müssen nicht alles bestätigen
 - variieren Satzlänge
 - wiederholen den User nicht ständig
-- dürfen trocken sein
-- dürfen locker sein
-- müssen nicht permanent hilfreich sein
+- dürfen trocken oder frech sein
+
+Aber:
+
+Nicht künstlich quirky sein.
+Nicht künstlich edgy sein.
+Nicht jedes Mal einen Witz erzwingen.
+
+
+==================================================
+EVILNAE
+==================================================
 
 Evilnae ist:
 
@@ -463,28 +572,28 @@ Evilnae ist:
 - etwas frech
 - manchmal trocken
 - gelegentlich chaotisch
-- nicht künstlich edgy
-- nicht grundsätzlich abweisend
-- nicht Kundenservice
+- sozial menschlich
+- kein Kundenservice
 
 
 ==================================================
 WICHTIG
 ==================================================
 
-Eine bereits gute,
-natürliche Antwort
-musst du NICHT umschreiben.
-
-Nicht jede Antwort muss
-maximal quirky sein.
+Wenn der Originalentwurf
+bereits natürlich ist,
+lass ihn unverändert.
 
 Natürlichkeit ist wichtiger
 als erzwungene Persönlichkeit.
 
+Bewerte außerdem ehrlich,
+ob deine Neufassung
+die Bedeutung vollständig erhält.
+
 Antworte ausschließlich
 mit gültigem JSON.
-"""
+""".strip()
 
 
 # =========================================================
@@ -504,40 +613,36 @@ def build_voice_prompt(
     bad_examples
 ):
 
-    recent_text = (
-        "\n".join(
+    if recent_evilnae_messages:
+
+        recent_text = "\n".join(
             f"- {message}"
             for message
             in recent_evilnae_messages[
                 -6:
             ]
         )
-        if recent_evilnae_messages
-        else "Keine."
-    )
 
-    good_text = (
-        format_voice_examples(
-            good_examples
+    else:
+
+        recent_text = (
+            "Keine."
         )
-    )
 
-    bad_text = (
-        format_voice_examples(
-            bad_examples
+    if allow_question:
+
+        question_rule = (
+            "Eine natürliche Frage ist erlaubt, "
+            "aber nicht verpflichtend."
         )
-    )
 
-    question_rule = (
-        "Eine Frage ist erlaubt."
-        if allow_question
-        else
-        (
+    else:
+
+        question_rule = (
             "Keine neue Frage hinzufügen. "
-            "Der finale Text darf "
-            "keine Gegenfrage enthalten."
+            "Der finale Text darf keine "
+            "Gegenfrage enthalten."
         )
-    )
 
     return f"""
 AKTUELLE USER-NACHRICHT:
@@ -588,17 +693,17 @@ LETZTE EVILNAE-NACHRICHTEN
 
 
 ==================================================
-GELERNTE GUTE BEISPIELE
+GUTE GELERNTE BEISPIELE
 ==================================================
 
-{good_text}
+{format_voice_examples(good_examples)}
 
 
 ==================================================
-GELERNTE SCHLECHTE BEISPIELE
+SCHLECHTE GELERNTE BEISPIELE
 ==================================================
 
-{bad_text}
+{format_voice_examples(bad_examples)}
 
 
 ==================================================
@@ -608,37 +713,76 @@ BEWERTUNG
 Bewerte:
 
 bot_likeness:
-0.0 = wirkt klar wie Mensch im Discord
-1.0 = wirkt extrem wie Chatbot/Kundensupport
+
+0.0 =
+klar menschlich / Discord
+
+1.0 =
+extrem Bot / Kundenservice
+
 
 repetition:
-0.0 = kein problematisches Wiederholen
-1.0 = wiederholt stark vorherige Aussagen/Muster
+
+0.0 =
+keine problematische Wiederholung
+
+1.0 =
+starke Wiederholung
+
 
 evilnae_match:
-0.0 = passt gar nicht zu Evilnae
-1.0 = passt sehr gut zu Evilnae
+
+0.0 =
+passt gar nicht zu Evilnae
+
+1.0 =
+passt sehr gut
+
+
+meaning_preserved:
+
+0.0 =
+Bedeutung stark verändert
+
+1.0 =
+identische inhaltliche Bedeutung
+
+
+new_facts:
+
+true,
+falls deine Neufassung
+irgendeine neue Behauptung,
+einen Fakt,
+ein Versprechen
+oder eine Aktion ergänzt.
 
 
 ==================================================
 ENTSCHEIDUNG
 ==================================================
 
-Wenn der Entwurf bereits natürlich ist:
+Wenn der Entwurf
+schon natürlich ist:
 
 rewrite = false
 
 response = Originalentwurf
 
 
-Wenn er botartig,
-unnötig glatt,
-wiederholend
-oder untypisch ist:
+Wenn er:
+
+- botartig
+- wiederholend
+- zu glatt
+- untypisch
+
+ist:
 
 rewrite = true
 
-response = natürlichere Version
+Formuliere DENSELBEN Gedanken
+natürlicher.
 
 
 ==================================================
@@ -649,6 +793,8 @@ JSON SCHEMA
   "bot_likeness": 0.0,
   "repetition": 0.0,
   "evilnae_match": 0.0,
+  "meaning_preserved": 1.0,
+  "new_facts": false,
   "rewrite": false,
   "reason": "kurzer interner Grund",
   "response": "finale Discord-Nachricht"
@@ -657,7 +803,7 @@ JSON SCHEMA
 
 
 # =========================================================
-# PARSE RESULT
+# PARSE
 # =========================================================
 
 def parse_voice_result(
@@ -717,7 +863,8 @@ def parse_voice_result(
 
             data = json.loads(
                 raw_text[
-                    start:end + 1
+                    start:
+                    end + 1
                 ]
             )
 
@@ -732,40 +879,6 @@ def parse_voice_result(
 
         return None
 
-    bot_likeness = (
-        clamp01(
-            data.get(
-                "bot_likeness"
-            ),
-            0.5
-        )
-    )
-
-    repetition = (
-        clamp01(
-            data.get(
-                "repetition"
-            ),
-            0.0
-        )
-    )
-
-    evilnae_match = (
-        clamp01(
-            data.get(
-                "evilnae_match"
-            ),
-            0.5
-        )
-    )
-
-    model_rewrite = bool(
-        data.get(
-            "rewrite",
-            False
-        )
-    )
-
     response_text = (
         clean_response_text(
             data.get(
@@ -773,40 +886,59 @@ def parse_voice_result(
                 ""
             )
         )
-    )
-
-    if not response_text:
-
-        response_text = (
-            original_draft
-        )
-
-    should_rewrite = (
-        model_rewrite
         or
-        bot_likeness
-        >= LOCAL_VOICE_BOT_THRESHOLD
-        or
-        repetition
-        >= LOCAL_VOICE_REPETITION_THRESHOLD
-        or
-        evilnae_match
-        < LOCAL_VOICE_MATCH_THRESHOLD
+        original_draft
     )
 
     return {
 
         "bot_likeness":
-            bot_likeness,
+            clamp01(
+                data.get(
+                    "bot_likeness"
+                ),
+                0.5
+            ),
 
         "repetition":
-            repetition,
+            clamp01(
+                data.get(
+                    "repetition"
+                ),
+                0.0
+            ),
 
         "evilnae_match":
-            evilnae_match,
+            clamp01(
+                data.get(
+                    "evilnae_match"
+                ),
+                0.5
+            ),
 
-        "should_rewrite":
-            should_rewrite,
+        "meaning_preserved":
+            clamp01(
+                data.get(
+                    "meaning_preserved"
+                ),
+                0.0
+            ),
+
+        "new_facts":
+            bool(
+                data.get(
+                    "new_facts",
+                    False
+                )
+            ),
+
+        "model_rewrite":
+            bool(
+                data.get(
+                    "rewrite",
+                    False
+                )
+            ),
 
         "response":
             response_text,
@@ -822,7 +954,40 @@ def parse_voice_result(
 
 
 # =========================================================
-# MAIN VOICE FUNCTION
+# NEW MENTION GUARD
+# =========================================================
+
+def _new_mentions_added(
+    original,
+    candidate
+):
+
+    original_mentions = set(
+        re.findall(
+            r"<@!?\d+>",
+            original
+            or ""
+        )
+    )
+
+    candidate_mentions = set(
+        re.findall(
+            r"<@!?\d+>",
+            candidate
+            or ""
+        )
+    )
+
+    return not (
+        candidate_mentions
+        .issubset(
+            original_mentions
+        )
+    )
+
+
+# =========================================================
+# MAIN HUMANIZER
 # =========================================================
 
 async def humanize_evilnae_response(
@@ -841,123 +1006,93 @@ async def humanize_evilnae_response(
         or ""
     ).strip()
 
-    if not draft:
+    def fallback(
+        reason,
+        duration=0.0,
+        **scores
+    ):
 
         return LocalVoiceResult(
-            output_text="",
+
+            output_text=draft,
+
             used=False,
+
             rewritten=False,
-            bot_likeness=0.0,
-            repetition=0.0,
-            evilnae_match=0.0,
-            reason="empty_draft"
+
+            bot_likeness=(
+                scores.get(
+                    "bot_likeness",
+                    0.0
+                )
+            ),
+
+            repetition=(
+                scores.get(
+                    "repetition",
+                    0.0
+                )
+            ),
+
+            evilnae_match=(
+                scores.get(
+                    "evilnae_match",
+                    1.0
+                )
+            ),
+
+            meaning_preserved=(
+                scores.get(
+                    "meaning_preserved",
+                    1.0
+                )
+            ),
+
+            new_facts=(
+                scores.get(
+                    "new_facts",
+                    False
+                )
+            ),
+
+            reason=reason,
+
+            duration=duration
+        )
+
+    if not draft:
+        return fallback(
+            "empty_draft"
         )
 
     if not LOCAL_VOICE_ENABLED:
-
-        return LocalVoiceResult(
-            output_text=draft,
-            used=False,
-            rewritten=False,
-            bot_likeness=0.0,
-            repetition=0.0,
-            evilnae_match=1.0,
-            reason="disabled"
+        return fallback(
+            "disabled"
         )
 
-    (
-        good_examples,
-        bad_examples
-    ) = (
-        get_relevant_voice_examples(
-            user_message
-        )
-    )
+    # -----------------------------------------------------
+    # GPU QUEUE
+    # -----------------------------------------------------
 
-    prompt = (
-        build_voice_prompt(
+    try:
 
-            user_message=(
-                user_message
-            ),
-
-            draft=draft,
-
-            conversation_mode=(
-                conversation_mode
-            ),
-
-            response_goal=(
-                response_goal
-            ),
-
-            allow_question=(
-                allow_question
-            ),
-
-            inner_state_guidance=(
-                inner_state_guidance
-            ),
-
-            recent_evilnae_messages=(
-                recent_evilnae_messages
-            ),
-
-            good_examples=(
-                good_examples
-            ),
-
-            bad_examples=(
-                bad_examples
+        await asyncio.wait_for(
+            _voice_semaphore.acquire(),
+            timeout=(
+                LOCAL_VOICE_QUEUE_TIMEOUT
             )
         )
-    )
 
-    payload = {
+    except asyncio.TimeoutError:
 
-        "model":
-            LOCAL_VOICE_MODEL,
+        print(
+            "[LOCAL VOICE FALLBACK] "
+            "reason=queue_busy"
+        )
 
-        "stream":
-            False,
-
-        "format":
-            "json",
-
-        "keep_alive":
-            LOCAL_VOICE_KEEP_ALIVE,
-
-        "messages": [
-
-            {
-                "role":
-                    "system",
-
-                "content":
-                    VOICE_SYSTEM_PROMPT
-            },
-
-            {
-                "role":
-                    "user",
-
-                "content":
-                    prompt
-            }
-        ],
-
-        "options": {
-
-            "temperature":
-                LOCAL_VOICE_TEMPERATURE,
-
-            "num_ctx":
-                LOCAL_VOICE_NUM_CTX,
-
-            "num_predict":
-                LOCAL_VOICE_NUM_PREDICT
-        }
-    }
+        return fallback(
+            "queue_busy"
+        )
 
     start = (
         time.perf_counter()
@@ -965,192 +1100,214 @@ async def humanize_evilnae_response(
 
     try:
 
-        response = (
-            await ollama_chat(
-                payload
+        (
+            good_examples,
+            bad_examples
+        ) = (
+            get_relevant_voice_examples(
+                user_message
             )
         )
 
-    except (
-        asyncio.TimeoutError,
-        TimeoutError,
-        urllib.error.URLError,
-        urllib.error.HTTPError,
-        ConnectionError,
-        OSError
-    ) as error:
+        prompt = (
+            build_voice_prompt(
+
+                user_message=(
+                    user_message
+                ),
+
+                draft=draft,
+
+                conversation_mode=(
+                    conversation_mode
+                ),
+
+                response_goal=(
+                    response_goal
+                ),
+
+                allow_question=(
+                    allow_question
+                ),
+
+                inner_state_guidance=(
+                    inner_state_guidance
+                ),
+
+                recent_evilnae_messages=(
+                    recent_evilnae_messages
+                ),
+
+                good_examples=(
+                    good_examples
+                ),
+
+                bad_examples=(
+                    bad_examples
+                )
+            )
+        )
+
+        payload = {
+
+            "model":
+                LOCAL_VOICE_MODEL,
+
+            "stream":
+                False,
+
+            "format":
+                "json",
+
+            "keep_alive":
+                LOCAL_VOICE_KEEP_ALIVE,
+
+            "messages": [
+
+                {
+                    "role":
+                        "system",
+
+                    "content":
+                        VOICE_SYSTEM_PROMPT
+                },
+
+                {
+                    "role":
+                        "user",
+
+                    "content":
+                        prompt
+                }
+            ],
+
+            "options": {
+
+                "temperature":
+                    LOCAL_VOICE_TEMPERATURE,
+
+                "num_ctx":
+                    LOCAL_VOICE_NUM_CTX,
+
+                "num_predict":
+                    LOCAL_VOICE_NUM_PREDICT
+            }
+        }
+
+        try:
+
+            response = (
+                await ollama_chat(
+                    payload
+                )
+            )
+
+        except Exception as error:
+
+            duration = (
+                time.perf_counter()
+                - start
+            )
+
+            print(
+                "[LOCAL VOICE FALLBACK] "
+                f"model={LOCAL_VOICE_MODEL} "
+                f"duration={duration:.2f}s "
+                f"reason="
+                f"{type(error).__name__}"
+            )
+
+            return fallback(
+                "local_model_unavailable",
+                duration
+            )
 
         duration = (
             time.perf_counter()
             - start
         )
 
-        print(
-            "[LOCAL VOICE FALLBACK] "
-            f"model={LOCAL_VOICE_MODEL} "
-            f"duration={duration:.2f}s "
-            f"reason="
-            f"{type(error).__name__}"
+        try:
+
+            raw_content = (
+                response[
+                    "message"
+                ][
+                    "content"
+                ]
+            )
+
+        except (
+            KeyError,
+            TypeError
+        ):
+
+            return fallback(
+                "invalid_ollama_response",
+                duration
+            )
+
+        parsed = (
+            parse_voice_result(
+                raw_content,
+                draft
+            )
         )
 
-        return LocalVoiceResult(
-            output_text=draft,
-            used=False,
-            rewritten=False,
-            bot_likeness=0.0,
-            repetition=0.0,
-            evilnae_match=1.0,
-            reason=(
-                "local_model_unavailable"
-            ),
-            duration=duration
-        )
+        if parsed is None:
 
-    except Exception as error:
+            print(
+                "[LOCAL VOICE PARSE ERROR] "
+                f"raw="
+                f"{raw_content[:500]!r}"
+            )
 
-        duration = (
-            time.perf_counter()
-            - start
-        )
+            return fallback(
+                "json_parse_error",
+                duration
+            )
 
-        print(
-            "[LOCAL VOICE ERROR] "
-            f"{type(error).__name__}: "
-            f"{error}"
-        )
+        # -------------------------------------------------
+        # SHOULD REWRITE?
+        # -------------------------------------------------
 
-        return LocalVoiceResult(
-            output_text=draft,
-            used=False,
-            rewritten=False,
-            bot_likeness=0.0,
-            repetition=0.0,
-            evilnae_match=1.0,
-            reason="unexpected_error",
-            duration=duration
-        )
+        should_rewrite = (
 
-    duration = (
-        time.perf_counter()
-        - start
-    )
-
-    try:
-
-        raw_content = (
-            response[
-                "message"
-            ][
-                "content"
-            ]
-        )
-
-    except (
-        KeyError,
-        TypeError
-    ):
-
-        return LocalVoiceResult(
-            output_text=draft,
-            used=False,
-            rewritten=False,
-            bot_likeness=0.0,
-            repetition=0.0,
-            evilnae_match=1.0,
-            reason="invalid_ollama_response",
-            duration=duration
-        )
-
-    parsed = (
-        parse_voice_result(
-            raw_content,
-            draft
-        )
-    )
-
-    if parsed is None:
-
-        print(
-            "[LOCAL VOICE PARSE ERROR] "
-            f"raw={raw_content[:500]!r}"
-        )
-
-        return LocalVoiceResult(
-            output_text=draft,
-            used=False,
-            rewritten=False,
-            bot_likeness=0.0,
-            repetition=0.0,
-            evilnae_match=1.0,
-            reason="json_parse_error",
-            duration=duration
-        )
-
-    final_text = (
-        parsed[
-            "response"
-        ]
-        if parsed[
-            "should_rewrite"
-        ]
-        else draft
-    )
-
-    final_text = (
-        clean_response_text(
-            final_text
-        )
-    )
-
-    # -----------------------------------------------------
-    # HARD SAFETY FOR VOICE LAYER
-    #
-    # Das lokale Modell darf nicht plötzlich
-    # eine Gegenfrage erzeugen,
-    # wenn das Brain sie verboten hat.
-    # -----------------------------------------------------
-
-    if (
-        not allow_question
-        and
-        "?" in final_text
-    ):
-
-        final_text = (
-            draft
-        )
-
-        rewritten = False
-
-        reason = (
-            "local_rewrite_added_question"
-        )
-
-    elif re.search(
-        r"\bfair(?:\s+enough)?\b",
-        final_text,
-        flags=re.IGNORECASE
-    ):
-
-        final_text = (
-            draft
-        )
-
-        rewritten = False
-
-        reason = (
-            "local_rewrite_used_banned_word"
-        )
-
-    else:
-
-        rewritten = (
             parsed[
-                "should_rewrite"
+                "model_rewrite"
             ]
-            and
-            final_text.strip()
-            != draft.strip()
+
+            or
+
+            parsed[
+                "bot_likeness"
+            ]
+            >=
+            LOCAL_VOICE_BOT_THRESHOLD
+
+            or
+
+            parsed[
+                "repetition"
+            ]
+            >=
+            LOCAL_VOICE_REPETITION_THRESHOLD
+
+            or
+
+            parsed[
+                "evilnae_match"
+            ]
+            <
+            LOCAL_VOICE_MATCH_THRESHOLD
+        )
+
+        candidate = (
+            clean_response_text(
+                parsed[
+                    "response"
+                ]
+            )
         )
 
         reason = (
@@ -1159,56 +1316,196 @@ async def humanize_evilnae_response(
             ]
         )
 
-    print(
-        "[LOCAL VOICE] "
-        f"v={LOCAL_VOICE_VERSION} "
-        f"model={LOCAL_VOICE_MODEL} "
-        f"duration={duration:.2f}s "
-        f"rewrite={rewritten} "
-        f"bot={parsed['bot_likeness']:.2f} "
-        f"repeat={parsed['repetition']:.2f} "
-        f"match={parsed['evilnae_match']:.2f} "
-        f"reason={reason!r}"
-    )
+        # -------------------------------------------------
+        # NO REWRITE NEEDED
+        # -------------------------------------------------
 
-    return LocalVoiceResult(
+        if not should_rewrite:
 
-        output_text=(
-            final_text
-        ),
+            candidate = (
+                draft
+            )
 
-        used=True,
+        # -------------------------------------------------
+        # MEANING GUARD
+        # -------------------------------------------------
 
-        rewritten=(
-            rewritten
-        ),
-
-        bot_likeness=(
+        elif (
             parsed[
-                "bot_likeness"
+                "meaning_preserved"
             ]
-        ),
+            <
+            LOCAL_VOICE_MEANING_THRESHOLD
+        ):
 
-        repetition=(
-            parsed[
-                "repetition"
-            ]
-        ),
+            candidate = (
+                draft
+            )
 
-        evilnae_match=(
-            parsed[
-                "evilnae_match"
-            ]
-        ),
+            reason = (
+                "meaning_changed"
+            )
 
-        reason=(
-            reason
-        ),
+        # -------------------------------------------------
+        # NEW FACT GUARD
+        # -------------------------------------------------
 
-        duration=(
-            duration
+        elif parsed[
+            "new_facts"
+        ]:
+
+            candidate = (
+                draft
+            )
+
+            reason = (
+                "new_facts_added"
+            )
+
+        # -------------------------------------------------
+        # QUESTION GUARD
+        # -------------------------------------------------
+
+        elif (
+            not allow_question
+            and
+            "?" in candidate
+        ):
+
+            candidate = (
+                draft
+            )
+
+            reason = (
+                "question_added"
+            )
+
+        # -------------------------------------------------
+        # FAIR GUARD
+        # -------------------------------------------------
+
+        elif re.search(
+            r"\bfair(?:\s+enough)?\b",
+            candidate,
+            flags=re.IGNORECASE
+        ):
+
+            candidate = (
+                draft
+            )
+
+            reason = (
+                "banned_word_added"
+            )
+
+        # -------------------------------------------------
+        # NEW MENTION GUARD
+        # -------------------------------------------------
+
+        elif (
+            _new_mentions_added(
+                draft,
+                candidate
+            )
+        ):
+
+            candidate = (
+                draft
+            )
+
+            reason = (
+                "new_mention_added"
+            )
+
+        # -------------------------------------------------
+        # EMPTY GUARD
+        # -------------------------------------------------
+
+        elif not candidate:
+
+            candidate = (
+                draft
+            )
+
+            reason = (
+                "empty_rewrite"
+            )
+
+        rewritten = (
+            candidate.strip()
+            !=
+            draft.strip()
         )
-    )
+
+        print(
+            "[LOCAL VOICE] "
+            f"v={LOCAL_VOICE_VERSION} "
+            f"model={LOCAL_VOICE_MODEL} "
+            f"duration={duration:.2f}s "
+            f"rewrite={rewritten} "
+            f"bot="
+            f"{parsed['bot_likeness']:.2f} "
+            f"repeat="
+            f"{parsed['repetition']:.2f} "
+            f"match="
+            f"{parsed['evilnae_match']:.2f} "
+            f"meaning="
+            f"{parsed['meaning_preserved']:.2f} "
+            f"new_facts="
+            f"{parsed['new_facts']} "
+            f"reason={reason!r}"
+        )
+
+        return LocalVoiceResult(
+
+            output_text=(
+                candidate
+            ),
+
+            used=True,
+
+            rewritten=(
+                rewritten
+            ),
+
+            bot_likeness=(
+                parsed[
+                    "bot_likeness"
+                ]
+            ),
+
+            repetition=(
+                parsed[
+                    "repetition"
+                ]
+            ),
+
+            evilnae_match=(
+                parsed[
+                    "evilnae_match"
+                ]
+            ),
+
+            meaning_preserved=(
+                parsed[
+                    "meaning_preserved"
+                ]
+            ),
+
+            new_facts=(
+                parsed[
+                    "new_facts"
+                ]
+            ),
+
+            reason=reason,
+
+            duration=duration
+        )
+
+    finally:
+
+        _voice_semaphore.release()
 
 
 # =========================================================
@@ -1224,7 +1521,10 @@ def format_local_voice_debug():
         f"model={LOCAL_VOICE_MODEL} "
         f"url={LOCAL_VOICE_URL} "
         f"timeout={LOCAL_VOICE_TIMEOUT}s "
-        f"ctx={LOCAL_VOICE_NUM_CTX}"
+        f"queue={LOCAL_VOICE_QUEUE_TIMEOUT}s "
+        f"ctx={LOCAL_VOICE_NUM_CTX} "
+        f"meaning_min="
+        f"{LOCAL_VOICE_MEANING_THRESHOLD:.2f}"
     )
 
 
@@ -1248,11 +1548,6 @@ async def _test():
     )
 
     if not available:
-
-        print(
-            "Ollama ist nicht erreichbar."
-        )
-
         return
 
     result = (
@@ -1266,13 +1561,17 @@ async def _test():
             draft=(
                 "Cool, das klingt spannend! "
                 "Ich bin gespannt, was ihr "
-                "alles testen werdet. Viel Erfolg! 😈"
+                "alles testen werdet. "
+                "Viel Erfolg! 😈"
             ),
 
-            conversation_mode="direct",
+            conversation_mode=(
+                "direct"
+            ),
 
             response_goal=(
-                "locker auf die Aussage reagieren"
+                "locker auf die "
+                "Aussage reagieren"
             ),
 
             allow_question=False,
@@ -1286,27 +1585,22 @@ async def _test():
     )
 
     print("")
-    print(
-        "ORIGINAL:"
-    )
+    print("ORIGINAL:")
 
     print(
         "Cool, das klingt spannend! "
         "Ich bin gespannt, was ihr "
-        "alles testen werdet. Viel Erfolg! 😈"
+        "alles testen werdet. "
+        "Viel Erfolg! 😈"
     )
 
     print("")
-    print(
-        "VOICE:"
-    )
-
+    print("VOICE:")
     print(
         result.output_text
     )
 
     print("")
-
     print(
         result
     )
