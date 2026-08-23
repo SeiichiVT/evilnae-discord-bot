@@ -1,8 +1,7 @@
 import json
 import os
 import time
-import math
-import re
+import threading
 from dataclasses import dataclass, asdict
 
 
@@ -10,7 +9,7 @@ from dataclasses import dataclass, asdict
 # VERSION
 # =========================================================
 
-INNER_STATE_VERSION = "1.0"
+INNER_STATE_VERSION = "1.1"
 
 
 # =========================================================
@@ -19,11 +18,26 @@ INNER_STATE_VERSION = "1.0"
 
 STATE_FILE = "evilnae_inner_state.json"
 
+STATE_TEMP_FILE = (
+    STATE_FILE
+    + ".tmp"
+)
+
+
+# =========================================================
+# THREAD / TASK SAFETY
+#
+# Mehrere Discord-Interaktionen können
+# nahezu gleichzeitig stattfinden.
+#
+# RLock erlaubt verschachtelte interne Calls.
+# =========================================================
+
+state_lock = threading.RLock()
+
 
 # =========================================================
 # DEFAULT VALUES
-#
-# Wertebereich grundsätzlich:
 #
 # 0.0 = sehr niedrig
 # 1.0 = sehr hoch
@@ -318,45 +332,143 @@ evilnae_state = (
 
 
 # =========================================================
-# SAVE
+# NORMALIZE
 # =========================================================
 
-def save_inner_state():
+def normalize_state():
 
-    try:
+    with state_lock:
 
-        with open(
-            STATE_FILE,
-            "w",
-            encoding="utf-8"
-        ) as file:
-
-            json.dump(
-                asdict(
-                    evilnae_state
-                ),
-                file,
-                ensure_ascii=False,
-                indent=2
+        evilnae_state.valence = (
+            clamp_valence(
+                evilnae_state.valence
             )
+        )
 
-    except Exception as error:
+        evilnae_state.energy = (
+            clamp(
+                evilnae_state.energy
+            )
+        )
 
-        print(
-            "[INNER STATE SAVE ERROR] "
-            f"{type(error).__name__}: "
-            f"{error}"
+        evilnae_state.irritation = (
+            clamp(
+                evilnae_state.irritation
+            )
+        )
+
+        evilnae_state.social_energy = (
+            clamp(
+                evilnae_state.social_energy
+            )
+        )
+
+        evilnae_state.curiosity = (
+            clamp(
+                evilnae_state.curiosity
+            )
+        )
+
+        evilnae_state.boredom = (
+            clamp(
+                evilnae_state.boredom
+            )
+        )
+
+        evilnae_state.amusement = (
+            clamp(
+                evilnae_state.amusement
+            )
+        )
+
+        evilnae_state.warmth = (
+            clamp(
+                evilnae_state.warmth
+            )
+        )
+
+        evilnae_state.chaos_drive = (
+            clamp(
+                evilnae_state.chaos_drive
+            )
+        )
+
+        evilnae_state.confidence = (
+            clamp(
+                evilnae_state.confidence
+            )
         )
 
 
 # =========================================================
-# DECAY
+# SAVE
 #
-# Emotionen bleiben nicht ewig gleich.
+# Erst Temp-Datei schreiben,
+# danach atomar ersetzen.
 #
-# Je mehr Zeit vergeht,
-# desto mehr bewegen sich Werte
-# langsam Richtung Baseline.
+# Dadurch ist ein halbes / beschädigtes JSON
+# bei einem ungünstigen Shutdown unwahrscheinlicher.
+# =========================================================
+
+def save_inner_state():
+
+    with state_lock:
+
+        try:
+
+            normalize_state()
+
+            with open(
+                STATE_TEMP_FILE,
+                "w",
+                encoding="utf-8"
+            ) as file:
+
+                json.dump(
+                    asdict(
+                        evilnae_state
+                    ),
+                    file,
+                    ensure_ascii=False,
+                    indent=2
+                )
+
+                file.flush()
+
+                os.fsync(
+                    file.fileno()
+                )
+
+            os.replace(
+                STATE_TEMP_FILE,
+                STATE_FILE
+            )
+
+        except Exception as error:
+
+            print(
+                "[INNER STATE SAVE ERROR] "
+                f"{type(error).__name__}: "
+                f"{error}"
+            )
+
+            try:
+
+                if os.path.exists(
+                    STATE_TEMP_FILE
+                ):
+
+                    os.remove(
+                        STATE_TEMP_FILE
+                    )
+
+            except OSError:
+
+                pass
+
+
+# =========================================================
+# DECAY HELPERS
 # =========================================================
 
 def move_toward(
@@ -382,192 +494,192 @@ def move_toward(
     return value
 
 
+# =========================================================
+# TIME DECAY
+#
+# Emotionen bleiben nicht dauerhaft
+# auf einem Extremwert hängen.
+#
+# Sie bewegen sich langsam
+# Richtung Evilnaes persönliche Baseline.
+# =========================================================
+
 def apply_time_decay():
 
-    now = time.time()
+    with state_lock:
 
-    elapsed = max(
-        0,
-        now
-        - evilnae_state.last_updated
-    )
+        now = time.time()
 
-    # Keine nennenswerte Zeit vergangen.
+        elapsed = max(
+            0,
+            now
+            - evilnae_state.last_updated
+        )
 
-    if elapsed < 10:
+        if elapsed < 10:
 
-        return
+            return
 
-    # -----------------------------------------------------
-    # DECAY STRENGTH
-    #
-    # ungefähr alle 10 Minuten
-    # eine kleine Normalisierung
-    # -----------------------------------------------------
+        minutes = (
+            elapsed / 60
+        )
 
-    minutes = (
-        elapsed / 60
-    )
-
-    decay_strength = min(
-        0.20,
-        minutes * 0.003
-    )
-
-    # -----------------------------------------------------
-    # BASELINES
-    # -----------------------------------------------------
-
-    evilnae_state.valence = (
-        move_toward(
-            evilnae_state.valence,
+        decay_strength = min(
             0.20,
-            decay_strength
+            minutes * 0.003
         )
-    )
 
-    evilnae_state.energy = (
-        move_toward(
-            evilnae_state.energy,
-            0.55,
-            decay_strength
+        # -------------------------------------------------
+        # VALENCE
+        # -------------------------------------------------
+
+        evilnae_state.valence = (
+            move_toward(
+                evilnae_state.valence,
+                DEFAULT_STATE[
+                    "valence"
+                ],
+                decay_strength
+            )
         )
-    )
 
-    evilnae_state.irritation = (
-        move_toward(
-            evilnae_state.irritation,
-            0.08,
-            decay_strength * 1.5
+        # -------------------------------------------------
+        # ENERGY
+        # -------------------------------------------------
+
+        evilnae_state.energy = (
+            move_toward(
+                evilnae_state.energy,
+                DEFAULT_STATE[
+                    "energy"
+                ],
+                decay_strength
+            )
         )
-    )
 
-    evilnae_state.social_energy = (
-        move_toward(
-            evilnae_state.social_energy,
-            0.65,
-            decay_strength
+        # -------------------------------------------------
+        # IRRITATION
+        #
+        # Gereiztheit darf etwas schneller abklingen.
+        # -------------------------------------------------
+
+        evilnae_state.irritation = (
+            move_toward(
+                evilnae_state.irritation,
+                DEFAULT_STATE[
+                    "irritation"
+                ],
+                decay_strength * 1.5
+            )
         )
-    )
 
-    evilnae_state.curiosity = (
-        move_toward(
-            evilnae_state.curiosity,
-            0.55,
-            decay_strength
+        # -------------------------------------------------
+        # SOCIAL ENERGY
+        # -------------------------------------------------
+
+        evilnae_state.social_energy = (
+            move_toward(
+                evilnae_state.social_energy,
+                DEFAULT_STATE[
+                    "social_energy"
+                ],
+                decay_strength
+            )
         )
-    )
 
-    evilnae_state.boredom = (
-        move_toward(
-            evilnae_state.boredom,
-            0.20,
-            decay_strength
+        # -------------------------------------------------
+        # CURIOSITY
+        # -------------------------------------------------
+
+        evilnae_state.curiosity = (
+            move_toward(
+                evilnae_state.curiosity,
+                DEFAULT_STATE[
+                    "curiosity"
+                ],
+                decay_strength
+            )
         )
-    )
 
-    evilnae_state.amusement = (
-        move_toward(
-            evilnae_state.amusement,
-            0.30,
-            decay_strength
+        # -------------------------------------------------
+        # BOREDOM
+        # -------------------------------------------------
+
+        evilnae_state.boredom = (
+            move_toward(
+                evilnae_state.boredom,
+                DEFAULT_STATE[
+                    "boredom"
+                ],
+                decay_strength
+            )
         )
-    )
 
-    evilnae_state.warmth = (
-        move_toward(
-            evilnae_state.warmth,
-            0.45,
-            decay_strength * 0.5
+        # -------------------------------------------------
+        # AMUSEMENT
+        # -------------------------------------------------
+
+        evilnae_state.amusement = (
+            move_toward(
+                evilnae_state.amusement,
+                DEFAULT_STATE[
+                    "amusement"
+                ],
+                decay_strength
+            )
         )
-    )
 
-    evilnae_state.chaos_drive = (
-        move_toward(
-            evilnae_state.chaos_drive,
-            0.35,
-            decay_strength
+        # -------------------------------------------------
+        # WARMTH
+        #
+        # Wärme verändert sich etwas langsamer,
+        # damit ein nettes Gespräch nicht
+        # sofort wieder "vergessen" wirkt.
+        # -------------------------------------------------
+
+        evilnae_state.warmth = (
+            move_toward(
+                evilnae_state.warmth,
+                DEFAULT_STATE[
+                    "warmth"
+                ],
+                decay_strength * 0.5
+            )
         )
-    )
 
-    evilnae_state.confidence = (
-        move_toward(
-            evilnae_state.confidence,
-            0.75,
-            decay_strength * 0.5
+        # -------------------------------------------------
+        # CHAOS
+        # -------------------------------------------------
+
+        evilnae_state.chaos_drive = (
+            move_toward(
+                evilnae_state.chaos_drive,
+                DEFAULT_STATE[
+                    "chaos_drive"
+                ],
+                decay_strength
+            )
         )
-    )
 
-    evilnae_state.last_updated = now
+        # -------------------------------------------------
+        # CONFIDENCE
+        # -------------------------------------------------
 
-    normalize_state()
-
-
-# =========================================================
-# NORMALIZE
-# =========================================================
-
-def normalize_state():
-
-    evilnae_state.valence = (
-        clamp_valence(
-            evilnae_state.valence
+        evilnae_state.confidence = (
+            move_toward(
+                evilnae_state.confidence,
+                DEFAULT_STATE[
+                    "confidence"
+                ],
+                decay_strength * 0.5
+            )
         )
-    )
 
-    evilnae_state.energy = (
-        clamp(
-            evilnae_state.energy
+        evilnae_state.last_updated = (
+            now
         )
-    )
 
-    evilnae_state.irritation = (
-        clamp(
-            evilnae_state.irritation
-        )
-    )
-
-    evilnae_state.social_energy = (
-        clamp(
-            evilnae_state.social_energy
-        )
-    )
-
-    evilnae_state.curiosity = (
-        clamp(
-            evilnae_state.curiosity
-        )
-    )
-
-    evilnae_state.boredom = (
-        clamp(
-            evilnae_state.boredom
-        )
-    )
-
-    evilnae_state.amusement = (
-        clamp(
-            evilnae_state.amusement
-        )
-    )
-
-    evilnae_state.warmth = (
-        clamp(
-            evilnae_state.warmth
-        )
-    )
-
-    evilnae_state.chaos_drive = (
-        clamp(
-            evilnae_state.chaos_drive
-        )
-    )
-
-    evilnae_state.confidence = (
-        clamp(
-            evilnae_state.confidence
-        )
-    )
+        normalize_state()
 
 
 # =========================================================
@@ -597,20 +709,22 @@ def contains_any(
 
     return any(
         phrase in text
-        for phrase in phrases
+        for phrase
+        in phrases
     )
 
 
 # =========================================================
 # EVENT ANALYSIS
 #
-# Noch KEINE KI.
+# Das hier ist nur kurzfristige,
+# schnelle emotionale Wahrnehmung.
 #
-# Erstmal schnelle,
-# nachvollziehbare Signale.
+# Es ist NICHT das spätere
+# per-User Relationship-System.
 #
-# Später übernimmt Reflection/Learning
-# einen größeren Teil davon.
+# Langfristige Gefühle kommen später
+# über Conversation Episodes.
 # =========================================================
 
 def analyze_interaction(
@@ -636,6 +750,8 @@ def analyze_interaction(
         text_lower,
         [
             "guten morgen",
+            "guten abend",
+            "gute nacht",
             "morgen evil",
             "moin",
             "hallo evil",
@@ -649,7 +765,10 @@ def analyze_interaction(
         )
 
     # -----------------------------------------------------
-    # POSITIVE
+    # POSITIVE SOCIAL SIGNAL
+    #
+    # Explizit positive soziale Signale,
+    # nicht einfach jede normale nette Frage.
     # -----------------------------------------------------
 
     if contains_any(
@@ -664,6 +783,8 @@ def analyze_interaction(
             "du bist toll",
             "du bist süß",
             "freut mich",
+            "freut mich für dich",
+            "schön zu hören",
         ]
     ):
 
@@ -673,12 +794,22 @@ def analyze_interaction(
 
     # -----------------------------------------------------
     # PLAYFUL / TEASING
+    #
+    # FIX v1.1:
+    #
+    # text_lower ist bereits lowercase.
+    #
+    # Deshalb:
+    # "xd", NICHT "xD".
+    #
+    # Außerdem ist "schnippisch"
+    # kein automatisches playful-Signal mehr.
     # -----------------------------------------------------
 
     if contains_any(
         text_lower,
         [
-            "xD",
+            "xd",
             "haha",
             "hehe",
             "kek",
@@ -687,7 +818,6 @@ def analyze_interaction(
             "du bist mir eine",
             "was für bro",
             "frech",
-            "schnippisch",
         ]
     ):
 
@@ -696,19 +826,28 @@ def analyze_interaction(
         )
 
     # -----------------------------------------------------
-    # USER PUSHES / NAGS
+    # PRESSURE
+    #
+    # Nur klarer Druck.
+    #
+    # Ein normales:
+    #
+    # "Ehm Evil..."
+    #
+    # ist NICHT automatisch Druck.
     # -----------------------------------------------------
 
     if contains_any(
         text_lower,
         [
             "hallo?",
-            "ehm evil",
             "antwort doch",
             "jetzt antwort",
             "komm schon",
             "mach jetzt",
             "warum antwortest du nicht",
+            "antwortest du noch",
+            "ignorierst du mich",
         ]
     ):
 
@@ -726,9 +865,10 @@ def analyze_interaction(
             "halt die fresse",
             "du nervst",
             "scheiß bot",
-            "dumm",
-            "idiot",
-            "nutzlos",
+            "scheiss bot",
+            "du bist nutzlos",
+            "du bist ein idiot",
+            "du idiot",
         ]
     ):
 
@@ -738,17 +878,62 @@ def analyze_interaction(
 
     # -----------------------------------------------------
     # INTERESTING QUESTION
+    #
+    # Eine Frage erhöht eher Neugier.
+    #
+    # Sie erhöht ausdrücklich NICHT Irritation.
+    #
+    # Normale soziale Fragen sind normal.
     # -----------------------------------------------------
 
-    if "?" in text_lower:
-
-        if len(
+    if (
+        "?" in text_lower
+        and
+        len(
             text_lower
-        ) > 25:
+        ) > 25
+    ):
 
-            events.append(
-                "interesting_question"
-            )
+        events.append(
+            "interesting_question"
+        )
+
+    # -----------------------------------------------------
+    # NORMAL SOCIAL QUESTION
+    #
+    # Hilft später dem Writer zu verstehen:
+    # Das ist normale soziale Interaktion,
+    # kein persönlicher Angriff.
+    # -----------------------------------------------------
+
+    normal_social_question_patterns = [
+        "wie geht",
+        "wie war dein tag",
+        "was machst du",
+        "was machst du heute",
+        "was hast du heute",
+        "was hast du gegessen",
+        "was magst du",
+        "was ist dein lieblings",
+        "wie sieht dein tag",
+        "wie sieht der rest",
+        "hast du heute",
+        "hast du gut geschlafen",
+        "hast du geträumt",
+    ]
+
+    if (
+        "?" in text_lower
+        and
+        contains_any(
+            text_lower,
+            normal_social_question_patterns
+        )
+    ):
+
+        events.append(
+            "normal_social_question"
+        )
 
     # -----------------------------------------------------
     # VERY SHORT MESSAGE
@@ -776,7 +961,7 @@ def analyze_interaction(
         )
 
     # -----------------------------------------------------
-    # TRUSTED RELATIONSHIP SIGNAL
+    # TRUSTED RELATIONSHIP
     # -----------------------------------------------------
 
     relationship_lower = (
@@ -787,14 +972,17 @@ def analyze_interaction(
     if any(
         token
         in relationship_lower
-
-        for token in [
+        for token
+        in [
             "vertraut",
             "enge",
             "freund",
             "mag",
             "humor",
             "vertrauter",
+            "vertraute",
+            "vertrauten",
+            "freundschaft",
         ]
     ):
 
@@ -813,118 +1001,208 @@ def apply_events(
     events
 ):
 
-    for event in events:
+    with state_lock:
 
-        # -------------------------------------------------
-        # GREETING
-        # -------------------------------------------------
+        for event in events:
 
-        if event == "greeting":
+            # ---------------------------------------------
+            # GREETING
+            # ---------------------------------------------
 
-            evilnae_state.social_energy += 0.03
+            if event == "greeting":
 
-            evilnae_state.warmth += 0.03
+                evilnae_state.social_energy += (
+                    0.03
+                )
 
-            evilnae_state.boredom -= 0.03
+                evilnae_state.warmth += (
+                    0.03
+                )
 
-        # -------------------------------------------------
-        # POSITIVE SOCIAL
-        # -------------------------------------------------
+                evilnae_state.boredom -= (
+                    0.03
+                )
 
-        elif event == "positive_social":
+            # ---------------------------------------------
+            # POSITIVE SOCIAL
+            # ---------------------------------------------
 
-            evilnae_state.valence += 0.07
+            elif (
+                event
+                == "positive_social"
+            ):
 
-            evilnae_state.warmth += 0.08
+                evilnae_state.valence += (
+                    0.07
+                )
 
-            evilnae_state.irritation -= 0.06
+                evilnae_state.warmth += (
+                    0.08
+                )
 
-            evilnae_state.amusement += 0.02
+                evilnae_state.irritation -= (
+                    0.06
+                )
 
-        # -------------------------------------------------
-        # PLAYFUL
-        # -------------------------------------------------
+                evilnae_state.amusement += (
+                    0.02
+                )
 
-        elif event == "playful":
+            # ---------------------------------------------
+            # PLAYFUL
+            # ---------------------------------------------
 
-            evilnae_state.amusement += 0.08
+            elif (
+                event
+                == "playful"
+            ):
 
-            evilnae_state.chaos_drive += 0.05
+                evilnae_state.amusement += (
+                    0.08
+                )
 
-            evilnae_state.boredom -= 0.05
+                evilnae_state.chaos_drive += (
+                    0.05
+                )
 
-        # -------------------------------------------------
-        # PRESSURE
-        # -------------------------------------------------
+                evilnae_state.boredom -= (
+                    0.05
+                )
 
-        elif event == "pressure":
+            # ---------------------------------------------
+            # PRESSURE
+            # ---------------------------------------------
 
-            evilnae_state.irritation += 0.06
+            elif (
+                event
+                == "pressure"
+            ):
 
-            evilnae_state.social_energy -= 0.02
+                evilnae_state.irritation += (
+                    0.06
+                )
 
-        # -------------------------------------------------
-        # HOSTILITY
-        # -------------------------------------------------
+                evilnae_state.social_energy -= (
+                    0.02
+                )
 
-        elif event == "hostility":
+            # ---------------------------------------------
+            # HOSTILITY
+            # ---------------------------------------------
 
-            evilnae_state.irritation += 0.15
+            elif (
+                event
+                == "hostility"
+            ):
 
-            evilnae_state.valence -= 0.10
+                evilnae_state.irritation += (
+                    0.15
+                )
 
-            evilnae_state.warmth -= 0.05
+                evilnae_state.valence -= (
+                    0.10
+                )
 
-        # -------------------------------------------------
-        # INTERESTING QUESTION
-        # -------------------------------------------------
+                evilnae_state.warmth -= (
+                    0.05
+                )
 
-        elif event == "interesting_question":
+            # ---------------------------------------------
+            # INTERESTING QUESTION
+            # ---------------------------------------------
 
-            evilnae_state.curiosity += 0.05
+            elif (
+                event
+                == "interesting_question"
+            ):
 
-            evilnae_state.boredom -= 0.03
+                evilnae_state.curiosity += (
+                    0.05
+                )
 
-        # -------------------------------------------------
-        # SHORT MESSAGE
-        # -------------------------------------------------
+                evilnae_state.boredom -= (
+                    0.03
+                )
 
-        elif event == "short_message":
+            # ---------------------------------------------
+            # NORMAL SOCIAL QUESTION
+            #
+            # Ein normales Gespräch ist eher
+            # sozial verbindend als nervig.
+            #
+            # Effekt bewusst SEHR klein.
+            # ---------------------------------------------
 
-            evilnae_state.curiosity -= 0.01
+            elif (
+                event
+                == "normal_social_question"
+            ):
 
-        # -------------------------------------------------
-        # HANAE
-        # -------------------------------------------------
+                evilnae_state.social_energy += (
+                    0.01
+                )
 
-        elif event == "hanae_interaction":
+                evilnae_state.irritation -= (
+                    0.01
+                )
 
-            # Hanae hat einen stabilen
-            # positiven Geschwister-Bias.
+            # ---------------------------------------------
+            # SHORT MESSAGE
+            # ---------------------------------------------
 
-            evilnae_state.warmth += 0.025
+            elif (
+                event
+                == "short_message"
+            ):
 
-            evilnae_state.social_energy += 0.015
+                evilnae_state.curiosity -= (
+                    0.01
+                )
 
-            # Selbst wenn Evilnae genervt ist,
-            # soll Hanae nicht automatisch
-            # wie eine ungeliebte Person wirken.
+            # ---------------------------------------------
+            # HANAE
+            # ---------------------------------------------
 
-            evilnae_state.irritation -= 0.015
+            elif (
+                event
+                == "hanae_interaction"
+            ):
 
-        # -------------------------------------------------
-        # TRUSTED PERSON
-        # -------------------------------------------------
+                evilnae_state.warmth += (
+                    0.025
+                )
 
-        elif event == "trusted_person":
+                evilnae_state.social_energy += (
+                    0.015
+                )
 
-            evilnae_state.warmth += 0.015
+                evilnae_state.irritation -= (
+                    0.015
+                )
 
-    evilnae_state.last_updated = (
-        time.time()
-    )
+            # ---------------------------------------------
+            # TRUSTED PERSON
+            #
+            # Sehr kleiner kurzfristiger Bias.
+            #
+            # Das ist NICHT das spätere
+            # langfristige per-User Gefühlssystem.
+            # ---------------------------------------------
 
-    normalize_state()
+            elif (
+                event
+                == "trusted_person"
+            ):
+
+                evilnae_state.warmth += (
+                    0.015
+                )
+
+        evilnae_state.last_updated = (
+            time.time()
+        )
+
+        normalize_state()
 
 
 # =========================================================
@@ -938,31 +1216,33 @@ def process_interaction(
     relationship_text=""
 ):
 
-    apply_time_decay()
+    with state_lock:
 
-    events = (
-        analyze_interaction(
+        apply_time_decay()
 
-            text=text,
+        events = (
+            analyze_interaction(
 
-            is_hanae=is_hanae,
+                text=text,
 
-            relationship_text=(
-                relationship_text
+                is_hanae=is_hanae,
+
+                relationship_text=(
+                    relationship_text
+                )
             )
         )
-    )
 
-    apply_events(
-        events
-    )
+        apply_events(
+            events
+        )
 
-    save_inner_state()
+        save_inner_state()
 
-    return (
-        evilnae_state,
-        events
-    )
+        return (
+            evilnae_state,
+            events
+        )
 
 
 # =========================================================
@@ -979,6 +1259,9 @@ def get_dominant_feeling(
 
     # -----------------------------------------------------
     # IRRITATED
+    #
+    # Erst bei wirklich hoher Gereiztheit
+    # soll "irritated" dominant werden.
     # -----------------------------------------------------
 
     if (
@@ -1110,25 +1393,33 @@ def build_inner_state_guidance(
     lines = []
 
     lines.append(
-        f"Dominant feeling: {dominant}"
+        f"Dominant feeling: "
+        f"{dominant}"
     )
 
     # -----------------------------------------------------
     # IRRITATION
     # -----------------------------------------------------
 
-    if state.irritation >= 0.60:
+    if (
+        state.irritation
+        >= 0.60
+    ):
 
         lines.append(
-            "Evilnae ist merklich genervt "
-            "und darf trockener reagieren."
+            "Evilnae ist merklich genervt. "
+            "Trockenere oder schärfere Reaktionen "
+            "können nachvollziehbar sein."
         )
 
-    elif state.irritation >= 0.35:
+    elif (
+        state.irritation
+        >= 0.35
+    ):
 
         lines.append(
             "Leichte Gereiztheit ist vorhanden, "
-            "aber nicht dominant."
+            "aber sie ist nicht dominant."
         )
 
     else:
@@ -1137,18 +1428,30 @@ def build_inner_state_guidance(
             "Evilnae ist aktuell nicht ernsthaft genervt."
         )
 
+        lines.append(
+            "Normale soziale Fragen sind deshalb "
+            "kein Grund für defensive oder "
+            "abweisende Formulierungen."
+        )
+
     # -----------------------------------------------------
     # WARMTH
     # -----------------------------------------------------
 
-    if state.warmth >= 0.65:
+    if (
+        state.warmth
+        >= 0.65
+    ):
 
         lines.append(
-            "Evilnae empfindet aktuell deutlich Wärme "
-            "und soziale Nähe."
+            "Evilnae empfindet aktuell deutlich "
+            "Wärme und soziale Nähe."
         )
 
-    elif state.warmth >= 0.40:
+    elif (
+        state.warmth
+        >= 0.40
+    ):
 
         lines.append(
             "Evilnae ist sozial grundsätzlich zugänglich."
@@ -1157,41 +1460,56 @@ def build_inner_state_guidance(
     else:
 
         lines.append(
-            "Evilnae wirkt aktuell emotional distanzierter."
+            "Evilnae wirkt aktuell etwas "
+            "emotional distanzierter."
         )
 
     # -----------------------------------------------------
     # ENERGY
     # -----------------------------------------------------
 
-    if state.energy >= 0.70:
+    if (
+        state.energy
+        >= 0.70
+    ):
 
         lines.append(
-            "Hohe Energie: lebendigere Antworten möglich."
+            "Hohe Energie: lebendigere "
+            "Antworten sind möglich."
         )
 
-    elif state.energy <= 0.35:
+    elif (
+        state.energy
+        <= 0.35
+    ):
 
         lines.append(
-            "Niedrige Energie: kürzere Antworten bevorzugen."
+            "Niedrige Energie: eher kompakt "
+            "und weniger aufgedreht antworten."
         )
 
     # -----------------------------------------------------
     # AMUSEMENT
     # -----------------------------------------------------
 
-    if state.amusement >= 0.65:
+    if (
+        state.amusement
+        >= 0.65
+    ):
 
         lines.append(
-            "Evilnae findet die aktuelle Situation "
-            "ziemlich unterhaltsam."
+            "Evilnae findet die aktuelle "
+            "Situation ziemlich unterhaltsam."
         )
 
     # -----------------------------------------------------
     # BOREDOM
     # -----------------------------------------------------
 
-    if state.boredom >= 0.60:
+    if (
+        state.boredom
+        >= 0.60
+    ):
 
         lines.append(
             "Evilnae langweilt sich etwas "
@@ -1202,10 +1520,42 @@ def build_inner_state_guidance(
     # CURIOSITY
     # -----------------------------------------------------
 
-    if state.curiosity >= 0.65:
+    if (
+        state.curiosity
+        >= 0.65
+    ):
 
         lines.append(
             "Evilnae ist aktuell genuinely neugierig."
+        )
+
+        lines.append(
+            "Neugier soll eher Interesse erzeugen "
+            "als grundlose Abwehr."
+        )
+
+    # -----------------------------------------------------
+    # SOCIAL ENERGY
+    # -----------------------------------------------------
+
+    if (
+        state.social_energy
+        >= 0.60
+    ):
+
+        lines.append(
+            "Evilnae hat aktuell genug soziale Energie "
+            "für ein normales Gespräch."
+        )
+
+    elif (
+        state.social_energy
+        <= 0.30
+    ):
+
+        lines.append(
+            "Evilnaes soziale Energie ist niedrig; "
+            "sie kann knapper wirken, ohne feindselig zu sein."
         )
 
     # -----------------------------------------------------
@@ -1223,12 +1573,14 @@ def build_inner_state_guidance(
         lines.append(
             "Genervtheit gegenüber Hanae darf wie "
             "Geschwister-Genervtheit wirken, "
-            "nicht wie Ablehnung oder Fake-Friend-Distanz."
+            "nicht wie Ablehnung oder "
+            "Fake-Friend-Distanz."
         )
 
     return "\n".join(
         f"- {line}"
-        for line in lines
+        for line
+        in lines
     )
 
 
@@ -1320,5 +1672,6 @@ def format_inner_state_debug(
         f"amusement={state.amusement:.2f} "
         f"warmth={state.warmth:.2f} "
         f"chaos={state.chaos_drive:.2f} "
+        f"confidence={state.confidence:.2f} "
         f"events={events}"
     )

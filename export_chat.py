@@ -14,7 +14,7 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 # HIER DIE CHANNEL-ID EINTRAGEN
-CHANNEL_ID = 1540713345856970884
+CHANNEL_ID = 1540825121990778942
 
 
 # =========================================================

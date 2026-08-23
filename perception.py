@@ -9,7 +9,7 @@ import discord
 # PERCEPTION VERSION
 # =========================================================
 
-PERCEPTION_VERSION = "1.2"
+PERCEPTION_VERSION = "1.4"
 
 
 # =========================================================
@@ -37,6 +37,13 @@ CHANNEL_MENTION_PATTERN = re.compile(
 
 # =========================================================
 # KNOWN NON-ADDRESS PHRASES
+#
+# Damit z. B.:
+#
+# Resident Evil
+# Evil Dead
+#
+# nicht als direkte Anrede interpretiert werden.
 # =========================================================
 
 NON_ADDRESS_EVIL_PHRASES = {
@@ -49,17 +56,19 @@ NON_ADDRESS_EVIL_PHRASES = {
 # =========================================================
 # NATURAL ADDRESS LEAD-INS
 #
-# Dinge, die Menschen häufig vor einen Namen setzen:
+# Diese Wörter können natürlich
+# vor einer Evilnae-Anrede stehen.
 #
-# "So Evil - ..."
-# "Also Evil, ..."
-# "Okay Evil ..."
-# "Na Evil?"
+# Beispiele:
 #
-# Das sind KEINE eigentlichen Inhalte.
+# So Evil ...
+# Soooo Evil ...
+# Also Evil ...
+# Okay Evil ...
+# Naja Evil ...
 # =========================================================
 
-ADDRESS_LEAD_INS = [
+ADDRESS_LEAD_INS = {
     "so",
     "also",
     "okay",
@@ -72,10 +81,14 @@ ADDRESS_LEAD_INS = [
     "hmm",
     "äh",
     "ehm",
-]
+}
 
 
-GREETING_LEAD_INS = [
+# =========================================================
+# GREETINGS
+# =========================================================
+
+GREETING_LEAD_INS = {
     "hey",
     "ey",
     "yo",
@@ -83,7 +96,31 @@ GREETING_LEAD_INS = [
     "hallo",
     "moin",
     "servus",
-]
+}
+
+
+# =========================================================
+# OPTIONAL ADDRESS MODIFIERS
+#
+# Beispiele:
+#
+# Soooo liebe Evil
+# Hey kleine Evil
+# Also meine liebe Evil
+# =========================================================
+
+ADDRESS_MODIFIERS = {
+    "liebe",
+    "lieber",
+    "meine",
+    "mein",
+    "kleine",
+    "kleiner",
+    "gute",
+    "guter",
+    "werte",
+    "werter",
+}
 
 
 # =========================================================
@@ -140,13 +177,13 @@ class PerceivedMessage:
     raw_content: str
 
     # -----------------------------------------------------
-    # CLEAN NATURAL LANGUAGE
+    # CLEAN NATURAL TEXT
     # -----------------------------------------------------
 
     text: str
 
     # -----------------------------------------------------
-    # TEXT USED FOR TRIGGER DETECTION
+    # TEXT FOR TRIGGER DETECTION
     # -----------------------------------------------------
 
     trigger_text: str
@@ -279,6 +316,39 @@ def normalize_spacing(
 
 
 # =========================================================
+# STRETCHED WORD NORMALIZATION
+#
+# Nur für Anrede-Erkennung.
+#
+# User-Text selbst wird NICHT verändert.
+#
+# sooo   -> so
+# heyyy  -> hey
+# okayyy -> okay
+# jaaaa  -> ja
+# =========================================================
+
+def normalize_stretched_word(
+    word: str
+) -> str:
+
+    word = (
+        word
+        or ""
+    ).strip().lower()
+
+    if not word:
+
+        return ""
+
+    return re.sub(
+        r"(.)\1+",
+        r"\1",
+        word
+    )
+
+
+# =========================================================
 # REMOVE BOT MENTION
 # =========================================================
 
@@ -330,12 +400,10 @@ def build_trigger_pattern(
 
 
 # =========================================================
-# LEAD-IN PATTERN
+# ADDRESS MODIFIER PATTERN
 # =========================================================
 
-def build_lead_in_pattern(
-    words
-):
+def build_modifier_pattern():
 
     return "|".join(
         re.escape(
@@ -343,7 +411,7 @@ def build_lead_in_pattern(
         )
         for word
         in sorted(
-            words,
+            ADDRESS_MODIFIERS,
             key=len,
             reverse=True
         )
@@ -359,7 +427,8 @@ def contains_known_non_address_phrase(
 ) -> bool:
 
     lowered = (
-        text or ""
+        text
+        or ""
     ).lower()
 
     return any(
@@ -370,7 +439,38 @@ def contains_known_non_address_phrase(
 
 
 # =========================================================
-# DIRECT ADDRESS START CHECK
+# NATURAL LEAD-IN CLASSIFICATION
+# =========================================================
+
+def classify_lead_in(
+    word
+):
+
+    normalized = (
+        normalize_stretched_word(
+            word
+        )
+    )
+
+    if (
+        normalized
+        in ADDRESS_LEAD_INS
+    ):
+
+        return "address"
+
+    if (
+        normalized
+        in GREETING_LEAD_INS
+    ):
+
+        return "greeting"
+
+    return None
+
+
+# =========================================================
+# DIRECT START ADDRESS
 # =========================================================
 
 def detect_direct_start_address(
@@ -384,16 +484,8 @@ def detect_direct_start_address(
         )
     )
 
-    greeting_pattern = (
-        build_lead_in_pattern(
-            GREETING_LEAD_INS
-        )
-    )
-
-    lead_in_pattern = (
-        build_lead_in_pattern(
-            ADDRESS_LEAD_INS
-        )
+    modifier_pattern = (
+        build_modifier_pattern()
     )
 
     # -----------------------------------------------------
@@ -411,31 +503,61 @@ def detect_direct_start_address(
         return True
 
     # -----------------------------------------------------
-    # HEY EVIL ...
+    # NATURAL LEAD-IN + OPTIONAL MODIFIERS
+    #
+    # Sooo Evil
+    #
+    # Soooo liebe Evil
+    #
+    # Also meine liebe Evil
+    #
+    # Heyyy kleine Evil
+    #
+    # Okay Evil
     # -----------------------------------------------------
 
-    if re.search(
+    match = re.search(
         rf"^\s*"
-        rf"(?:{greeting_pattern})"
-        rf"[\s,.:;!?\-]+"
+        rf"(?P<lead>[A-Za-zÄÖÜäöüß]+)"
+        rf"[\s,.:;!?…\-]+"
+        rf"(?:"
+            rf"(?:{modifier_pattern})"
+            rf"[\s,.:;!?…\-]+"
+        rf"){{0,3}}"
         rf"(?:{trigger_pattern})"
         rf"(?:\s|[,.:;!?…\-]|$)",
         text,
         flags=re.IGNORECASE
-    ):
+    )
 
-        return True
+    if match:
+
+        lead = (
+            match.group(
+                "lead"
+            )
+        )
+
+        if classify_lead_in(
+            lead
+        ):
+
+            return True
 
     # -----------------------------------------------------
-    # SO EVIL ...
-    # ALSO EVIL ...
-    # OKAY EVIL ...
+    # MODIFIER DIRECTLY BEFORE EVIL
+    #
+    # Liebe Evil ...
+    #
+    # Meine liebe Evil ...
     # -----------------------------------------------------
 
     if re.search(
         rf"^\s*"
-        rf"(?:{lead_in_pattern})"
-        rf"[\s,.:;!?\-]+"
+        rf"(?:"
+            rf"(?:{modifier_pattern})"
+            rf"[\s,.:;!?…\-]+"
+        rf"){{1,3}}"
         rf"(?:{trigger_pattern})"
         rf"(?:\s|[,.:;!?…\-]|$)",
         text,
@@ -462,16 +584,25 @@ def detect_trigger(
     Evil was machst du?
     -> True
 
-    Hey Evil, komm mal
+    Hey Evil
     -> True
 
-    So Evil - sag mal
+    Heyyy Evil
     -> True
 
-    Also Evil, was meinst du?
+    So Evil
     -> True
 
-    Okay Evil...
+    Sooooo Evil
+    -> True
+
+    Soooo liebe Evil
+    -> True
+
+    Also meine liebe Evil
+    -> True
+
+    Liebe Evil
     -> True
 
     was denkst du Evil?
@@ -481,18 +612,16 @@ def detect_trigger(
     -> False
     """
 
-    text = normalize_spacing(
-        content_without_emojis
-        or ""
+    text = (
+        normalize_spacing(
+            content_without_emojis
+            or ""
+        )
     )
 
     if not text:
 
         return False
-
-    # -----------------------------------------------------
-    # START ADDRESS
-    # -----------------------------------------------------
 
     direct_start = (
         detect_direct_start_address(
@@ -502,7 +631,7 @@ def detect_trigger(
     )
 
     # -----------------------------------------------------
-    # KNOWN NON-ADDRESS TITLES
+    # KNOWN NON-ADDRESS PHRASE
     # -----------------------------------------------------
 
     if (
@@ -528,7 +657,7 @@ def detect_trigger(
     # -----------------------------------------------------
     # NAME AT END
     #
-    # "was denkst du Evil?"
+    # was denkst du Evil?
     # -----------------------------------------------------
 
     if re.search(
@@ -542,9 +671,9 @@ def detect_trigger(
         return True
 
     # -----------------------------------------------------
-    # CLEAR MID-SENTENCE VOCATIVE
+    # VOCATIVE IN MIDDLE
     #
-    # "sag mal Evil, was denkst du?"
+    # sag mal Evil, was denkst du?
     # -----------------------------------------------------
 
     if re.search(
@@ -570,25 +699,6 @@ def remove_trigger_address(
     trigger_words: list[str]
 ) -> str:
 
-    """
-    Entfernt direkte Evilnae-Anreden,
-    ohne normale Inhalte zu beschädigen.
-
-    Beispiele:
-
-    "Evil was machst du?"
-    -> "was machst du?"
-
-    "So Evil - Sag mal..."
-    -> "Sag mal..."
-
-    "Okay Evil, was meinst du?"
-    -> "was meinst du?"
-
-    "was denkst du Evil?"
-    -> "was denkst du?"
-    """
-
     if not text:
 
         return ""
@@ -601,59 +711,99 @@ def remove_trigger_address(
         )
     )
 
-    greeting_pattern = (
-        build_lead_in_pattern(
-            GREETING_LEAD_INS
-        )
-    )
-
-    lead_in_pattern = (
-        build_lead_in_pattern(
-            ADDRESS_LEAD_INS
-        )
+    modifier_pattern = (
+        build_modifier_pattern()
     )
 
     # -----------------------------------------------------
-    # NATURAL FILLER + EVIL
+    # LEAD-IN + OPTIONAL MODIFIERS + EVIL
     #
-    # "So Evil - ..."
-    # "Also Evil, ..."
-    # "Okay Evil ..."
+    # Sooo Evil
+    # -> entfernt
     #
-    # Filler wird ebenfalls entfernt,
-    # weil er Teil der Anrede ist.
+    # Sooo liebe Evil
+    # -> entfernt
+    #
+    # Heyyy Evil
+    # -> Heyyy bleibt
+    #
+    # Heyyy kleine Evil
+    # -> Heyyy bleibt
     # -----------------------------------------------------
 
-    result = re.sub(
+    start_pattern = re.compile(
         rf"^\s*"
-        rf"(?:{lead_in_pattern})"
-        rf"[\s,.:;!?\-]+"
+        rf"(?P<lead>[A-Za-zÄÖÜäöüß]+)"
+        rf"[\s,.:;!?…\-]+"
+        rf"(?:"
+            rf"(?:{modifier_pattern})"
+            rf"[\s,.:;!?…\-]+"
+        rf"){{0,3}}"
         rf"(?:{trigger_pattern})"
         rf"[\s,:;!?.…\-]*",
-        "",
-        result,
         flags=re.IGNORECASE
     )
 
+    start_match = (
+        start_pattern.search(
+            result
+        )
+    )
+
+    if start_match:
+
+        lead = (
+            start_match.group(
+                "lead"
+            )
+        )
+
+        lead_type = (
+            classify_lead_in(
+                lead
+            )
+        )
+
+        if (
+            lead_type
+            == "address"
+        ):
+
+            result = (
+                result[
+                    start_match.end():
+                ]
+            )
+
+        elif (
+            lead_type
+            == "greeting"
+        ):
+
+            result = (
+                lead
+                + " "
+                + result[
+                    start_match.end():
+                ]
+            )
+
     # -----------------------------------------------------
-    # GREETING + EVIL
+    # DIRECT MODIFIER + EVIL
     #
-    # Hey darf stehen bleiben,
-    # weil es echter Gesprächsinhalt sein kann.
-    #
-    # "Hey Evil, wie gehts?"
-    # -> "Hey wie gehts?"
+    # Liebe Evil
+    # Meine liebe Evil
     # -----------------------------------------------------
 
     result = re.sub(
         rf"^\s*"
-        rf"(?P<greeting>"
-        rf"{greeting_pattern}"
-        rf")"
-        rf"[\s,]+"
+        rf"(?:"
+            rf"(?:{modifier_pattern})"
+            rf"[\s,.:;!?…\-]+"
+        rf"){{1,3}}"
         rf"(?:{trigger_pattern})"
         rf"[\s,:;!?.…\-]*",
-        r"\g<greeting> ",
+        "",
         result,
         flags=re.IGNORECASE
     )
@@ -686,10 +836,10 @@ def remove_trigger_address(
     )
 
     # -----------------------------------------------------
-    # VOCATIVE IN MIDDLE
+    # EVIL AS VOCATIVE IN MIDDLE
     #
-    # "Sag mal Evil, was..."
-    # -> "Sag mal, was..."
+    # Sag mal Evil, was...
+    # -> Sag mal, was...
     # -----------------------------------------------------
 
     result = re.sub(
@@ -698,10 +848,15 @@ def remove_trigger_address(
         rf"(?P<punc>[,!:;])"
         rf"(?P<after>\s*)",
         lambda match: (
-            match.group("punc")
-            + (
+            match.group(
+                "punc"
+            )
+            +
+            (
                 " "
-                if match.group("after")
+                if match.group(
+                    "after"
+                )
                 else ""
             )
         ),
@@ -983,11 +1138,12 @@ async def perceive_message(
     #
     # WICHTIG:
     #
-    # Das ist nur:
-    # "Wurde Evilnae direkt angesprochen?"
+    # Das bedeutet nur:
     #
-    # Ob sie sich OHNE Anrede freiwillig beteiligt,
-    # entscheidet später das Participation Brain.
+    # "Evilnae wurde direkt angesprochen."
+    #
+    # Active Conversation und Participation
+    # werden später in bot.py entschieden.
     # -----------------------------------------------------
 
     should_reply = (
