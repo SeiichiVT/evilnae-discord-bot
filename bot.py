@@ -95,7 +95,24 @@ from local_voice import (
     humanize_evilnae_response,
     format_local_voice_debug,
     warm_local_voice,
+)
+
+from understanding import (
+    UNDERSTANDING_VERSION,
+    classify_conversation_target,
+    format_target_debug,
     count_genuine_questions,
+    build_knowledge_constraint,
+    format_knowledge_constraint,
+    format_knowledge_debug,
+    knowledge_violation_reasons,
+)
+
+from naturalness import (
+    NATURALNESS_VERSION,
+    analyze_naturalness,
+    format_naturalness_for_writer,
+    format_naturalness_debug,
 )
 
 from voice_memory import (
@@ -119,7 +136,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.0-coherence-a"
+BOT_VERSION = "2.11.1-understanding-b1"
 
 
 # =========================================================
@@ -7553,6 +7570,53 @@ async def on_message(
                 )
             )
         )
+        # =====================================================
+        # 2.11B1 TARGET GUARD
+        #
+        # Active Conversation darf NICHT über eine
+        # eindeutige Ansprache an eine andere Person
+        # drüberfahren.
+        # =====================================================
+
+        conversation_target = (
+            classify_conversation_target(
+
+                perception,
+
+                bot_user_id=(
+                    bot.user.id
+                ),
+
+                hanae_user_id=(
+                    HANAE_USER_ID
+                )
+            )
+        )
+
+        print(
+            format_target_debug(
+                conversation_target
+            )
+        )
+
+        if (
+            conversation_target
+            .blocks_active_continuation
+        ):
+
+            if conversation_continuation:
+
+                print(
+                    "[ACTIVE CONVERSATION BLOCKED] "
+                    f"user={username} "
+                    f"target="
+                    f"{conversation_target.target_kind} "
+                    f"reason="
+                    f"{conversation_target.reason}"
+                )
+
+            conversation_continuation = False
+
 
     # -----------------------------------------------------
     # PARTICIPATION
@@ -8170,6 +8234,51 @@ Participation-Entscheidung nötig.
                 )
             )
         )
+        # =====================================================
+        # KNOWLEDGE GUARD v3 FOUNDATION
+        #
+        # Wenn Brain sagt:
+        #
+        # knowledge_available=False
+        #
+        # und der User fragt nach einem Fakt
+        # über eine andere bekannte Person,
+        # darf Writer nicht plausibel raten.
+        # =====================================================
+
+        knowledge_constraint = (
+            build_knowledge_constraint(
+
+                user_text=(
+                    user_text
+                ),
+
+                decision=(
+                    decision
+                ),
+
+                hanae_user_id=(
+                    HANAE_USER_ID
+                )
+            )
+        )
+
+        print(
+            format_knowledge_debug(
+                knowledge_constraint
+            )
+        )
+
+        if knowledge_constraint.active:
+
+            writer_context += (
+                "\n\n"
+                +
+                format_knowledge_constraint(
+                    knowledge_constraint
+                )
+            )
+
 
         writer_token_limit = (
             get_writer_token_limit(
@@ -8358,6 +8467,142 @@ Participation-Entscheidung nötig.
                 "direct"
             )
 
+        # =====================================================
+        # KNOWLEDGE OUTPUT GUARD
+        #
+        # Prompt-Regel allein reicht nicht.
+        #
+        # Deshalb wird die fertige Writer-Antwort
+        # nochmal deterministisch geprüft.
+        # =====================================================
+
+        knowledge_violations = (
+            knowledge_violation_reasons(
+                answer,
+                knowledge_constraint
+            )
+        )
+
+        if knowledge_violations:
+
+            print(
+                "[KNOWLEDGE OUTPUT VIOLATION] "
+                f"user={username} "
+                f"violations="
+                f"{knowledge_violations} "
+                f"answer={answer!r}"
+            )
+
+            knowledge_repair_context = (
+                writer_context
+                +
+                "\n\n"
+                +
+                format_knowledge_constraint(
+                    knowledge_constraint
+                )
+            )
+
+            knowledge_repair = (
+                await repair_writer_answer(
+
+                    original_answer=(
+                        answer
+                    ),
+
+                    violation_reasons=(
+                        knowledge_violations
+                    ),
+
+                    writer_context=(
+                        knowledge_repair_context
+                    ),
+
+                    current_mood=(
+                        current_mood
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    token_limit=(
+                        writer_token_limit
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if not knowledge_repair:
+
+                print(
+                    "[KNOWLEDGE OUTPUT ABORT] "
+                    f"user={username} "
+                    "reason=repair_failed"
+                )
+
+                return
+
+            knowledge_repair = (
+                clean_generated_answer(
+                    knowledge_repair
+                )
+            )
+
+            knowledge_repair = (
+                enforce_permanent_expression_bans(
+                    knowledge_repair
+                )
+            )
+
+            repair_hard_violations = (
+                get_writer_violation_reasons(
+
+                    answer=(
+                        knowledge_repair
+                    ),
+
+                    decision=(
+                        decision
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            repair_knowledge_violations = (
+                knowledge_violation_reasons(
+                    knowledge_repair,
+                    knowledge_constraint
+                )
+            )
+
+            if (
+                repair_hard_violations
+                or
+                repair_knowledge_violations
+            ):
+
+                print(
+                    "[KNOWLEDGE OUTPUT ABORT] "
+                    f"user={username} "
+                    f"hard="
+                    f"{repair_hard_violations} "
+                    f"knowledge="
+                    f"{repair_knowledge_violations}"
+                )
+
+                return
+
+            answer = (
+                knowledge_repair
+            )
+
         # -------------------------------------------------
         # FRESH CHANNEL HISTORY FOR LOCAL VOICE
         # -------------------------------------------------
@@ -8509,6 +8754,314 @@ Participation-Entscheidung nötig.
             answer = (
                 original_writer_answer
             )
+
+        # =====================================================
+        # POST-VOICE UNDERSTANDING GUARDS
+        #
+        # Qwen darf einen bereits sicheren Writer-Draft
+        # nicht wieder semantisch kaputtmachen.
+        # =====================================================
+
+        post_voice_knowledge_violations = (
+            knowledge_violation_reasons(
+                answer,
+                knowledge_constraint
+            )
+        )
+
+        if post_voice_knowledge_violations:
+
+            print(
+                "[LOCAL VOICE KNOWLEDGE REVERT] "
+                f"user={username} "
+                f"violations="
+                f"{post_voice_knowledge_violations}"
+            )
+
+            answer = (
+                original_writer_answer
+            )
+
+
+        # =====================================================
+        # QUESTION GUARD 2.1
+        #
+        # Beispiel aus dem Test:
+        #
+        # "ich bin kein Fan. was ist der Reiz daran?"
+        #
+        # wird jetzt als echte Gegenfrage erkannt.
+        # =====================================================
+
+        if (
+            not decision.ask_question
+            and
+            count_genuine_questions(
+                answer
+            )
+            > 0
+        ):
+
+            print(
+                "[QUESTION GUARD 2.1] "
+                f"user={username} "
+                f"answer={answer!r}"
+            )
+
+            if (
+                count_genuine_questions(
+                    original_writer_answer
+                )
+                ==
+                0
+            ):
+
+                answer = (
+                    original_writer_answer
+                )
+
+            else:
+
+                question_repair = (
+                    await repair_writer_answer(
+
+                        original_answer=(
+                            answer
+                        ),
+
+                        violation_reasons=[
+                            "question_not_allowed"
+                        ],
+
+                        writer_context=(
+                            writer_context
+                        ),
+
+                        current_mood=(
+                            current_mood
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        token_limit=(
+                            writer_token_limit
+                        ),
+
+                        autonomous_participation=(
+                            autonomous_participation
+                        )
+                    )
+                )
+
+                if not question_repair:
+
+                    print(
+                        "[QUESTION GUARD ABORT] "
+                        f"user={username}"
+                    )
+
+                    return
+
+                question_repair = (
+                    clean_generated_answer(
+                        question_repair
+                    )
+                )
+
+                if (
+                    count_genuine_questions(
+                        question_repair
+                    )
+                    > 0
+                ):
+
+                    print(
+                        "[QUESTION GUARD ABORT] "
+                        f"user={username} "
+                        "reason=repair_still_question"
+                    )
+
+                    return
+
+                answer = (
+                    question_repair
+                )
+
+
+        # =====================================================
+        # NATURALNESS GUARD
+        #
+        # Erkennt nicht nur harte:
+        #
+        # "Das klingt spannend!"
+        #
+        # sondern Cluster wie:
+        #
+        # "aber hey"
+        # +
+        # "Geschmack ist subjektiv"
+        # +
+        # "ich persönlich..."
+        # =====================================================
+
+        naturalness_analysis = (
+            analyze_naturalness(
+                answer
+            )
+        )
+
+        print(
+            format_naturalness_debug(
+                naturalness_analysis
+            )
+        )
+
+        if (
+            naturalness_analysis
+            .rewrite_required
+        ):
+
+            naturalness_repair_context = (
+                writer_context
+                +
+                "\n\n"
+                +
+                format_naturalness_for_writer(
+                    naturalness_analysis
+                )
+            )
+
+            naturalness_repair = (
+                await repair_writer_answer(
+
+                    original_answer=(
+                        answer
+                    ),
+
+                    violation_reasons=[
+                        "soft_bot_pattern_cluster",
+                        *naturalness_analysis.matches
+                    ],
+
+                    writer_context=(
+                        naturalness_repair_context
+                    ),
+
+                    current_mood=(
+                        current_mood
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    token_limit=(
+                        writer_token_limit
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if naturalness_repair:
+
+                naturalness_repair = (
+                    clean_generated_answer(
+                        naturalness_repair
+                    )
+                )
+
+                naturalness_repair = (
+                    enforce_permanent_expression_bans(
+                        naturalness_repair
+                    )
+                )
+
+                repaired_naturalness = (
+                    analyze_naturalness(
+                        naturalness_repair
+                    )
+                )
+
+                repaired_knowledge = (
+                    knowledge_violation_reasons(
+                        naturalness_repair,
+                        knowledge_constraint
+                    )
+                )
+
+                repaired_questions = (
+                    count_genuine_questions(
+                        naturalness_repair
+                    )
+                )
+
+                repaired_hard = (
+                    get_writer_violation_reasons(
+
+                        answer=(
+                            naturalness_repair
+                        ),
+
+                        decision=(
+                            decision
+                        ),
+
+                        autonomous_participation=(
+                            autonomous_participation
+                        )
+                    )
+                )
+
+                if (
+                    not repaired_knowledge
+                    and
+                    (
+                        decision.ask_question
+                        or
+                        repaired_questions == 0
+                    )
+                    and
+                    not repaired_hard
+                    and
+                    repaired_naturalness.score
+                    <
+                    naturalness_analysis.score
+                ):
+
+                    print(
+                        "[NATURALNESS REPAIR ACCEPTED] "
+                        f"user={username} "
+                        f"before="
+                        f"{naturalness_analysis.score} "
+                        f"after="
+                        f"{repaired_naturalness.score}"
+                    )
+
+                    answer = (
+                        naturalness_repair
+                    )
+
+                else:
+
+                    print(
+                        "[NATURALNESS REPAIR REJECTED] "
+                        f"user={username} "
+                        f"old_score="
+                        f"{naturalness_analysis.score} "
+                        f"new_score="
+                        f"{repaired_naturalness.score} "
+                        f"knowledge="
+                        f"{repaired_knowledge} "
+                        f"questions="
+                        f"{repaired_questions} "
+                        f"hard="
+                        f"{repaired_hard}"
+                    )
 
         # =================================================
         # 11.6 EXPRESSION FINAL GUARD

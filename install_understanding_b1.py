@@ -217,7 +217,8 @@ def find_function(
 def find_assignment(
     tree,
     function_name,
-    variable_name
+    variable_name,
+    call_name=None
 ):
 
     function = (
@@ -287,11 +288,95 @@ def find_assignment(
                     node
                 )
 
+    # -----------------------------------------------------
+    # OPTIONAL RHS CALL FILTER
+    #
+    # Beispiel:
+    #
+    # conversation_continuation = False
+    #
+    # und später:
+    #
+    # conversation_continuation = (
+    #     is_active_conversation_continuation(...)
+    # )
+    #
+    # Ohne Filter wären das zwei Treffer.
+    # -----------------------------------------------------
+
+    if call_name is not None:
+
+        filtered_matches = []
+
+        for node in matches:
+
+            value = getattr(
+                node,
+                "value",
+                None
+            )
+
+            if not isinstance(
+                value,
+                ast.Call
+            ):
+
+                continue
+
+            function_node = (
+                value.func
+            )
+
+            detected_call_name = None
+
+            if isinstance(
+                function_node,
+                ast.Name
+            ):
+
+                detected_call_name = (
+                    function_node.id
+                )
+
+            elif isinstance(
+                function_node,
+                ast.Attribute
+            ):
+
+                detected_call_name = (
+                    function_node.attr
+                )
+
+            if (
+                detected_call_name
+                ==
+                call_name
+            ):
+
+                filtered_matches.append(
+                    node
+                )
+
+        matches = (
+            filtered_matches
+        )
+
     if len(matches) != 1:
+
+        call_info = (
+
+            f" with call_name={call_name!r}"
+
+            if call_name is not None
+
+            else
+            ""
+        )
 
         fail(
             f"{variable_name} assignment in "
-            f"{function_name}: expected 1, "
+            f"{function_name}{call_info}: "
+            f"expected 1, "
             f"found {len(matches)}"
         )
 
@@ -308,7 +393,8 @@ def insert_after_assignment(
     variable_name,
     insertion,
     unique_marker,
-    label
+    label,
+    call_name=None
 ):
 
     if unique_marker in text:
@@ -326,7 +412,8 @@ def insert_after_assignment(
     node = find_assignment(
         tree,
         function_name,
-        variable_name
+        variable_name,
+        call_name=call_name
     )
 
     lines = (
@@ -610,7 +697,8 @@ bot = insert_after_assignment(
     "conversation_continuation",
     target_guard_code,
     "[ACTIVE CONVERSATION BLOCKED]",
-    "Target Guard / Active Conversation v2"
+    "Target Guard / Active Conversation v2",
+    call_name="is_active_conversation_continuation"
 )
 
 
