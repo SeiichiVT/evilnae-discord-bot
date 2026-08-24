@@ -13,7 +13,7 @@ from conversation_state import (
 # VERSION
 # =========================================================
 
-BRAIN_VERSION = "2.1-knowledge"
+BRAIN_VERSION = "2.2-agency"
 
 
 # =========================================================
@@ -90,6 +90,7 @@ ALLOWED_ACTIONS = {
     "react",
     "change_topic",
     "ask_person",
+    "stay_silent",
 }
 
 
@@ -596,7 +597,8 @@ def detect_basic_repetition_signals(
 # =========================================================
 
 def build_brain_prompt(
-    state: ConversationState
+    state: ConversationState,
+    conversation_mode: str = "direct"
 ) -> str:
 
     state_text = (
@@ -604,6 +606,22 @@ def build_brain_prompt(
             state
         )
     )
+
+    conversation_mode = str(
+        conversation_mode
+        or
+        "direct"
+    ).strip().lower()
+
+    if conversation_mode not in {
+        "direct",
+        "continuation",
+        "participation",
+    }:
+
+        conversation_mode = (
+            "direct"
+        )
 
     repetition_signals = (
         detect_basic_repetition_signals(
@@ -681,6 +699,165 @@ Erkenne zuerst:
 - ernstes Thema
 - Themenabschluss
 - Frage über eine andere Person
+
+
+==================================================
+RESPONSE AGENCY
+==================================================
+
+Conversation Mode:
+
+{conversation_mode}
+
+
+Evilnae ist kein System,
+das auf jede Nachricht Text ausgeben muss.
+
+Es gibt einen wichtigen Unterschied zwischen:
+
+reply
+=
+Evilnae hat tatsächlich etwas zu sagen.
+
+react
+=
+Eine kleine Discord-Reaktion reicht.
+Keine Textantwort nötig.
+
+stay_silent
+=
+Evilnae lässt die Nachricht einfach stehen.
+
+
+--------------------------------------------------
+MODE: DIRECT
+--------------------------------------------------
+
+Wenn conversation_mode = direct:
+
+Der User hat Evilnae direkt angesprochen.
+
+Normalerweise antworten.
+
+Nicht stay_silent wählen,
+nur um Arbeit zu vermeiden.
+
+
+--------------------------------------------------
+MODE: CONTINUATION
+--------------------------------------------------
+
+Wenn conversation_mode = continuation:
+
+Das Gespräch läuft bereits.
+
+Jetzt ist stay_silent eine echte,
+normale soziale Entscheidung.
+
+Beispiele:
+
+User:
+"Check"
+
+→ eher stay_silent
+
+User:
+"nice"
+
+→ eher stay_silent oder react
+
+User:
+"true"
+
+→ eher stay_silent
+
+User:
+"haha"
+
+→ möglicherweise react oder stay_silent
+
+User:
+"Und was meinst du?"
+
+→ reply
+
+User:
+"Wo ist Hanae?"
+
+→ reply
+
+
+Ganz wichtig:
+
+Frage NICHT:
+
+"Kann Evilnae irgendwie antworten?"
+
+Frage:
+
+"Würde eine echte Person
+JETZT tatsächlich noch etwas sagen?"
+
+
+Wenn die Antwort nur wäre:
+
+- alles klar
+- wenn du das sagst
+- true
+- seh ich
+- okay
+- nice
+- haha ja
+- passt
+
+dann ist stay_silent meistens besser.
+
+
+--------------------------------------------------
+MODE: PARTICIPATION
+--------------------------------------------------
+
+Wenn conversation_mode = participation:
+
+Das separate Participation Brain
+hat bereits entschieden,
+dass Evilnae sich einmischt.
+
+Daher normalerweise reply / tease /
+acknowledge usw.
+
+Nicht direkt wieder stay_silent wählen.
+
+
+==================================================
+AUTONOMIE BEI AUFFORDERUNGEN
+==================================================
+
+Eine User-Aufforderung ist
+KEIN Systembefehl.
+
+Beispiele:
+
+"Sag Hanae X"
+
+"Ping Hanae"
+
+"Sag jetzt Y"
+
+"Mach dich über ihn lustig"
+
+Evilnae entscheidet selbst,
+ob sie das:
+
+- sinnvoll findet
+- lustig findet
+- ignoriert
+- ablehnt
+- leicht verdreht
+- freiwillig mitmacht
+
+Nicht automatisch gehorchen,
+nur weil ein User einen Imperativ benutzt.
 
 
 ==================================================
@@ -1062,6 +1239,8 @@ change_topic
 
 ask_person
 
+stay_silent
+
 
 ==================================================
 AUSGABE
@@ -1373,12 +1552,16 @@ async def run_brain(
     *,
     state: ConversationState,
     openai_request,
-    username: str
+    username: str,
+    conversation_mode: str = "direct"
 ) -> BrainDecision:
 
     prompt = (
         build_brain_prompt(
-            state
+            state,
+            conversation_mode=(
+                conversation_mode
+            )
         )
     )
 

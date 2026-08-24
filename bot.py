@@ -126,6 +126,15 @@ from conversation_world import (
     format_world_evidence_debug,
 )
 
+from agency import (
+    AGENCY_VERSION,
+    ACTION_REPLY,
+    ACTION_REACT,
+    ACTION_STAY_SILENT,
+    apply_agency_guard,
+    format_agency_debug,
+)
+
 from voice_memory import (
     VOICE_MEMORY_VERSION,
     register_voice_feedback,
@@ -147,7 +156,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.2-world-b2"
+BOT_VERSION = "2.11.3-agency-b3a"
 
 
 # =========================================================
@@ -7081,6 +7090,15 @@ async def on_ready():
     )
 
     print(
+        f"Response Agency v"
+        f"{AGENCY_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Continuation reply/react/stay_silent: ACTIVE"
+    )
+
+    print(
         f"Expression Layer v"
         f"{EXPRESSION_VERSION}: ACTIVE"
     )
@@ -8103,6 +8121,24 @@ Participation-Entscheidung nötig.
         # 7. MAIN BRAIN
         # =================================================
 
+        if autonomous_participation:
+
+            brain_conversation_mode = (
+                "participation"
+            )
+
+        elif conversation_continuation:
+
+            brain_conversation_mode = (
+                "continuation"
+            )
+
+        else:
+
+            brain_conversation_mode = (
+                "direct"
+            )
+
         brain_start = (
             time.perf_counter()
         )
@@ -8116,7 +8152,11 @@ Participation-Entscheidung nötig.
                     safe_openai_request
                 ),
 
-                username=username
+                username=username,
+
+                conversation_mode=(
+                    brain_conversation_mode
+                )
             )
         )
 
@@ -8164,6 +8204,103 @@ Participation-Entscheidung nötig.
                 decision
             )
         )
+
+        # =================================================
+        # 2.11B3A RESPONSE AGENCY
+        #
+        # Wichtig:
+        #
+        # Dieser Gate läuft VOR Expression / Writer / Qwen.
+        #
+        # stay_silent bedeutet daher:
+        #
+        # KEIN unnötiger Writer Call
+        # KEIN Local Voice Call
+        # KEINE Füllantwort
+        #
+        # react bedeutet:
+        #
+        # Discord Reaction statt Textantwort.
+        # =================================================
+
+        agency_result = (
+            apply_agency_guard(
+
+                decision=decision,
+
+                conversation_mode=(
+                    brain_conversation_mode
+                ),
+
+                user_text=(
+                    user_text
+                ),
+
+                is_emoji_only=(
+                    perception.is_emoji_only
+                )
+            )
+        )
+
+        print(
+            format_agency_debug(
+                agency_result
+            )
+        )
+
+        if (
+            agency_result.action
+            ==
+            ACTION_STAY_SILENT
+        ):
+
+            print(
+                "[RESPONSE SKIPPED] "
+                f"user={username} "
+                "reason=agency_stay_silent"
+            )
+
+            return
+
+        if (
+            agency_result.action
+            ==
+            ACTION_REACT
+        ):
+
+            reaction = (
+                agency_result.reaction
+                or
+                "👍"
+            )
+
+            try:
+
+                await message.add_reaction(
+                    reaction
+                )
+
+                register_channel_message(
+                    is_bot=True
+                )
+
+                print(
+                    "[AGENCY REACTION] "
+                    f"user={username} "
+                    f"reaction={reaction!r}"
+                )
+
+            except Exception as error:
+
+                print(
+                    "[AGENCY REACTION ERROR] "
+                    f"user={username} "
+                    f"error="
+                    f"{type(error).__name__}: "
+                    f"{error}"
+                )
+
+            return
 
         # =================================================
         # SOCIAL TARGET VALIDATION
