@@ -115,6 +115,17 @@ from naturalness import (
     format_naturalness_debug,
 )
 
+from conversation_world import (
+    WORLD_VERSION,
+    observe_world_message,
+    resolve_world_query,
+    apply_world_evidence_to_decision,
+    format_world_for_brain,
+    format_world_evidence_for_writer,
+    format_world_observation_debug,
+    format_world_evidence_debug,
+)
+
 from voice_memory import (
     VOICE_MEMORY_VERSION,
     register_voice_feedback,
@@ -136,7 +147,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.1-understanding-b1"
+BOT_VERSION = "2.11.2-world-b2"
 
 
 # =========================================================
@@ -7061,6 +7072,15 @@ async def on_ready():
     )
 
     print(
+        f"Conversation World v"
+        f"{WORLD_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Source Authority: ACTIVE"
+    )
+
+    print(
         f"Expression Layer v"
         f"{EXPRESSION_VERSION}: ACTIVE"
     )
@@ -7367,6 +7387,45 @@ async def on_message(
             channel_id
         )
     )
+
+    # =====================================================
+    # 2.11B2 CONVERSATION WORLD OBSERVATION
+    #
+    # Läuft VOR Routing / Participation.
+    #
+    # Dadurch beobachtet Evilnae auch Aussagen,
+    # auf die sie bewusst nicht antwortet.
+    # =====================================================
+
+    world_claims = (
+        observe_world_message(
+
+            channel_id=channel_id,
+
+            user_id=user_id,
+
+            username=username,
+
+            text=(
+                perception.text
+                or
+                perception.raw_content
+                or ""
+            ),
+
+            hanae_user_id=(
+                HANAE_USER_ID
+            )
+        )
+    )
+
+    if world_claims:
+
+        print(
+            format_world_observation_debug(
+                world_claims
+            )
+        )
 
     # =====================================================
     # CHANNEL-WIDE EVILNAE HISTORY
@@ -7876,6 +7935,18 @@ async def on_message(
             )
         )
 
+        world_brain_text = (
+            format_world_for_brain(
+                channel_id
+            )
+        )
+
+        group_context_text += (
+            "\n\n"
+            +
+            world_brain_text
+        )
+
         reply_context_text = (
             "Keine direkte Discord-Antwort."
         )
@@ -8053,6 +8124,40 @@ Participation-Entscheidung nötig.
             time.perf_counter()
             - brain_start
         )
+
+        # =================================================
+        # 2.11B2 SOURCE AUTHORITY OVERRIDE
+        #
+        # Das Brain darf einen eigenen Self-Report
+        # nicht durch eine fremde Behauptung,
+        # Troll-Aussage oder Spekulation ersetzen.
+        # =================================================
+
+        world_evidence = (
+            resolve_world_query(
+
+                channel_id=channel_id,
+
+                user_text=user_text,
+
+                hanae_user_id=(
+                    HANAE_USER_ID
+                )
+            )
+        )
+
+        apply_world_evidence_to_decision(
+            decision,
+            world_evidence
+        )
+
+        if world_evidence.matched:
+
+            print(
+                format_world_evidence_debug(
+                    world_evidence
+                )
+            )
 
         print(
             format_brain_debug(
@@ -8234,6 +8339,20 @@ Participation-Entscheidung nötig.
                 )
             )
         )
+        # =====================================================
+        # 2.11B2 WORLD EVIDENCE -> WRITER
+        # =====================================================
+
+        if world_evidence.matched:
+
+            writer_context += (
+                "\n\n"
+                +
+                format_world_evidence_for_writer(
+                    world_evidence
+                )
+            )
+
         # =====================================================
         # KNOWLEDGE GUARD v3 FOUNDATION
         #
