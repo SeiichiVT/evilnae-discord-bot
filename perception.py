@@ -9,7 +9,7 @@ import discord
 # PERCEPTION VERSION
 # =========================================================
 
-PERCEPTION_VERSION = "1.5"
+PERCEPTION_VERSION = "2.0.1"
 
 
 # =========================================================
@@ -36,18 +36,10 @@ CHANNEL_MENTION_PATTERN = re.compile(
 
 
 # =========================================================
-# KNOWN NON-ADDRESS PHRASES
-#
-# "Evil" ist Evilnaes Spitzname.
-#
-# Deshalb behandeln wir ein eigenständiges
-# "Evil" grundsätzlich als Anrede.
-#
-# Es gibt aber bekannte Titel / Namen,
-# bei denen Evil NICHT Evilnae meint.
+# KNOWN NON-EVILNAE PHRASES
 # =========================================================
 
-NON_ADDRESS_EVIL_PATTERNS = [
+NON_EVILNAE_NAME_PATTERNS = [
 
     re.compile(
         r"\bresident\s+evil\b",
@@ -61,6 +53,381 @@ NON_ADDRESS_EVIL_PATTERNS = [
 
     re.compile(
         r"\bthe\s+evil\s+within\b",
+        flags=re.IGNORECASE
+    ),
+]
+
+
+# =========================================================
+# GREETING / VOCATIVE LEADS
+# =========================================================
+
+GREETING_LEADS = {
+
+    "hallo",
+    "hi",
+    "hey",
+    "ey",
+    "yo",
+
+    "moin",
+    "servus",
+
+    "tag",
+
+    "guten tag",
+    "guten morgen",
+    "guten abend",
+
+    "morgen",
+
+    "also",
+    "so",
+    "na",
+
+    "okay",
+    "ok",
+}
+
+
+# =========================================================
+# ADDRESS MODIFIERS
+# =========================================================
+
+ADDRESS_MODIFIERS = {
+
+    "meine",
+    "mein",
+
+    "liebe",
+    "lieber",
+
+    "kleine",
+    "kleiner",
+
+    "gute",
+    "guter",
+
+    "werte",
+    "werter",
+}
+
+
+# =========================================================
+# DIRECT FOLLOWERS
+#
+# Wort direkt NACH Evil/Evilnae.
+#
+# Evil was denkst du?
+# Evil kannst du...
+# Evil nerv mich nicht
+# =========================================================
+
+DIRECT_FOLLOWERS = {
+
+    # -----------------------------------------------------
+    # QUESTION WORDS
+    # -----------------------------------------------------
+
+    "was",
+    "wer",
+    "wie",
+    "warum",
+    "wieso",
+    "wann",
+    "wo",
+
+    "welche",
+    "welcher",
+    "welches",
+
+
+    # -----------------------------------------------------
+    # SECOND PERSON
+    # -----------------------------------------------------
+
+    "du",
+    "dir",
+    "dich",
+    "dein",
+    "deine",
+    "deiner",
+    "deinen",
+    "deinem",
+
+
+    # -----------------------------------------------------
+    # QUESTIONS / ACTIONS
+    # -----------------------------------------------------
+
+    "kannst",
+    "könntest",
+    "koenntest",
+
+    "willst",
+    "würdest",
+    "wuerdest",
+
+    "hast",
+    "bist",
+
+    "magst",
+
+    "meinst",
+    "denkst",
+    "findest",
+
+    "weißt",
+    "weisst",
+
+    "darfst",
+    "sollst",
+
+    "sag",
+    "sagst",
+
+    "erzähl",
+    "erzaehl",
+    "erzählst",
+    "erzaehlst",
+
+    "mach",
+    "machst",
+
+    "komm",
+
+    "hör",
+    "hoer",
+
+    "guck",
+    "schau",
+
+    "hilf",
+
+    "nenn",
+    "nennst",
+
+    "lass",
+    "lässt",
+    "laesst",
+
+    "spiel",
+    "spielst",
+
+    # -----------------------------------------------------
+    # v2.0.1
+    #
+    # "Ne Evil nerv mich bitte nicht"
+    #
+    # Imperativ/direct action.
+    #
+    # "nervt" bleibt dagegen unten
+    # ein Third-Person-Predicate:
+    #
+    # "Evil nervt Hanae"
+    # -----------------------------------------------------
+
+    "nerv",
+}
+
+
+# =========================================================
+# THIRD PERSON PREDICATES
+#
+# Evil sagt da was anderes.
+# Evil ist heute komisch.
+# Evil nervt Hanae.
+#
+# -> ÜBER Evilnae gesprochen.
+# =========================================================
+
+THIRD_PERSON_PREDICATES = {
+
+    "ist",
+    "war",
+    "wäre",
+    "waere",
+
+    "hat",
+    "hatte",
+
+    "sagt",
+    "sagte",
+
+    "meint",
+    "meinte",
+
+    "wird",
+    "wurde",
+
+    "bekommt",
+    "bekam",
+
+    "braucht",
+
+    "weiß",
+    "weiss",
+
+    "kennt",
+
+    "liebt",
+    "hasst",
+
+    "stinkt",
+
+    "nervt",
+
+    "glaubt",
+
+    "denkt",
+
+    "macht",
+
+    "geht",
+
+    "kommt",
+
+    "schläft",
+    "schlaeft",
+
+    "wohnt",
+
+    "spielt",
+
+    "guckt",
+
+    "schaut",
+
+    "übernimmt",
+    "uebernimmt",
+
+    "lernt",
+
+    "entwickelt",
+
+    "darf",
+
+    "soll",
+
+    "kann",
+
+    "muss",
+
+    "will",
+
+    "findet",
+
+    "ignoriert",
+
+    "schreibt",
+
+    "antwortet",
+
+    "redet",
+
+    "plant",
+}
+
+
+# =========================================================
+# END-OF-SENTENCE ADDRESS HINTS
+# =========================================================
+
+END_ADDRESS_HINTS = {
+
+    "was",
+    "wer",
+    "wie",
+    "warum",
+    "wieso",
+    "wann",
+    "wo",
+
+    "meinst",
+    "denkst",
+    "findest",
+
+    "hältst",
+    "haelst",
+
+    "willst",
+
+    "kannst",
+
+    "würdest",
+    "wuerdest",
+
+    "hast",
+    "bist",
+
+    "weißt",
+    "weisst",
+
+    "sag",
+    "sagst",
+
+    "pläne",
+    "plaene",
+
+    "meinung",
+
+    "idee",
+}
+
+
+# =========================================================
+# DIRECT WISH / SOCIAL ADDRESS
+# =========================================================
+
+DIRECT_WISH_PATTERNS = [
+
+    re.compile(
+        r"\bgute\s+besserung\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bguten\s+morgen\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bguten\s+abend\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bgute\s+nacht\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bschlaf\s+gut\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bmorgen\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bmoin\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bhallo\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bhi\s*$",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bhey\s*$",
         flags=re.IGNORECASE
     ),
 ]
@@ -97,6 +464,24 @@ class ReplyInfo:
 
 
 @dataclass
+class AddressingResult:
+
+    name_mentioned: bool = False
+
+    direct_address: bool = False
+
+    reason: str = "no_name"
+
+    name_spans: list[tuple[int, int]] = field(
+        default_factory=list
+    )
+
+    direct_spans: list[tuple[int, int]] = field(
+        default_factory=list
+    )
+
+
+@dataclass
 class PerceivedMessage:
 
     # -----------------------------------------------------
@@ -121,15 +506,12 @@ class PerceivedMessage:
 
     # -----------------------------------------------------
     # CLEAN TEXT
-    #
-    # Evil / Evilnae wird als Anrede entfernt,
-    # der restliche natürliche Text bleibt erhalten.
     # -----------------------------------------------------
 
     text: str
 
     # -----------------------------------------------------
-    # TEXT USED FOR TRIGGER DETECTION
+    # TEXT USED FOR ADDRESS DETECTION
     # -----------------------------------------------------
 
     trigger_text: str
@@ -155,6 +537,18 @@ class PerceivedMessage:
     # -----------------------------------------------------
 
     bot_mentioned: bool = False
+
+    direct_address: bool = False
+
+    name_mentioned: bool = False
+
+    address_reason: str = "none"
+
+    # -----------------------------------------------------
+    # LEGACY COMPATIBILITY
+    #
+    # trigger_detected == direct_address
+    # -----------------------------------------------------
 
     trigger_detected: bool = False
 
@@ -262,6 +656,42 @@ def normalize_spacing(
 
 
 # =========================================================
+# NORMALIZE STRETCHED LEAD WORDS
+# =========================================================
+
+def normalize_stretched_lead_text(
+    text: str
+) -> str:
+
+    if not text:
+
+        return ""
+
+    words = (
+        text.split()
+    )
+
+    normalized_words = []
+
+    for word in words:
+
+        normalized_word = re.sub(
+            r"(.)\1{2,}",
+            r"\1",
+            word,
+            flags=re.IGNORECASE
+        )
+
+        normalized_words.append(
+            normalized_word
+        )
+
+    return " ".join(
+        normalized_words
+    )
+
+
+# =========================================================
 # REMOVE BOT MENTION
 # =========================================================
 
@@ -290,16 +720,7 @@ def remove_bot_mention(
 
 
 # =========================================================
-# BUILD TRIGGER PATTERN
-#
-# Aus:
-#
-# evilnae
-# evil nae
-# evil
-#
-# wird ein Regex,
-# bei dem Leerzeichen flexibel sind.
+# BUILD NAME PATTERN
 # =========================================================
 
 def build_trigger_pattern(
@@ -322,9 +743,6 @@ def build_trigger_pattern(
             )
         )
 
-        # "evil nae"
-        # soll auch bei mehreren Spaces funktionieren.
-
         escaped = escaped.replace(
             r"\ ",
             r"\s+"
@@ -340,24 +758,17 @@ def build_trigger_pattern(
 
 
 # =========================================================
-# NON-ADDRESS SPANS
-#
-# Beispiel:
-#
-# "Ich spiel Resident Evil"
-#
-# Der Evil-Teil darin darf NICHT
-# als Evilnae-Anrede gelten.
+# NON-EVILNAE SPANS
 # =========================================================
 
-def get_non_address_spans(
-    text
-):
+def get_non_evilnae_spans(
+    text: str
+) -> list[tuple[int, int]]:
 
     spans = []
 
     for pattern in (
-        NON_ADDRESS_EVIL_PATTERNS
+        NON_EVILNAE_NAME_PATTERNS
     ):
 
         for match in (
@@ -381,11 +792,11 @@ def get_non_address_spans(
 # =========================================================
 
 def spans_overlap(
-    first_start,
-    first_end,
-    second_start,
-    second_end
-):
+    first_start: int,
+    first_end: int,
+    second_start: int,
+    second_end: int
+) -> bool:
 
     return (
         first_start < second_end
@@ -395,24 +806,13 @@ def spans_overlap(
 
 
 # =========================================================
-# FIND VALID EVILNAE ADDRESS SPANS
-#
-# DAS IST DIE NEUE ZENTRALE LOGIK.
-#
-# Nicht mehr:
-#
-# "Steht Hallo davor?"
-#
-# Sondern:
-#
-# "Steht Evil / Evilnae überhaupt
-#  als eigenständiger Name im Text?"
+# FIND EVILNAE NAME SPANS
 # =========================================================
 
-def find_address_trigger_spans(
-    text,
-    trigger_words
-):
+def find_name_spans(
+    text: str,
+    trigger_words: list[str]
+) -> list[tuple[int, int]]:
 
     if not text:
 
@@ -432,7 +832,7 @@ def find_address_trigger_spans(
     )
 
     excluded_spans = (
-        get_non_address_spans(
+        get_non_evilnae_spans(
             text
         )
     )
@@ -486,38 +886,679 @@ def find_address_trigger_spans(
 
 
 # =========================================================
-# TRIGGER DETECTION
-#
-# Name-first statt Greeting-first.
-#
-# Beispiele:
-#
-# Hallo Evil
-# -> True
-#
-# Tag Evil
-# -> True
-#
-# Moin Evil
-# -> True
-#
-# Sooooo meine liebe Evil
-# -> True
-#
-# Evil was machst du?
-# -> True
-#
-# Was denkst du Evil?
-# -> True
-#
-# Evilnae?
-# -> True
-#
-# Resident Evil
-# -> False
-#
-# Evil Dead
-# -> False
+# WORD HELPERS
+# =========================================================
+
+def first_word_after(
+    text: str
+) -> str:
+
+    if not text:
+
+        return ""
+
+    cleaned = re.sub(
+        r"^[\s,;:!?.\-–—]+",
+        "",
+        text
+    )
+
+    match = re.search(
+        r"[A-Za-zÄÖÜäöüß]+",
+        cleaned
+    )
+
+    if not match:
+
+        return ""
+
+    return (
+        match.group(0)
+        .lower()
+    )
+
+
+def words_before(
+    text: str,
+    limit: int = 12
+) -> list[str]:
+
+    words = re.findall(
+        r"[A-Za-zÄÖÜäöüß]+",
+        text.lower()
+    )
+
+    return (
+        words[
+            -limit:
+        ]
+    )
+
+
+# =========================================================
+# SECOND PERSON DETECTION
+# =========================================================
+
+def contains_second_person(
+    text: str
+) -> bool:
+
+    words = set(
+        re.findall(
+            r"[A-Za-zÄÖÜäöüß]+",
+            text.lower()
+        )
+    )
+
+    second_person_words = {
+
+        "du",
+        "dir",
+        "dich",
+
+        "dein",
+        "deine",
+        "deiner",
+        "deinen",
+        "deinem",
+
+        "bist",
+        "hast",
+
+        "kannst",
+        "könntest",
+        "koenntest",
+
+        "willst",
+
+        "würdest",
+        "wuerdest",
+
+        "magst",
+
+        "meinst",
+
+        "denkst",
+
+        "findest",
+
+        "weißt",
+        "weisst",
+
+        "sollst",
+
+        "darfst",
+    }
+
+    return bool(
+        words
+        &
+        second_person_words
+    )
+
+
+# =========================================================
+# GREETING / VOCATIVE BEFORE NAME
+# =========================================================
+
+def has_greeting_before(
+    before_text: str
+) -> bool:
+
+    if not before_text:
+
+        return False
+
+    normalized = (
+        normalize_stretched_lead_text(
+            before_text.lower()
+        )
+    )
+
+    normalized = re.sub(
+        r"[,;:!?.\-–—]+$",
+        "",
+        normalized
+    ).strip()
+
+    words = (
+        normalized.split()
+    )
+
+    if not words:
+
+        return False
+
+    tail_words = (
+        words[
+            -5:
+        ]
+    )
+
+    while (
+        tail_words
+        and
+        tail_words[-1]
+        in ADDRESS_MODIFIERS
+    ):
+
+        tail_words.pop()
+
+    if not tail_words:
+
+        return False
+
+    if (
+        tail_words[-1]
+        in GREETING_LEADS
+    ):
+
+        return True
+
+    if len(
+        tail_words
+    ) >= 2:
+
+        last_two = (
+            tail_words[-2]
+            + " "
+            + tail_words[-1]
+        )
+
+        if (
+            last_two
+            in GREETING_LEADS
+        ):
+
+            return True
+
+    return False
+
+
+# =========================================================
+# DIRECT WISH BEFORE NAME
+# =========================================================
+
+def has_direct_wish_before(
+    before_text: str
+) -> bool:
+
+    if not before_text:
+
+        return False
+
+    normalized = (
+        normalize_spacing(
+            before_text
+        )
+    )
+
+    normalized = re.sub(
+        r"[,;:!?.\-–—]+$",
+        "",
+        normalized
+    ).strip()
+
+    for pattern in (
+        DIRECT_WISH_PATTERNS
+    ):
+
+        if pattern.search(
+            normalized
+        ):
+
+            return True
+
+    return False
+
+
+# =========================================================
+# QUESTION HINT BEFORE FINAL NAME
+# =========================================================
+
+def has_end_address_question_hint(
+    before_text: str
+) -> bool:
+
+    words = set(
+        words_before(
+            before_text,
+            limit=18
+        )
+    )
+
+    if (
+        words
+        &
+        END_ADDRESS_HINTS
+    ):
+
+        return True
+
+    if contains_second_person(
+        before_text
+    ):
+
+        return True
+
+    return False
+
+
+# =========================================================
+# PUNCTUATION AFTER NAME
+# =========================================================
+
+def punctuation_after_name(
+    after_text: str
+) -> str:
+
+    if not after_text:
+
+        return ""
+
+    match = re.match(
+        r"\s*([,;:!?\-–—.])",
+        after_text
+    )
+
+    if not match:
+
+        return ""
+
+    return (
+        match.group(1)
+    )
+
+
+# =========================================================
+# SUBSTANTIVE TEXT AFTER NAME
+# =========================================================
+
+def has_substantive_text(
+    text: str
+) -> bool:
+
+    return bool(
+        re.search(
+            r"[A-Za-zÄÖÜäöüß0-9]",
+            text or ""
+        )
+    )
+
+
+# =========================================================
+# CLASSIFY SINGLE NAME OCCURRENCE
+# =========================================================
+
+def classify_name_span(
+    text: str,
+    start: int,
+    end: int
+) -> tuple[
+    bool,
+    str
+]:
+
+    before = (
+        text[
+            :start
+        ]
+    )
+
+    after = (
+        text[
+            end:
+        ]
+    )
+
+    before_stripped = (
+        before.strip()
+    )
+
+    first_after = (
+        first_word_after(
+            after
+        )
+    )
+
+    punctuation = (
+        punctuation_after_name(
+            after
+        )
+    )
+
+    at_start = (
+        not bool(
+            before_stripped
+        )
+    )
+
+    at_end = (
+        not has_substantive_text(
+            after
+        )
+    )
+
+    # =====================================================
+    # 1. GREETING / VOCATIVE
+    # =====================================================
+
+    if has_greeting_before(
+        before
+    ):
+
+        return (
+            True,
+            "greeting_vocative"
+        )
+
+    # =====================================================
+    # 2. DIRECT SOCIAL WISH
+    # =====================================================
+
+    if has_direct_wish_before(
+        before
+    ):
+
+        return (
+            True,
+            "direct_wish"
+        )
+
+    # =====================================================
+    # 3. NAME AT START
+    # =====================================================
+
+    if at_start:
+
+        if punctuation in {
+            ",",
+            ":",
+            "-",
+            "–",
+            "—",
+        }:
+
+            return (
+                True,
+                "start_vocative_punctuation"
+            )
+
+        if (
+            at_end
+            and
+            punctuation
+            in {
+                "?",
+                "!",
+            }
+        ):
+
+            return (
+                True,
+                "name_only_address"
+            )
+
+        if (
+            first_after
+            in DIRECT_FOLLOWERS
+        ):
+
+            return (
+                True,
+                "start_direct_follower"
+            )
+
+        if (
+            first_after
+            in THIRD_PERSON_PREDICATES
+        ):
+
+            return (
+                False,
+                "third_person_subject"
+            )
+
+        return (
+            True,
+            "start_name_default"
+        )
+
+    # =====================================================
+    # 4. NAME AT END
+    # =====================================================
+
+    if at_end:
+
+        before_without_spaces = (
+            before.rstrip()
+        )
+
+        if (
+            before_without_spaces.endswith(
+                ","
+            )
+        ):
+
+            return (
+                True,
+                "end_vocative_comma"
+            )
+
+        if has_end_address_question_hint(
+            before
+        ):
+
+            return (
+                True,
+                "end_question_address"
+            )
+
+        if (
+            punctuation
+            == "?"
+            and
+            (
+                "?"
+                in text
+                or
+                len(
+                    words_before(
+                        before,
+                        limit=20
+                    )
+                )
+                <= 10
+            )
+        ):
+
+            return (
+                True,
+                "end_question_vocative"
+            )
+
+        return (
+            False,
+            "end_name_mention"
+        )
+
+    # =====================================================
+    # 5. NAME IN MIDDLE
+    # =====================================================
+
+    if punctuation in {
+        ",",
+        ":",
+        "-",
+        "–",
+        "—",
+    }:
+
+        return (
+            True,
+            "middle_vocative_punctuation"
+        )
+
+    if (
+        first_after
+        in DIRECT_FOLLOWERS
+    ):
+
+        return (
+            True,
+            "middle_direct_follower"
+        )
+
+    if (
+        first_after
+        in THIRD_PERSON_PREDICATES
+    ):
+
+        return (
+            False,
+            "middle_third_person_subject"
+        )
+
+    return (
+        False,
+        "ambiguous_name_mention"
+    )
+
+
+# =========================================================
+# CLASSIFY ADDRESSING
+# =========================================================
+
+def classify_addressing(
+    text: str,
+    trigger_words: list[str]
+) -> AddressingResult:
+
+    text = (
+        normalize_spacing(
+            text or ""
+        )
+    )
+
+    if not text:
+
+        return (
+            AddressingResult()
+        )
+
+    name_spans = (
+        find_name_spans(
+            text,
+            trigger_words
+        )
+    )
+
+    if not name_spans:
+
+        return (
+            AddressingResult(
+                name_mentioned=False,
+                direct_address=False,
+                reason="no_name",
+                name_spans=[],
+                direct_spans=[]
+            )
+        )
+
+    direct_spans = []
+
+    reasons = []
+
+    for (
+        start,
+        end
+    ) in name_spans:
+
+        (
+            is_direct,
+            reason
+        ) = (
+            classify_name_span(
+                text,
+                start,
+                end
+            )
+        )
+
+        reasons.append(
+            reason
+        )
+
+        if is_direct:
+
+            direct_spans.append(
+                (
+                    start,
+                    end
+                )
+            )
+
+    direct_address = bool(
+        direct_spans
+    )
+
+    if direct_address:
+
+        direct_reason = next(
+            (
+                reason
+                for (
+                    reason,
+                    span
+                ) in zip(
+                    reasons,
+                    name_spans
+                )
+                if span
+                in direct_spans
+            ),
+            "direct_name"
+        )
+
+        result_reason = (
+            direct_reason
+        )
+
+    else:
+
+        result_reason = (
+            reasons[0]
+            if reasons
+            else
+            "name_mention"
+        )
+
+    return (
+        AddressingResult(
+
+            name_mentioned=True,
+
+            direct_address=(
+                direct_address
+            ),
+
+            reason=(
+                result_reason
+            ),
+
+            name_spans=(
+                name_spans
+            ),
+
+            direct_spans=(
+                direct_spans
+            )
+        )
+    )
+
+
+# =========================================================
+# LEGACY TRIGGER DETECTION
 # =========================================================
 
 def detect_trigger(
@@ -525,85 +1566,69 @@ def detect_trigger(
     trigger_words: list[str]
 ) -> bool:
 
-    text = (
-        normalize_spacing(
-            content_without_emojis
-            or ""
-        )
-    )
-
-    if not text:
-
-        return False
-
-    spans = (
-        find_address_trigger_spans(
-            text,
+    addressing = (
+        classify_addressing(
+            content_without_emojis,
             trigger_words
         )
     )
 
-    return bool(
-        spans
+    return (
+        addressing.direct_address
     )
 
 
 # =========================================================
-# REMOVE TRIGGER ADDRESS
-#
-# Wir entfernen Evil / Evilnae,
-# aber NICHT irgendwelche Wörter davor.
-#
-# Dadurch hängt die Wahrnehmung nicht mehr
-# von Hallo / Moin / Tag / Sooo usw. ab.
-#
-#
-# Beispiel:
-#
-# "HALLO Evil - wie gehts?"
-#
-# wird ungefähr:
-#
-# "HALLO - wie gehts?"
-#
-#
-# Das ist völlig okay:
-# Der Writer bekommt weiterhin
-# den natürlichen Inhalt der Nachricht.
+# NAME MENTION DETECTION
 # =========================================================
 
-def remove_trigger_address(
-    text: str,
+def detect_name_mention(
+    content_without_emojis: str,
     trigger_words: list[str]
+) -> bool:
+
+    addressing = (
+        classify_addressing(
+            content_without_emojis,
+            trigger_words
+        )
+    )
+
+    return (
+        addressing.name_mentioned
+    )
+
+
+# =========================================================
+# REMOVE DIRECT ADDRESS ONLY
+# =========================================================
+
+def remove_direct_address(
+    text: str,
+    direct_spans: list[
+        tuple[int, int]
+    ]
 ) -> str:
 
     if not text:
 
         return ""
 
-    spans = (
-        find_address_trigger_spans(
-            text,
-            trigger_words
-        )
-    )
-
-    if not spans:
+    if not direct_spans:
 
         return normalize_spacing(
             text
         )
 
-    result = text
-
-    # Von hinten entfernen,
-    # damit Positionswerte gültig bleiben.
+    result = (
+        text
+    )
 
     for (
         start,
         end
     ) in reversed(
-        spans
+        direct_spans
     ):
 
         result = (
@@ -612,17 +1637,11 @@ def remove_trigger_address(
             + result[end:]
         )
 
-    # -----------------------------------------------------
-    # CLEANUP
-    # -----------------------------------------------------
-
     result = re.sub(
         r"[ \t]+",
         " ",
         result
     )
-
-    # Leerzeichen vor Satzzeichen entfernen.
 
     result = re.sub(
         r"\s+([,.!?;:])",
@@ -630,16 +1649,11 @@ def remove_trigger_address(
         result
     )
 
-    # Mehrere Bindestriche / Spaces normalisieren.
-
     result = re.sub(
-        r"\s*-\s*",
+        r"\s*[-–—]\s*",
         " - ",
         result
     )
-
-    # Doppelte Satzzeichen,
-    # die durch Entfernen des Namens entstehen können.
 
     result = re.sub(
         r",\s*,",
@@ -651,17 +1665,41 @@ def remove_trigger_address(
         result
     )
 
-    # -----------------------------------------------------
-    # ORPHAN PUNCTUATION AT START
-    # -----------------------------------------------------
-
     result = re.sub(
-        r"^[,;:\-]+\s*",
+        r"^[,;:\-–—]+\s*",
         "",
         result
     ).strip()
 
     return result
+
+
+# =========================================================
+# LEGACY REMOVE TRIGGER ADDRESS
+# =========================================================
+
+def remove_trigger_address(
+    text: str,
+    trigger_words: list[str]
+) -> str:
+
+    if not text:
+
+        return ""
+
+    addressing = (
+        classify_addressing(
+            text,
+            trigger_words
+        )
+    )
+
+    return (
+        remove_direct_address(
+            text,
+            addressing.direct_spans
+        )
+    )
 
 
 # =========================================================
@@ -848,7 +1886,7 @@ async def perceive_message(
     )
 
     # -----------------------------------------------------
-    # BOT MENTION
+    # DISCORD BOT MENTION
     # -----------------------------------------------------
 
     bot_mentioned = False
@@ -861,17 +1899,30 @@ async def perceive_message(
         )
 
     # -----------------------------------------------------
-    # NAME TRIGGER
-    #
-    # Evil / Evilnae ist jetzt
-    # das primäre Signal.
+    # ADDRESSING
     # -----------------------------------------------------
 
-    trigger_detected = (
-        detect_trigger(
+    addressing = (
+        classify_addressing(
             no_emojis,
             trigger_words
         )
+    )
+
+    direct_address = (
+        addressing.direct_address
+    )
+
+    name_mentioned = (
+        addressing.name_mentioned
+    )
+
+    # -----------------------------------------------------
+    # LEGACY TRIGGER
+    # -----------------------------------------------------
+
+    trigger_detected = (
+        direct_address
     )
 
     # -----------------------------------------------------
@@ -892,7 +1943,7 @@ async def perceive_message(
     )
 
     # -----------------------------------------------------
-    # CLEAN NATURAL TEXT
+    # CLEAN TEXT
     # -----------------------------------------------------
 
     clean_text = (
@@ -908,12 +1959,19 @@ async def perceive_message(
             )
         )
 
-    if trigger_detected:
+    if direct_address:
 
-        clean_text = (
-            remove_trigger_address(
+        clean_addressing = (
+            classify_addressing(
                 clean_text,
                 trigger_words
+            )
+        )
+
+        clean_text = (
+            remove_direct_address(
+                clean_text,
+                clean_addressing.direct_spans
             )
         )
 
@@ -939,31 +1997,20 @@ async def perceive_message(
 
     # -----------------------------------------------------
     # SHOULD REPLY
-    #
-    # DIRECT wenn:
-    #
-    # - Evil / Evilnae genannt
-    # - Discord-Mention
-    # - Reply auf Evilnae
-    #
-    # Active Conversation / Participation
-    # entscheidet weiterhin bot.py.
     # -----------------------------------------------------
 
     should_reply = (
-        trigger_detected
+
+        direct_address
+
         or
+
         bot_mentioned
+
         or
+
         replied_to_bot
     )
-
-    # -----------------------------------------------------
-    # EMOTE ONLY
-    #
-    # Ein einzelnes Emote ohne
-    # direkte Ansprache erzwingt keine Antwort.
-    # -----------------------------------------------------
 
     if (
         is_emoji_only
@@ -972,7 +2019,7 @@ async def perceive_message(
         and
         not replied_to_bot
         and
-        not trigger_detected
+        not direct_address
     ):
 
         should_reply = False
@@ -1003,11 +2050,25 @@ async def perceive_message(
 
         bot_mentioned=bot_mentioned,
 
-        trigger_detected=trigger_detected,
+        direct_address=direct_address,
 
-        replied_to_bot=replied_to_bot,
+        name_mentioned=name_mentioned,
 
-        should_reply=should_reply,
+        address_reason=(
+            addressing.reason
+        ),
+
+        trigger_detected=(
+            trigger_detected
+        ),
+
+        replied_to_bot=(
+            replied_to_bot
+        ),
+
+        should_reply=(
+            should_reply
+        ),
 
         reply=reply
     )
@@ -1098,8 +2159,317 @@ def format_perception_debug(
         f"emojis={emoji_names} "
         f"emoji_only={perception.is_emoji_only} "
         f"bot_mention={perception.bot_mentioned} "
+        f"direct={perception.direct_address} "
+        f"name_mention={perception.name_mentioned} "
+        f"address_reason={perception.address_reason!r} "
         f"trigger={perception.trigger_detected} "
         f"reply_bot={perception.replied_to_bot} "
         f"reply_to={reply_name!r} "
         f"should_reply={perception.should_reply}"
     )
+
+
+# =========================================================
+# ADDRESSING SELF TEST
+# =========================================================
+
+def _run_addressing_self_test():
+
+    trigger_words = [
+        "evilnae",
+        "evil nae",
+        "evil",
+    ]
+
+    cases = [
+
+        # -------------------------------------------------
+        # DIRECT
+        # -------------------------------------------------
+
+        (
+            "Evil, was sagst du dazu?",
+            True,
+            True
+        ),
+
+        (
+            "Hallo Evil, alles gut?",
+            True,
+            True
+        ),
+
+        (
+            "HALLO Evil - Es scheint dir besser zu gehen?",
+            True,
+            True
+        ),
+
+        (
+            "Guten Tag Evil, wie läufts?",
+            True,
+            True
+        ),
+
+        (
+            "Moin Evil",
+            True,
+            True
+        ),
+
+        (
+            "Soooo meine liebe Evil, alles fit?",
+            True,
+            True
+        ),
+
+        (
+            "Was meinst du, Evil?",
+            True,
+            True
+        ),
+
+        (
+            "Was meinst du Evil?",
+            True,
+            True
+        ),
+
+        (
+            "Gute Besserung Evil",
+            True,
+            True
+        ),
+
+        (
+            "Evil kannst du mal helfen?",
+            True,
+            True
+        ),
+
+        (
+            "Evil sag mal was",
+            True,
+            True
+        ),
+
+        (
+            "Ne Evil nerv mich bitte nicht",
+            True,
+            True
+        ),
+
+        (
+            "Wie ist Error eigentlich als Mitbewohner Evil?",
+            True,
+            True
+        ),
+
+        (
+            "Schon Pläne für die Weltherrschaft Evil?",
+            True,
+            True
+        ),
+
+        # -------------------------------------------------
+        # NAME MENTION ONLY
+        # -------------------------------------------------
+
+        (
+            "Ich glaub Evil sagt da was anderes xD",
+            False,
+            True
+        ),
+
+        (
+            "Sicher? Evil sagt da was anderes xD",
+            False,
+            True
+        ),
+
+        (
+            "Evil sagt da was anderes.",
+            False,
+            True
+        ),
+
+        (
+            "Evil ist heute irgendwie komisch.",
+            False,
+            True
+        ),
+
+        (
+            "Evil hat ein eigenes Zimmer.",
+            False,
+            True
+        ),
+
+        (
+            "Evil wird bald den Server übernehmen.",
+            False,
+            True
+        ),
+
+        (
+            "Evil ist gut",
+            False,
+            True
+        ),
+
+        (
+            "Evil nervt Hanae",
+            False,
+            True
+        ),
+
+        (
+            "Ich glaube das war Evil.",
+            False,
+            True
+        ),
+
+        (
+            "Ob Evil von Hanaes rotem 3DS weiß?",
+            False,
+            True
+        ),
+
+        (
+            "Hana hat Evil kaputt gemacht again",
+            False,
+            True
+        ),
+
+        # -------------------------------------------------
+        # NOT EVILNAE
+        # -------------------------------------------------
+
+        (
+            "Resident Evil ist ein gutes Spiel",
+            False,
+            False
+        ),
+
+        (
+            "Ich mag Evil Dead",
+            False,
+            False
+        ),
+
+        (
+            "The Evil Within war nice",
+            False,
+            False
+        ),
+
+        (
+            "Hallo zusammen",
+            False,
+            False
+        ),
+    ]
+
+    passed = 0
+
+    print(
+        ""
+    )
+
+    print(
+        "============================================"
+    )
+
+    print(
+        f"PERCEPTION v{PERCEPTION_VERSION} SELF TEST"
+    )
+
+    print(
+        "============================================"
+    )
+
+    print(
+        ""
+    )
+
+    for (
+        text,
+        expected_direct,
+        expected_mention
+    ) in cases:
+
+        result = (
+            classify_addressing(
+                text,
+                trigger_words
+            )
+        )
+
+        success = (
+
+            result.direct_address
+            ==
+            expected_direct
+
+            and
+
+            result.name_mentioned
+            ==
+            expected_mention
+        )
+
+        if success:
+
+            status = (
+                "PASS"
+            )
+
+            passed += 1
+
+        else:
+
+            status = (
+                "FAIL"
+            )
+
+        print(
+            f"[{status}] "
+            f"{text!r}"
+        )
+
+        print(
+            "       "
+            f"direct="
+            f"{result.direct_address} "
+            f"mention="
+            f"{result.name_mentioned} "
+            f"reason="
+            f"{result.reason}"
+        )
+
+    print(
+        ""
+    )
+
+    print(
+        "============================================"
+    )
+
+    print(
+        f"RESULT: "
+        f"{passed}/"
+        f"{len(cases)} passed"
+    )
+
+    print(
+        "============================================"
+    )
+
+
+# =========================================================
+# ENTRYPOINT
+# =========================================================
+
+if __name__ == "__main__":
+
+    _run_addressing_self_test()

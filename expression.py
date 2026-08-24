@@ -1,14 +1,31 @@
 import re
-from dataclasses import dataclass, field
+
 from collections import Counter
+from dataclasses import dataclass, field
 from typing import Optional
+
+
+from coherence import (
+    CoherenceAnalysis,
+    analyze_coherence,
+    detect_concepts,
+    detect_assistant_patterns,
+    detect_filler_patterns,
+)
 
 
 # =========================================================
 # VERSION
 # =========================================================
 
-EXPRESSION_VERSION = "1.0"
+EXPRESSION_VERSION = "2.0"
+
+
+# =========================================================
+# CONFIG
+# =========================================================
+
+EXPRESSION_HISTORY_LIMIT = 20
 
 
 # =========================================================
@@ -42,11 +59,86 @@ class ExpressionPlan:
         default_factory=list
     )
 
+    # -----------------------------------------------------
+    # NEU v2.0
+    #
+    # Keine einzelnen Wörter,
+    # sondern sprachliche MOTIVE.
+    #
+    # Beispiel:
+    #
+    # chaos
+    # excitement
+    # generic_positive
+    # -----------------------------------------------------
+
+    avoid_concepts: list[str] = field(
+        default_factory=list
+    )
+
+    hard_avoid_concepts: list[str] = field(
+        default_factory=list
+    )
+
     preferred_energy: str = "relaxed"
 
     notes: list[str] = field(
         default_factory=list
     )
+
+    # -----------------------------------------------------
+    # COHERENCE SIGNALS
+    # -----------------------------------------------------
+
+    assistant_pattern_pressure: bool = False
+
+    filler_pattern_pressure: bool = False
+
+    # -----------------------------------------------------
+    # HISTORY
+    #
+    # Wird nicht als "Persönlichkeit" benutzt.
+    #
+    # Nur damit der Final Guard
+    # dieselbe History nochmals prüfen kann.
+    # -----------------------------------------------------
+
+    recent_messages: list[str] = field(
+        default_factory=list,
+        repr=False
+    )
+
+
+# =========================================================
+# FINAL GUARD RESULT
+# =========================================================
+
+@dataclass
+class ExpressionGuardResult:
+
+    original: str
+
+    cleaned: str
+
+    violations_before: list[str] = field(
+        default_factory=list
+    )
+
+    violations_after: list[str] = field(
+        default_factory=list
+    )
+
+    removed_emojis: list[str] = field(
+        default_factory=list
+    )
+
+    removed_opener: Optional[str] = None
+
+    changed: bool = False
+
+    rewrite_required: bool = False
+
+    send_allowed: bool = True
 
 
 # =========================================================
@@ -54,66 +146,238 @@ class ExpressionPlan:
 # =========================================================
 
 VALID_STYLES = {
+
     "natural",
+
     "dry",
+
     "playful",
+
     "soft",
+
     "smug",
+
     "chaotic",
+
     "serious",
+
     "deadpan",
+
     "warm",
 }
 
 
 # =========================================================
-# TRACKED WORDS / PHRASES
+# TRACKED WORDS
+#
+# Einzelne Wörter.
+#
+# Die größeren Motive
+# werden zusätzlich in coherence.py geprüft.
 # =========================================================
 
 TRACKED_WORDS = {
+
     "bro",
+
     "bruh",
+
     "chill",
+
     "fair",
+
     "real",
+
     "actually",
+
     "legit",
+
     "wild",
+
+    "spannend",
+
+    "episch",
+
+    "legendär",
+
+    "legendary",
+
+    "chaos",
+
+    "chaotisch",
+
+    "langweilig",
+
     "lmao",
+
     "help",
+
     "rip",
+
     "digga",
+
     "alter",
 }
 
 
+# =========================================================
+# TRACKED OPENERS
+# =========================================================
+
 TRACKED_OPENERS = {
+
+    "hahaha",
+
     "haha",
+
+    "hehe",
+
     "lol",
+
+    "lmao",
+
     "oh",
+
     "ohh",
+
+    "oha",
+
     "ah",
+
     "also",
+
     "naja",
+
     "ja okay",
+
     "okay",
+
     "wait",
+
     "bro",
+
     "bruh",
+
+    "na klar",
+
+    "ach komm",
+
+    "klar",
+
+    "uff",
+
+    "pff",
 }
 
+
+# =========================================================
+# TRACKED EMOJIS
+# =========================================================
 
 TRACKED_EMOJIS = {
+
     "😂",
+
+    "🤣",
+
     "😭",
+
     "💀",
+
+    "😈",
+
     "😏",
+
     "💪",
+
     "🥲",
+
     "🤨",
+
     "😌",
+
     "👀",
+
+    "✨",
+
+    "🌟",
+
+    "🔥",
+
+    "💥",
+
+    "🤭",
+
+    "😉",
+
+    "😊",
+
+    "🥺",
+
+    "❤️",
+
+    "🖤",
+
+    "🙌",
+
+    "👻",
+
+    "🍪",
+
+    "🍕",
+
+    "🌳",
 }
+
+
+# =========================================================
+# HIGH CONFIDENCE ASSISTANT STRUCTURES
+#
+# Nicht jedes:
+#
+# "ich freu mich"
+#
+# ist automatisch Bot-Sprache.
+#
+# Diese hier sind deutlich stärkere Signale.
+# =========================================================
+
+HIGH_CONFIDENCE_ASSISTANT_PATTERNS = [
+
+    re.compile(
+        r"\bdas klingt "
+        r"(?:echt |wirklich |total )?"
+        r"(?:spannend|super|gut|cool)\b",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bich bin gespannt,? "
+        r"(?:was|wie|ob)\b",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bviel erfolg\b",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bkein problem[,!. ]",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bich halte? .* "
+        r"augen offen\b",
+        flags=re.IGNORECASE
+    ),
+
+    re.compile(
+        r"\bsag ich bescheid\b",
+        flags=re.IGNORECASE
+    ),
+]
 
 
 # =========================================================
@@ -125,17 +389,24 @@ def normalize_text(
 ) -> str:
 
     if not text:
+
         return ""
 
-    text = text.strip().lower()
-
-    text = re.sub(
-        r"\s+",
-        " ",
-        text
+    value = (
+        str(
+            text
+        )
+        .strip()
+        .lower()
     )
 
-    return text
+    value = re.sub(
+        r"\s+",
+        " ",
+        value
+    )
+
+    return value
 
 
 # =========================================================
@@ -159,6 +430,92 @@ def extract_words(
 
 
 # =========================================================
+# CONTENT TOKEN COUNT
+#
+# Für Semantic-Repetition.
+#
+# Sehr kurze Sachen wie:
+#
+# "ja"
+# "ne"
+# "true"
+#
+# sollen nicht wegen eines
+# Ähnlichkeitswerts komplett blockiert werden.
+# =========================================================
+
+def content_token_count(
+    text: str
+) -> int:
+
+    words = (
+        extract_words(
+            text
+        )
+    )
+
+    stopwords = {
+
+        "ich",
+
+        "du",
+
+        "er",
+
+        "sie",
+
+        "es",
+
+        "wir",
+
+        "ihr",
+
+        "der",
+
+        "die",
+
+        "das",
+
+        "ein",
+
+        "eine",
+
+        "und",
+
+        "oder",
+
+        "aber",
+
+        "ist",
+
+        "sind",
+
+        "war",
+
+        "ja",
+
+        "ne",
+
+        "nee",
+
+        "okay",
+
+        "ok",
+    }
+
+    return sum(
+
+        1
+
+        for word
+        in words
+
+        if word.lower()
+        not in stopwords
+    )
+
+
+# =========================================================
 # DETECT OPENER
 # =========================================================
 
@@ -173,28 +530,51 @@ def detect_opener(
     )
 
     if not normalized:
+
         return None
 
     for opener in sorted(
+
         TRACKED_OPENERS,
+
         key=len,
+
         reverse=True
     ):
 
         if (
-            normalized == opener
+
+            normalized
+            == opener
+
             or
+
             normalized.startswith(
-                opener + " "
+                opener
+                + " "
             )
+
             or
+
             normalized.startswith(
-                opener + ","
+                opener
+                + ","
             )
+
             or
+
             normalized.startswith(
-                opener + "!"
+                opener
+                + "!"
             )
+
+            or
+
+            normalized.startswith(
+                opener
+                + "."
+            )
+
         ):
 
             return opener
@@ -210,11 +590,17 @@ def count_tracked_emojis(
     messages: list[str]
 ) -> Counter:
 
-    counter = Counter()
+    counter = (
+        Counter()
+    )
 
-    for message in messages:
+    for message in (
+        messages
+    ):
 
-        for emoji in TRACKED_EMOJIS:
+        for emoji in (
+            TRACKED_EMOJIS
+        ):
 
             count = (
                 message.count(
@@ -239,9 +625,13 @@ def count_tracked_words(
     messages: list[str]
 ) -> Counter:
 
-    counter = Counter()
+    counter = (
+        Counter()
+    )
 
-    for message in messages:
+    for message in (
+        messages
+    ):
 
         words = (
             extract_words(
@@ -249,7 +639,9 @@ def count_tracked_words(
             )
         )
 
-        for word in words:
+        for word in (
+            words
+        ):
 
             lowered = (
                 word.lower()
@@ -275,9 +667,13 @@ def count_openers(
     messages: list[str]
 ) -> Counter:
 
-    counter = Counter()
+    counter = (
+        Counter()
+    )
 
-    for message in messages:
+    for message in (
+        messages
+    ):
 
         opener = (
             detect_opener(
@@ -303,18 +699,29 @@ def get_question_density(
 ) -> float:
 
     if not messages:
+
         return 0.0
 
     question_messages = sum(
+
         1
+
         for message
         in messages
-        if "?" in message
+
+        if "?"
+        in message
     )
 
     return (
+
         question_messages
-        / len(messages)
+
+        /
+
+        len(
+            messages
+        )
     )
 
 
@@ -327,18 +734,29 @@ def get_exclamation_density(
 ) -> float:
 
     if not messages:
+
         return 0.0
 
     count = sum(
+
         1
+
         for message
         in messages
-        if "!" in message
+
+        if "!"
+        in message
     )
 
     return (
+
         count
-        / len(messages)
+
+        /
+
+        len(
+            messages
+        )
     )
 
 
@@ -351,11 +769,28 @@ def analyze_recent_expression(
 ) -> dict:
 
     recent_messages = [
-        message
+
+        str(
+            message
+        ).strip()
+
         for message
         in recent_messages
-        if message
+
+        if (
+            message is not None
+            and
+            str(
+                message
+            ).strip()
+        )
     ]
+
+    recent_messages = (
+        recent_messages[
+            -EXPRESSION_HISTORY_LIMIT:
+        ]
+    )
 
     return {
 
@@ -392,7 +827,47 @@ def analyze_recent_expression(
 
 
 # =========================================================
+# MERGE UNIQUE
+# =========================================================
+
+def merge_unique(
+    first: list[str],
+    second: list[str]
+) -> list[str]:
+
+    return list(
+
+        dict.fromkeys(
+
+            list(
+                first
+            )
+
+            +
+
+            list(
+                second
+            )
+        )
+    )
+
+
+# =========================================================
 # BUILD EXPRESSION PLAN
+#
+# Rückwärtskompatibel:
+#
+# bot.py kann weiterhin nur:
+#
+# recent_messages
+# tone
+# mood
+# relationship_text
+# is_hanae
+#
+# übergeben.
+#
+# coherence_analysis ist optional.
 # =========================================================
 
 def build_expression_plan(
@@ -401,8 +876,38 @@ def build_expression_plan(
     tone: str,
     mood: str,
     relationship_text: str = "",
-    is_hanae: bool = False
+    is_hanae: bool = False,
+    coherence_analysis: Optional[
+        CoherenceAnalysis
+    ] = None
 ) -> ExpressionPlan:
+
+    recent_messages = [
+
+        str(
+            message
+        ).strip()
+
+        for message
+        in (
+            recent_messages
+            or []
+        )
+
+        if (
+            message is not None
+            and
+            str(
+                message
+            ).strip()
+        )
+    ]
+
+    recent_messages = (
+        recent_messages[
+            -EXPRESSION_HISTORY_LIMIT:
+        ]
+    )
 
     analysis = (
         analyze_recent_expression(
@@ -410,18 +915,46 @@ def build_expression_plan(
         )
     )
 
-    plan = ExpressionPlan()
+    # =====================================================
+    # COHERENCE
+    #
+    # Solange bot.py noch nicht
+    # die channelweite Analysis übergibt,
+    # analysieren wir wenigstens
+    # die erhaltene History.
+    #
+    # Später bekommt diese Funktion
+    # explizit die CHANNEL-WIDE Analysis.
+    # =====================================================
+
+    if coherence_analysis is None:
+
+        coherence_analysis = (
+            analyze_coherence(
+                recent_messages
+            )
+        )
+
+    plan = (
+        ExpressionPlan()
+    )
+
+    plan.recent_messages = list(
+        recent_messages
+    )
 
     # =====================================================
     # BASE STYLE FROM TONE
     # =====================================================
 
     tone = (
-        tone or "relaxed"
+        tone
+        or "relaxed"
     ).lower()
 
     mood = (
-        mood or "normal"
+        mood
+        or "normal"
     ).lower()
 
     tone_map = {
@@ -470,11 +1003,17 @@ def build_expression_plan(
 
     if mood == "sleepy":
 
-        plan.preferred_energy = "low"
+        plan.preferred_energy = (
+            "low"
+        )
 
-        plan.sentence_shape = "short"
+        plan.sentence_shape = (
+            "short"
+        )
 
-        plan.emoji_level = "low"
+        plan.emoji_level = (
+            "low"
+        )
 
         plan.notes.append(
             "Etwas müder und knapper schreiben."
@@ -482,11 +1021,17 @@ def build_expression_plan(
 
     elif mood == "annoyed":
 
-        plan.preferred_energy = "low"
+        plan.preferred_energy = (
+            "low"
+        )
 
-        plan.sentence_shape = "short"
+        plan.sentence_shape = (
+            "short"
+        )
 
-        plan.emoji_level = "low"
+        plan.emoji_level = (
+            "low"
+        )
 
         plan.notes.append(
             "Trockener und weniger enthusiastisch."
@@ -494,25 +1039,53 @@ def build_expression_plan(
 
     elif mood == "chaotic":
 
-        plan.preferred_energy = "high"
+        # -------------------------------------------------
+        # WICHTIG v2.0
+        #
+        # "chaotic" ist ein interner Stilhinweis.
+        #
+        # NICHT:
+        #
+        # "Sag Chaos."
+        # -------------------------------------------------
 
-        plan.sentence_shape = "fragmented"
+        plan.preferred_energy = (
+            "high"
+        )
+
+        plan.sentence_shape = (
+            "fragmented"
+        )
 
         plan.notes.append(
-            "Etwas impulsiver, aber nicht random."
+            "Etwas impulsiver reagieren, "
+            "aber den internen Zustand nicht "
+            "wortwörtlich beschreiben."
+        )
+
+        plan.notes.append(
+            "Ein chaotischer Inner State ist "
+            "KEIN Grund, das Wort 'Chaos' "
+            "oder ähnliche Persona-Schlagwörter "
+            "zu benutzen."
         )
 
     elif mood == "soft":
 
-        plan.preferred_energy = "warm"
+        plan.preferred_energy = (
+            "warm"
+        )
 
         plan.notes.append(
-            "Etwas wärmer, ohne kitschig zu werden."
+            "Etwas wärmer, ohne kitschig "
+            "oder assistant-artig zu werden."
         )
 
     else:
 
-        plan.preferred_energy = "relaxed"
+        plan.preferred_energy = (
+            "relaxed"
+        )
 
     # =====================================================
     # RELATIONSHIP
@@ -525,25 +1098,40 @@ def build_expression_plan(
 
     if is_hanae:
 
-        plan.slang_level = "medium"
+        plan.slang_level = (
+            "medium"
+        )
 
         plan.notes.append(
             "Mit Hanae vertrauter und direkter."
         )
 
     elif any(
-        token in relationship_lower
-        for token in [
+
+        token
+        in relationship_lower
+
+        for token
+        in [
+
             "vertraut",
+
             "locker",
+
             "freund",
+
             "guter humor",
+
             "teasing funktioniert",
+
             "enge",
         ]
+
     ):
 
-        plan.slang_level = "medium"
+        plan.slang_level = (
+            "medium"
+        )
 
         plan.notes.append(
             "Vertrauter Umgang erlaubt."
@@ -551,7 +1139,9 @@ def build_expression_plan(
 
     else:
 
-        plan.slang_level = "light"
+        plan.slang_level = (
+            "light"
+        )
 
     # =====================================================
     # WORD OVERUSE
@@ -563,7 +1153,10 @@ def build_expression_plan(
         ]
     )
 
-    for word, count in (
+    for (
+        word,
+        count
+    ) in (
         word_counter.items()
     ):
 
@@ -583,7 +1176,10 @@ def build_expression_plan(
         ]
     )
 
-    for opener, count in (
+    for (
+        opener,
+        count
+    ) in (
         opener_counter.items()
     ):
 
@@ -603,7 +1199,10 @@ def build_expression_plan(
         ]
     )
 
-    for emoji, count in (
+    for (
+        emoji,
+        count
+    ) in (
         emoji_counter.items()
     ):
 
@@ -614,18 +1213,138 @@ def build_expression_plan(
             )
 
     # =====================================================
+    # COHERENCE MERGE
+    #
+    # Jetzt kommen die größeren
+    # channelweiten Muster dazu.
+    # =====================================================
+
+    plan.avoid_emojis = (
+        merge_unique(
+
+            plan.avoid_emojis,
+
+            coherence_analysis
+            .avoid_emojis
+        )
+    )
+
+    plan.avoid_openers = (
+        merge_unique(
+
+            plan.avoid_openers,
+
+            coherence_analysis
+            .avoid_openers
+        )
+    )
+
+    plan.avoid_concepts = list(
+        dict.fromkeys(
+
+            coherence_analysis
+            .avoid_concepts
+        )
+    )
+
+    plan.hard_avoid_concepts = list(
+        dict.fromkeys(
+
+            coherence_analysis
+            .hard_avoid_concepts
+        )
+    )
+
+    # =====================================================
+    # ASSISTANT PRESSURE
+    # =====================================================
+
+    plan.assistant_pattern_pressure = (
+
+        coherence_analysis
+        .assistant_pattern_count
+
+        >= 2
+    )
+
+    if (
+        plan.assistant_pattern_pressure
+    ):
+
+        plan.notes.append(
+            "Zuletzt gab es mehrfach "
+            "assistant-/supportartige Formulierungen. "
+            "Keine freundliche Standardstruktur, "
+            "keine künstliche Bestätigung und "
+            "kein Service-Abschluss."
+        )
+
+    # =====================================================
+    # FILLER PRESSURE
+    # =====================================================
+
+    plan.filler_pattern_pressure = (
+
+        coherence_analysis
+        .filler_pattern_count
+
+        >= 2
+    )
+
+    if (
+        plan.filler_pattern_pressure
+    ):
+
+        plan.notes.append(
+            "Zuletzt gab es zu viele "
+            "inhaltsschwache Füllantworten. "
+            "Nicht antworten wie ein Bot, "
+            "der zwanghaft jede Nachricht "
+            "kommentieren muss."
+        )
+
+    # =====================================================
+    # CONCEPT COOLDOWNS
+    # =====================================================
+
+    if plan.avoid_concepts:
+
+        plan.notes.append(
+            "Überbenutzte Motive nicht einfach "
+            "mit Synonymen wiederholen. "
+            "Auf einen anderen Aspekt "
+            "der Situation reagieren."
+        )
+
+    if (
+        "chaos"
+        in plan.avoid_concepts
+    ):
+
+        plan.notes.append(
+            "Das Chaos-Motiv ist aktuell "
+            "auf Cooldown. "
+            "Nicht 'Chaos', 'chaotisch', "
+            "'Chaos-Energie' oder ähnliche "
+            "Varianten verwenden."
+        )
+
+    # =====================================================
     # QUESTION OVERUSE
     # =====================================================
 
     if (
+
         analysis[
             "question_density"
         ]
+
         >= 0.60
     ):
 
         plan.notes.append(
-            "Zuletzt wurden zu viele Fragen gestellt."
+            "Zuletzt wurden zu viele Fragen gestellt. "
+            "Keine unnötige Gegenfrage anhängen."
         )
 
     # =====================================================
@@ -633,9 +1352,11 @@ def build_expression_plan(
     # =====================================================
 
     if (
+
         analysis[
             "exclamation_density"
         ]
+
         >= 0.60
     ):
 
@@ -651,17 +1372,40 @@ def build_expression_plan(
         emoji_counter.values()
     )
 
-    if total_recent_emojis >= 4:
+    if (
+        len(
+            plan.avoid_emojis
+        )
+        >= 3
+    ):
 
-        plan.emoji_level = "low"
+        plan.emoji_level = (
+            "low"
+        )
 
-    elif total_recent_emojis >= 2:
+    elif (
+        total_recent_emojis
+        >= 4
+    ):
 
-        plan.emoji_level = "light"
+        plan.emoji_level = (
+            "low"
+        )
+
+    elif (
+        total_recent_emojis
+        >= 2
+    ):
+
+        plan.emoji_level = (
+            "light"
+        )
 
     else:
 
-        plan.emoji_level = "natural"
+        plan.emoji_level = (
+            "natural"
+        )
 
     # =====================================================
     # CLEAN DUPLICATES
@@ -685,7 +1429,38 @@ def build_expression_plan(
         )
     )
 
+    plan.avoid_concepts = list(
+        dict.fromkeys(
+            plan.avoid_concepts
+        )
+    )
+
+    plan.hard_avoid_concepts = list(
+        dict.fromkeys(
+            plan.hard_avoid_concepts
+        )
+    )
+
     return plan
+
+
+# =========================================================
+# FORMAT LIST
+# =========================================================
+
+def _format_list(
+    values: list[str],
+    *,
+    separator: str = ", "
+) -> str:
+
+    if not values:
+
+        return "Keine."
+
+    return separator.join(
+        values
+    )
 
 
 # =========================================================
@@ -697,37 +1472,50 @@ def format_expression_plan(
 ) -> str:
 
     avoid_words = (
-        ", ".join(
+        _format_list(
             plan.avoid_words
         )
-        if plan.avoid_words
-        else "Keine."
     )
 
     avoid_openers = (
-        ", ".join(
+        _format_list(
             plan.avoid_openers
         )
-        if plan.avoid_openers
-        else "Keine."
     )
 
     avoid_emojis = (
-        " ".join(
-            plan.avoid_emojis
+        _format_list(
+            plan.avoid_emojis,
+            separator=" "
         )
-        if plan.avoid_emojis
-        else "Keine."
+    )
+
+    avoid_concepts = (
+        _format_list(
+            plan.avoid_concepts
+        )
+    )
+
+    hard_avoid_concepts = (
+        _format_list(
+            plan.hard_avoid_concepts
+        )
     )
 
     notes = (
+
         "\n".join(
+
             f"- {note}"
+
             for note
             in plan.notes
         )
+
         if plan.notes
-        else "Keine besonderen Hinweise."
+
+        else
+        "Keine besonderen Hinweise."
     )
 
     return f"""
@@ -761,13 +1549,115 @@ Avoid openers:
 Avoid emojis:
 {avoid_emojis}
 
+Avoid concepts:
+{avoid_concepts}
+
+HARD avoid concepts:
+{hard_avoid_concepts}
+
+Assistant pattern pressure:
+{plan.assistant_pattern_pressure}
+
+Filler pattern pressure:
+{plan.filler_pattern_pressure}
+
 Notes:
 {notes}
+
+WICHTIG:
+
+Ein interner Stil oder Inner State
+ist keine Aufforderung,
+dessen Namen in die Nachricht zu schreiben.
+
+Persönlichkeit entsteht aus:
+- Reaktion
+- Haltung
+- Timing
+- Wortwahl
+
+Nicht aus Persona-Schlagwörtern.
 """.strip()
 
 
 # =========================================================
-# HARD EXPRESSION CHECK
+# HIGH CONFIDENCE ASSISTANT DETECTION
+# =========================================================
+
+def contains_high_confidence_assistant_structure(
+    text: str
+) -> bool:
+
+    normalized = (
+        normalize_text(
+            text
+        )
+    )
+
+    if not normalized:
+
+        return False
+
+    return any(
+
+        pattern.search(
+            normalized
+        )
+
+        for pattern
+        in HIGH_CONFIDENCE_ASSISTANT_PATTERNS
+    )
+
+
+# =========================================================
+# EMOJI COUNT IN ANSWER
+# =========================================================
+
+def count_answer_emojis(
+    answer: str
+) -> int:
+
+    return sum(
+
+        answer.count(
+            emoji
+        )
+
+        for emoji
+        in TRACKED_EMOJIS
+    )
+
+
+# =========================================================
+# EMOJI BUDGET
+# =========================================================
+
+def get_emoji_budget(
+    plan: ExpressionPlan
+) -> int:
+
+    level = (
+        plan.emoji_level
+        or "light"
+    ).lower()
+
+    if level == "low":
+
+        return 0
+
+    if level == "light":
+
+        return 1
+
+    return 2
+
+
+# =========================================================
+# EXPRESSION VIOLATION CHECK
+#
+# Bestehender Funktionsname bleibt erhalten.
+#
+# bot.py 2.10 kann ihn weiter benutzen.
 # =========================================================
 
 def expression_violation_reasons(
@@ -777,11 +1667,21 @@ def expression_violation_reasons(
 
     reasons = []
 
+    if not answer:
+
+        return [
+            "empty_answer"
+        ]
+
     normalized = (
         normalize_text(
             answer
         )
     )
+
+    # =====================================================
+    # OPENER
+    # =====================================================
 
     opener = (
         detect_opener(
@@ -800,6 +1700,10 @@ def expression_violation_reasons(
             f"overused_opener:{opener}"
         )
 
+    # =====================================================
+    # WORDS
+    # =====================================================
+
     words = (
         extract_words(
             answer
@@ -807,28 +1711,800 @@ def expression_violation_reasons(
     )
 
     lowered_words = {
+
         word.lower()
+
         for word
         in words
     }
 
-    for word in plan.avoid_words:
+    for word in (
+        plan.avoid_words
+    ):
 
-        if word in lowered_words:
+        if (
+            word
+            in lowered_words
+        ):
 
             reasons.append(
                 f"overused_word:{word}"
             )
 
-    for emoji in plan.avoid_emojis:
+    # =====================================================
+    # EMOJIS
+    # =====================================================
 
-        if emoji in answer:
+    for emoji in (
+        plan.avoid_emojis
+    ):
+
+        if emoji in (
+            answer
+        ):
 
             reasons.append(
                 f"overused_emoji:{emoji}"
             )
 
-    return reasons
+    # =====================================================
+    # EMOJI BUDGET
+    # =====================================================
+
+    emoji_count = (
+        count_answer_emojis(
+            answer
+        )
+    )
+
+    emoji_budget = (
+        get_emoji_budget(
+            plan
+        )
+    )
+
+    if (
+        emoji_count
+        >
+        emoji_budget
+    ):
+
+        reasons.append(
+            "emoji_budget_exceeded:"
+            f"{emoji_count}>{emoji_budget}"
+        )
+
+    # =====================================================
+    # CONCEPTS
+    # =====================================================
+
+    answer_concepts = (
+        detect_concepts(
+            answer
+        )
+    )
+
+    for concept in (
+        answer_concepts
+    ):
+
+        if (
+            concept
+            in plan.hard_avoid_concepts
+        ):
+
+            reasons.append(
+                "hard_concept_cooldown:"
+                f"{concept}"
+            )
+
+        elif (
+            concept
+            in plan.avoid_concepts
+        ):
+
+            reasons.append(
+                "concept_cooldown:"
+                f"{concept}"
+            )
+
+    # =====================================================
+    # ASSISTANT STRUCTURE
+    #
+    # Nicht jedes harmlose:
+    #
+    # "ich freu mich"
+    #
+    # wird sofort blockiert.
+    #
+    # Block wenn:
+    #
+    # - sehr klares Assistant-Muster
+    #
+    # ODER
+    #
+    # - der Channel bereits mehrfach
+    #   in dieses Muster gefallen ist.
+    # =====================================================
+
+    assistant_patterns = (
+        detect_assistant_patterns(
+            answer
+        )
+    )
+
+    if assistant_patterns:
+
+        if (
+
+            contains_high_confidence_assistant_structure(
+                answer
+            )
+
+            or
+
+            plan.assistant_pattern_pressure
+        ):
+
+            reasons.append(
+                "assistant_structure"
+            )
+
+    # =====================================================
+    # GENERIC FILLER
+    # =====================================================
+
+    filler_patterns = (
+        detect_filler_patterns(
+            answer
+        )
+    )
+
+    if filler_patterns:
+
+        reasons.append(
+            "generic_filler"
+        )
+
+    # =====================================================
+    # COHERENCE / SEMANTIC REPETITION
+    #
+    # Hier benutzen wir dieselbe History,
+    # die im Plan steckt.
+    # =====================================================
+
+    if plan.recent_messages:
+
+        coherence = (
+            analyze_coherence(
+
+                plan.recent_messages,
+
+                candidate=answer
+            )
+        )
+
+        token_count = (
+            content_token_count(
+                answer
+            )
+        )
+
+        for reason in (
+            coherence
+            .candidate_violations
+        ):
+
+            # ---------------------------------------------
+            # Concepts / Emojis / Openers
+            # wurden oben bereits sauber geprüft.
+            # ---------------------------------------------
+
+            if reason.startswith(
+                "concept_cooldown:"
+            ):
+
+                continue
+
+            if reason.startswith(
+                "hard_concept_cooldown:"
+            ):
+
+                continue
+
+            if reason.startswith(
+                "emoji_cooldown:"
+            ):
+
+                continue
+
+            if reason.startswith(
+                "opener_cooldown:"
+            ):
+
+                continue
+
+            # ---------------------------------------------
+            # Assistant Structure
+            # ---------------------------------------------
+
+            if (
+                reason
+                ==
+                "assistant_structure"
+            ):
+
+                continue
+
+            # ---------------------------------------------
+            # Generic Filler
+            # ---------------------------------------------
+
+            if (
+                reason
+                ==
+                "generic_filler"
+            ):
+
+                continue
+
+            # ---------------------------------------------
+            # Semantic Repetition
+            #
+            # Sehr kurze Discord-Reaktionen
+            # dürfen natürlicherweise ähnlich sein.
+            # ---------------------------------------------
+
+            if (
+                reason
+                ==
+                "semantic_repetition"
+            ):
+
+                if (
+                    token_count
+                    >= 4
+                ):
+
+                    reasons.append(
+                        reason
+                    )
+
+                continue
+
+            if (
+                reason
+                ==
+                "strong_semantic_repetition"
+            ):
+
+                if (
+                    token_count
+                    >= 3
+
+                    and
+
+                    len(
+                        normalized
+                    )
+                    >= 12
+                ):
+
+                    reasons.append(
+                        reason
+                    )
+
+                continue
+
+            reasons.append(
+                reason
+            )
+
+    return list(
+        dict.fromkeys(
+            reasons
+        )
+    )
+
+
+# =========================================================
+# REMOVE AVOIDED EMOJIS
+#
+# Deterministische Reparatur ist hier sicher:
+#
+# Emoji entfernen verändert normalerweise
+# nicht den Fakt/Inhalt der Aussage.
+# =========================================================
+
+def remove_avoided_emojis(
+    answer: str,
+    plan: ExpressionPlan
+) -> tuple[
+    str,
+    list[str]
+]:
+
+    result = (
+        answer
+    )
+
+    removed = []
+
+    for emoji in (
+        plan.avoid_emojis
+    ):
+
+        if emoji not in (
+            result
+        ):
+
+            continue
+
+        removed.append(
+            emoji
+        )
+
+        result = (
+            result.replace(
+                emoji,
+                ""
+            )
+        )
+
+    result = re.sub(
+        r"[ \t]{2,}",
+        " ",
+        result
+    )
+
+    result = re.sub(
+        r"\s+([,.!?;:])",
+        r"\1",
+        result
+    )
+
+    return (
+        result.strip(),
+        removed
+    )
+
+
+# =========================================================
+# ENFORCE EMOJI BUDGET
+#
+# Behält die ersten erlaubten Emojis
+# und entfernt zusätzliche.
+# =========================================================
+
+def enforce_emoji_budget(
+    answer: str,
+    plan: ExpressionPlan
+) -> tuple[
+    str,
+    list[str]
+]:
+
+    budget = (
+        get_emoji_budget(
+            plan
+        )
+    )
+
+    if (
+        count_answer_emojis(
+            answer
+        )
+        <=
+        budget
+    ):
+
+        return (
+            answer,
+            []
+        )
+
+    emoji_pattern = re.compile(
+
+        "|".join(
+
+            re.escape(
+                emoji
+            )
+
+            for emoji
+            in sorted(
+
+                TRACKED_EMOJIS,
+
+                key=len,
+
+                reverse=True
+            )
+        )
+    )
+
+    seen = (
+        0
+    )
+
+    removed = []
+
+    def replacement(
+        match
+    ):
+
+        nonlocal seen
+
+        emoji = (
+            match.group(0)
+        )
+
+        if seen < (
+            budget
+        ):
+
+            seen += 1
+
+            return emoji
+
+        removed.append(
+            emoji
+        )
+
+        return ""
+
+    result = (
+        emoji_pattern.sub(
+            replacement,
+            answer
+        )
+    )
+
+    result = re.sub(
+        r"[ \t]{2,}",
+        " ",
+        result
+    )
+
+    result = re.sub(
+        r"\s+([,.!?;:])",
+        r"\1",
+        result
+    )
+
+    return (
+        result.strip(),
+        removed
+    )
+
+
+# =========================================================
+# REMOVE AVOIDED OPENER
+#
+# Beispiel:
+#
+# hahaha, das...
+#
+# ->
+#
+# das...
+#
+# Das ist meistens eine sichere,
+# rein stilistische Reparatur.
+# =========================================================
+
+def remove_avoided_opener(
+    answer: str,
+    plan: ExpressionPlan
+) -> tuple[
+    str,
+    Optional[str]
+]:
+
+    opener = (
+        detect_opener(
+            answer
+        )
+    )
+
+    if (
+        not opener
+        or
+        opener
+        not in plan.avoid_openers
+    ):
+
+        return (
+            answer,
+            None
+        )
+
+    pattern = re.compile(
+
+        r"^\s*"
+
+        +
+
+        re.escape(
+            opener
+        )
+
+        +
+
+        r"\s*[,!.:\-–—]*\s*",
+
+        flags=re.IGNORECASE
+    )
+
+    cleaned = (
+        pattern.sub(
+            "",
+            answer,
+            count=1
+        )
+        .strip()
+    )
+
+    return (
+        cleaned,
+        opener
+    )
+
+
+# =========================================================
+# CLEAN OUTPUT SPACING
+# =========================================================
+
+def clean_output_spacing(
+    answer: str
+) -> str:
+
+    result = (
+        answer
+        or ""
+    )
+
+    result = re.sub(
+        r"[ \t]{2,}",
+        " ",
+        result
+    )
+
+    result = re.sub(
+        r"\s+([,.!?;:])",
+        r"\1",
+        result
+    )
+
+    result = re.sub(
+        r"([!?.,])\1{2,}",
+        r"\1\1",
+        result
+    )
+
+    return (
+        result.strip()
+    )
+
+
+# =========================================================
+# FINAL EXPRESSION GUARD
+#
+# Dieser Layer wird später
+# direkt VOR Discord send() benutzt.
+#
+# Er macht nur sichere Reparaturen:
+#
+# - überbenutzte Emojis entfernen
+# - Emoji-Budget durchsetzen
+# - überbenutzten Opener entfernen
+#
+# Concepts / Bedeutungsprobleme
+# werden NICHT mechanisch aus Sätzen gelöscht.
+#
+# Stattdessen:
+#
+# rewrite_required=True
+# send_allowed=False
+#
+# Dann muss Writer/Qwen neu formulieren.
+# =========================================================
+
+def apply_expression_final_guard(
+    answer: str,
+    plan: ExpressionPlan
+) -> ExpressionGuardResult:
+
+    original = (
+        answer
+        or ""
+    )
+
+    violations_before = (
+        expression_violation_reasons(
+            original,
+            plan
+        )
+    )
+
+    cleaned = (
+        original
+    )
+
+    removed_emojis = []
+
+    removed_opener = None
+
+    # =====================================================
+    # SAFE REPAIR 1:
+    # AVOIDED OPENER
+    # =====================================================
+
+    (
+        cleaned,
+        removed_opener
+    ) = (
+        remove_avoided_opener(
+            cleaned,
+            plan
+        )
+    )
+
+    # =====================================================
+    # SAFE REPAIR 2:
+    # AVOIDED EMOJIS
+    # =====================================================
+
+    (
+        cleaned,
+        removed_first
+    ) = (
+        remove_avoided_emojis(
+            cleaned,
+            plan
+        )
+    )
+
+    removed_emojis.extend(
+        removed_first
+    )
+
+    # =====================================================
+    # SAFE REPAIR 3:
+    # EMOJI BUDGET
+    # =====================================================
+
+    (
+        cleaned,
+        removed_budget
+    ) = (
+        enforce_emoji_budget(
+            cleaned,
+            plan
+        )
+    )
+
+    removed_emojis.extend(
+        removed_budget
+    )
+
+    cleaned = (
+        clean_output_spacing(
+            cleaned
+        )
+    )
+
+    # =====================================================
+    # RE-CHECK
+    # =====================================================
+
+    violations_after = (
+        expression_violation_reasons(
+            cleaned,
+            plan
+        )
+    )
+
+    # =====================================================
+    # RESULT
+    #
+    # Wenn nach sicheren Reparaturen
+    # noch ein Verstoß existiert,
+    # wird die Antwort später NICHT gesendet,
+    # sondern neu formuliert.
+    # =====================================================
+
+    rewrite_required = bool(
+        violations_after
+    )
+
+    send_allowed = (
+
+        bool(
+            cleaned
+        )
+
+        and
+
+        not rewrite_required
+    )
+
+    changed = (
+        cleaned
+        !=
+        original
+    )
+
+    return (
+        ExpressionGuardResult(
+
+            original=original,
+
+            cleaned=cleaned,
+
+            violations_before=(
+                violations_before
+            ),
+
+            violations_after=(
+                violations_after
+            ),
+
+            removed_emojis=list(
+                dict.fromkeys(
+                    removed_emojis
+                )
+            ),
+
+            removed_opener=(
+                removed_opener
+            ),
+
+            changed=(
+                changed
+            ),
+
+            rewrite_required=(
+                rewrite_required
+            ),
+
+            send_allowed=(
+                send_allowed
+            )
+        )
+    )
+
+
+# =========================================================
+# FINAL GUARD FORMAT
+# =========================================================
+
+def format_expression_guard_debug(
+    result: ExpressionGuardResult
+) -> str:
+
+    return (
+
+        "[EXPRESSION FINAL] "
+
+        f"changed={result.changed} "
+
+        f"send_allowed={result.send_allowed} "
+
+        f"rewrite={result.rewrite_required} "
+
+        f"removed_opener="
+        f"{result.removed_opener!r} "
+
+        f"removed_emojis="
+        f"{result.removed_emojis} "
+
+        f"before="
+        f"{result.violations_before} "
+
+        f"after="
+        f"{result.violations_after}"
+    )
 
 
 # =========================================================
@@ -840,13 +2516,339 @@ def format_expression_debug(
 ) -> str:
 
     return (
+
         "[EXPRESSION] "
+
         f"v={EXPRESSION_VERSION} "
+
         f"style={plan.style} "
+
         f"slang={plan.slang_level} "
+
         f"emoji={plan.emoji_level} "
+
         f"shape={plan.sentence_shape} "
-        f"avoid_words={plan.avoid_words} "
-        f"avoid_openers={plan.avoid_openers} "
-        f"avoid_emojis={plan.avoid_emojis}"
+
+        f"avoid_words="
+        f"{plan.avoid_words} "
+
+        f"avoid_openers="
+        f"{plan.avoid_openers} "
+
+        f"avoid_emojis="
+        f"{plan.avoid_emojis} "
+
+        f"avoid_concepts="
+        f"{plan.avoid_concepts} "
+
+        f"hard_concepts="
+        f"{plan.hard_avoid_concepts} "
+
+        f"assistant_pressure="
+        f"{plan.assistant_pattern_pressure} "
+
+        f"filler_pressure="
+        f"{plan.filler_pattern_pressure}"
     )
+
+
+# =========================================================
+# SELF TEST
+#
+# python expression.py
+# =========================================================
+
+def _run_self_test():
+
+    recent = [
+
+        (
+            "hahaha, bisschen Chaos "
+            "muss sein 😈"
+        ),
+
+        (
+            "hahaha, ohne Chaos "
+            "wird es langweilig 😂"
+        ),
+
+        (
+            "das wird richtig wild 😏"
+        ),
+
+        (
+            "Chaos pur, "
+            "was soll schon passieren 😈"
+        ),
+
+        (
+            "das klingt spannend! 😂"
+        ),
+
+        (
+            "ja, Chaos und Spaß "
+            "ist doch mein Ding 😏"
+        ),
+    ]
+
+    plan = (
+        build_expression_plan(
+
+            recent_messages=recent,
+
+            tone="playful",
+
+            mood="chaotic",
+
+            relationship_text="",
+
+            is_hanae=False
+        )
+    )
+
+    bad_candidate = (
+        "hahaha, das klingt spannend! "
+        "ein bisschen Chaos muss sein 😂"
+    )
+
+    good_candidate = (
+        "ne. error kann seinen größenwahn "
+        "ruhig selber verwalten."
+    )
+
+    bad_reasons = (
+        expression_violation_reasons(
+            bad_candidate,
+            plan
+        )
+    )
+
+    good_reasons = (
+        expression_violation_reasons(
+            good_candidate,
+            plan
+        )
+    )
+
+    bad_guard = (
+        apply_expression_final_guard(
+            bad_candidate,
+            plan
+        )
+    )
+
+    good_guard = (
+        apply_expression_final_guard(
+            good_candidate,
+            plan
+        )
+    )
+
+    tests = [
+
+        (
+            "chaos concept cooldown",
+            "chaos"
+            in plan.avoid_concepts
+        ),
+
+        (
+            "laugh emoji cooldown",
+            "😂"
+            in plan.avoid_emojis
+        ),
+
+        (
+            "hahaha opener cooldown",
+            "hahaha"
+            in plan.avoid_openers
+        ),
+
+        (
+            "bad candidate detects chaos",
+            any(
+
+                "concept_cooldown:chaos"
+                in reason
+
+                or
+
+                "hard_concept_cooldown:chaos"
+                in reason
+
+                for reason
+                in bad_reasons
+            )
+        ),
+
+        (
+            "bad candidate detects emoji",
+            any(
+
+                reason.startswith(
+                    "overused_emoji:😂"
+                )
+
+                for reason
+                in bad_reasons
+            )
+        ),
+
+        (
+            "bad candidate detects assistant",
+            "assistant_structure"
+            in bad_reasons
+        ),
+
+        (
+            "final guard removes opener",
+            bad_guard.removed_opener
+            == "hahaha"
+        ),
+
+        (
+            "final guard removes emoji",
+            "😂"
+            in bad_guard.removed_emojis
+        ),
+
+        (
+            "bad candidate requires rewrite",
+            bad_guard.rewrite_required
+            is True
+        ),
+
+        (
+            "bad candidate blocked",
+            bad_guard.send_allowed
+            is False
+        ),
+
+        (
+            "good candidate no violations",
+            not good_reasons
+        ),
+
+        (
+            "good candidate allowed",
+            good_guard.send_allowed
+            is True
+        ),
+    ]
+
+    print("")
+
+    print(
+        "============================================"
+    )
+
+    print(
+        f"EXPRESSION v{EXPRESSION_VERSION} SELF TEST"
+    )
+
+    print(
+        "============================================"
+    )
+
+    print("")
+
+    print(
+        format_expression_debug(
+            plan
+        )
+    )
+
+    print("")
+
+    print(
+        "BAD CANDIDATE:"
+    )
+
+    print(
+        bad_candidate
+    )
+
+    print(
+        bad_reasons
+    )
+
+    print(
+        format_expression_guard_debug(
+            bad_guard
+        )
+    )
+
+    print("")
+
+    print(
+        "GOOD CANDIDATE:"
+    )
+
+    print(
+        good_candidate
+    )
+
+    print(
+        good_reasons
+    )
+
+    print(
+        format_expression_guard_debug(
+            good_guard
+        )
+    )
+
+    print("")
+
+    passed = (
+        0
+    )
+
+    for (
+        name,
+        success
+    ) in tests:
+
+        if success:
+
+            status = (
+                "PASS"
+            )
+
+            passed += 1
+
+        else:
+
+            status = (
+                "FAIL"
+            )
+
+        print(
+            f"[{status}] "
+            f"{name}"
+        )
+
+    print("")
+
+    print(
+        "============================================"
+    )
+
+    print(
+        f"RESULT: "
+        f"{passed}/"
+        f"{len(tests)} passed"
+    )
+
+    print(
+        "============================================"
+    )
+
+
+# =========================================================
+# ENTRYPOINT
+# =========================================================
+
+if __name__ == "__main__":
+
+    _run_self_test()
