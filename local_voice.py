@@ -6,6 +6,7 @@ import time
 import urllib.request
 
 from dataclasses import dataclass, field
+from difflib import SequenceMatcher
 from typing import Optional
 
 from dotenv import load_dotenv
@@ -26,7 +27,7 @@ from coherence import (
 # VERSION
 # =========================================================
 
-LOCAL_VOICE_VERSION = "1.2.5"
+LOCAL_VOICE_VERSION = "1.2.6"
 
 
 # =========================================================
@@ -228,6 +229,8 @@ FORCED_BLOCKING_EXACT = {
     "trivial_collapse",
     "semantic_anchor_missing",
     "unsupported_habit_claim",
+    "user_echo_takeover",
+    "speaker_perspective_shift",
 }
 
 FORCED_BLOCKING_PREFIXES = (
@@ -271,23 +274,7 @@ TRIVIAL_COLLAPSE_RESPONSES = {
 
 
 # =========================================================
-# CONTENT / SEMANTIC ANCHORS
-#
-# Der Voice Editor darf Formulierung ändern,
-# aber nicht den konkreten Kern der Aussage verlieren.
-#
-# Beispiel:
-#
-# Draft:
-# "Ich bin gespannt, was ihr testen werdet."
-#
-# Kern:
-# testen
-#
-# Schlechter Rewrite:
-# "bisschen wild, wie immer"
-#
-# -> verliert den Kern.
+# CONTENT STOPWORDS
 # =========================================================
 
 CONTENT_STOPWORDS = {
@@ -315,8 +302,39 @@ CONTENT_STOPWORDS = {
     "sind",
     "war",
     "waren",
+    "wäre",
+    "waere",
+    "sein",
+    "bin",
+    "bist",
+    "seid",
     "wird",
     "werden",
+    "werde",
+    "werdet",
+    "wirst",
+    "würde",
+    "würden",
+    "würdest",
+    "wuerde",
+    "wuerden",
+    "wuerdest",
+    "kann",
+    "kannst",
+    "können",
+    "könnt",
+    "koennen",
+    "koennt",
+    "soll",
+    "sollst",
+    "sollen",
+    "sollt",
+    "muss",
+    "musst",
+    "müssen",
+    "müsst",
+    "muessen",
+    "muesst",
     "ja",
     "ne",
     "nee",
@@ -386,11 +404,7 @@ GENERIC_STYLE_WORDS = {
 
 
 # =========================================================
-# ASSISTANT BOILERPLATE REMOVAL
-#
-# Diese Teile liefern keine eigentliche
-# semantische Aussage, die der Voice Editor
-# zwingend erhalten muss.
+# ASSISTANT BOILERPLATE
 # =========================================================
 
 ASSISTANT_BOILERPLATE_PATTERNS = [
@@ -444,14 +458,6 @@ ASSISTANT_BOILERPLATE_PATTERNS = [
 
 # =========================================================
 # UNSUPPORTED HABIT CLAIMS
-#
-# Voice darf nicht plötzlich behaupten:
-#
-# "wie immer"
-# "schon wieder"
-# "typisch"
-#
-# wenn der Draft das gar nicht gesagt hat.
 # =========================================================
 
 HABIT_CLAIM_PATTERNS = [
@@ -501,6 +507,34 @@ HABIT_CLAIM_PATTERNS = [
         flags=re.IGNORECASE
     ),
 ]
+
+
+# =========================================================
+# SPEAKER PERSPECTIVE
+# =========================================================
+
+FIRST_PERSON_PLURAL_MARKERS = {
+    "wir",
+    "uns",
+    "unser",
+    "unsere",
+    "unserer",
+    "unserem",
+    "unseren",
+    "unseres",
+}
+
+FIRST_PERSON_SINGULAR_MARKERS = {
+    "ich",
+    "mich",
+    "mir",
+    "mein",
+    "meine",
+    "meiner",
+    "meinem",
+    "meinen",
+    "meines",
+}
 
 
 # =========================================================
@@ -702,7 +736,7 @@ def clean_response_text(
 
 
 # =========================================================
-# TEXT NORMALIZATION
+# NORMALIZATION
 # =========================================================
 
 def normalize_simple_text(
@@ -741,8 +775,308 @@ def extract_words(
     )
 
 
+def token_set(
+    text
+):
+
+    return set(
+        extract_words(
+            text
+        )
+    )
+
+
 # =========================================================
-# REMOVE ASSISTANT BOILERPLATE
+# SIMILARITY
+# =========================================================
+
+def text_similarity(
+    left,
+    right
+):
+
+    left = normalize_simple_text(
+        left
+    )
+
+    right = normalize_simple_text(
+        right
+    )
+
+    if not left or not right:
+        return 0.0
+
+    return SequenceMatcher(
+        None,
+        left,
+        right
+    ).ratio()
+
+
+def token_jaccard(
+    left,
+    right
+):
+
+    left_tokens = token_set(
+        left
+    )
+
+    right_tokens = token_set(
+        right
+    )
+
+    if (
+        not left_tokens
+        or
+        not right_tokens
+    ):
+        return 0.0
+
+    intersection = len(
+        left_tokens
+        &
+        right_tokens
+    )
+
+    union = len(
+        left_tokens
+        |
+        right_tokens
+    )
+
+    if not union:
+        return 0.0
+
+    return (
+        intersection
+        /
+        union
+    )
+
+
+# =========================================================
+# USER ECHO TAKEOVER
+#
+# Evilnae darf nicht einfach
+# die User-Nachricht kopieren und so tun,
+# als wäre es ihre eigene Aussage.
+# =========================================================
+
+def is_user_echo_takeover(
+    user_message,
+    candidate
+):
+
+    user_message = (
+        user_message
+        or ""
+    ).strip()
+
+    candidate = (
+        candidate
+        or ""
+    ).strip()
+
+    if (
+        not user_message
+        or
+        not candidate
+    ):
+        return False
+
+    user_words = (
+        extract_words(
+            user_message
+        )
+    )
+
+    candidate_words = (
+        extract_words(
+            candidate
+        )
+    )
+
+    if len(candidate_words) < 3:
+        return False
+
+    normalized_user = (
+        normalize_simple_text(
+            user_message
+        )
+    )
+
+    normalized_candidate = (
+        normalize_simple_text(
+            candidate
+        )
+    )
+
+    # -----------------------------------------------------
+    # Exakte Kopie
+    # -----------------------------------------------------
+
+    if (
+        normalized_user
+        ==
+        normalized_candidate
+    ):
+        return True
+
+    sequence_score = (
+        text_similarity(
+            user_message,
+            candidate
+        )
+    )
+
+    jaccard_score = (
+        token_jaccard(
+            user_message,
+            candidate
+        )
+    )
+
+    # -----------------------------------------------------
+    # Fast komplette Kopie.
+    # -----------------------------------------------------
+
+    if (
+        sequence_score >= 0.88
+        and
+        len(candidate_words) >= 4
+    ):
+        return True
+
+    if (
+        jaccard_score >= 0.85
+        and
+        len(candidate_words) >= 4
+    ):
+        return True
+
+    return False
+
+
+# =========================================================
+# SPEAKER PERSPECTIVE SHIFT
+#
+# Beispiel:
+#
+# USER:
+# wir testen dich später
+#
+# EVILNAE-DRAFT:
+# ihr könnt mich später testen
+#
+# FALSCHER REWRITE:
+# wir testen dich später
+#
+# Evilnae hat dann die User-Rolle übernommen.
+# =========================================================
+
+def has_speaker_perspective_shift(
+    user_message,
+    draft,
+    candidate
+):
+
+    user_words = token_set(
+        user_message
+    )
+
+    draft_words = token_set(
+        draft
+    )
+
+    candidate_words = token_set(
+        candidate
+    )
+
+    # -----------------------------------------------------
+    # User sagt "wir".
+    #
+    # Draft sagt NICHT "wir".
+    #
+    # Rewrite übernimmt plötzlich "wir".
+    #
+    # Sehr starkes Indiz,
+    # dass Qwen die User-Perspektive kopiert hat.
+    # -----------------------------------------------------
+
+    user_plural = (
+        user_words
+        &
+        FIRST_PERSON_PLURAL_MARKERS
+    )
+
+    draft_plural = (
+        draft_words
+        &
+        FIRST_PERSON_PLURAL_MARKERS
+    )
+
+    candidate_plural = (
+        candidate_words
+        &
+        FIRST_PERSON_PLURAL_MARKERS
+    )
+
+    if (
+        user_plural
+        and
+        not draft_plural
+        and
+        candidate_plural
+    ):
+        return True
+
+    # -----------------------------------------------------
+    # Dasselbe vorsichtiger für "ich".
+    #
+    # Nur blocken,
+    # wenn der Candidate gleichzeitig
+    # sehr stark dem User-Text ähnelt.
+    # -----------------------------------------------------
+
+    user_singular = (
+        user_words
+        &
+        FIRST_PERSON_SINGULAR_MARKERS
+    )
+
+    draft_singular = (
+        draft_words
+        &
+        FIRST_PERSON_SINGULAR_MARKERS
+    )
+
+    candidate_singular = (
+        candidate_words
+        &
+        FIRST_PERSON_SINGULAR_MARKERS
+    )
+
+    if (
+        user_singular
+        and
+        not draft_singular
+        and
+        candidate_singular
+        and
+        text_similarity(
+            user_message,
+            candidate
+        )
+        >= 0.76
+    ):
+        return True
+
+    return False
+
+
+# =========================================================
+# STRIP ASSISTANT BOILERPLATE
 # =========================================================
 
 def strip_assistant_boilerplate(
@@ -774,9 +1108,6 @@ def strip_assistant_boilerplate(
 
 # =========================================================
 # ANCHOR NORMALIZATION
-#
-# Leichtes Stemming + wichtige
-# Synonymgruppen.
 # =========================================================
 
 def normalize_anchor_word(
@@ -812,9 +1143,6 @@ def normalize_anchor_word(
             "probier",
 
         "ausprobiert":
-            "probier",
-
-        "ausprobiertet":
             "probier",
 
         "probieren":
@@ -897,12 +1225,9 @@ def normalize_anchor_word(
     }
 
     if word in replacements:
-        return replacements[word]
-
-    # -----------------------------------------------------
-    # Sehr vorsichtiges deutsches Suffix-Stemming.
-    # Nur längere Wörter.
-    # -----------------------------------------------------
+        return replacements[
+            word
+        ]
 
     if len(word) >= 7:
 
@@ -918,9 +1243,14 @@ def normalize_anchor_word(
         ):
 
             if (
-                word.endswith(suffix)
+                word.endswith(
+                    suffix
+                )
                 and
-                len(word) - len(suffix) >= 4
+                len(word)
+                -
+                len(suffix)
+                >= 4
             ):
 
                 return word[
@@ -939,7 +1269,7 @@ def normalize_anchor_word(
 
 
 # =========================================================
-# EXTRACT SEMANTIC ANCHORS
+# SEMANTIC ANCHORS
 # =========================================================
 
 def extract_semantic_anchors(
@@ -994,10 +1324,6 @@ def extract_semantic_anchors(
     )
 
 
-# =========================================================
-# SEMANTIC ANCHOR PRESERVATION
-# =========================================================
-
 def semantic_anchor_preserved(
     draft,
     candidate
@@ -1008,12 +1334,6 @@ def semantic_anchor_preserved(
             draft
         )
     )
-
-    # -----------------------------------------------------
-    # Kein konkreter Kern erkennbar.
-    #
-    # Dann darf dieser Guard nichts erzwingen.
-    # -----------------------------------------------------
 
     if not draft_anchors:
         return True
@@ -1027,7 +1347,8 @@ def semantic_anchor_preserved(
     return any(
         anchor in candidate_anchors
 
-        for anchor in draft_anchors
+        for anchor
+        in draft_anchors
     )
 
 
@@ -1420,7 +1741,9 @@ async def warm_local_voice():
         }
     }
 
-    start = time.perf_counter()
+    start = (
+        time.perf_counter()
+    )
 
     try:
 
@@ -1585,7 +1908,9 @@ def extract_question_segments(
                 segment
             )
 
-        start = match.end()
+        start = (
+            match.end()
+        )
 
     return segments
 
@@ -1805,6 +2130,16 @@ def coherence_violation_score(
         ):
             score += 4
 
+        elif reason == (
+            "user_echo_takeover"
+        ):
+            score += 5
+
+        elif reason == (
+            "speaker_perspective_shift"
+        ):
+            score += 5
+
         else:
             score += 1
 
@@ -1818,6 +2153,7 @@ def coherence_violation_score(
 def analyze_voice_candidate(
     *,
     history,
+    user_message,
     draft,
     candidate
 ):
@@ -1836,7 +2172,6 @@ def analyze_voice_candidate(
         draft,
         candidate
     ):
-
         violations.append(
             "trivial_collapse"
         )
@@ -1845,7 +2180,6 @@ def analyze_voice_candidate(
         draft,
         candidate
     ):
-
         violations.append(
             "semantic_anchor_missing"
         )
@@ -1854,9 +2188,25 @@ def analyze_voice_candidate(
         draft,
         candidate
     ):
-
         violations.append(
             "unsupported_habit_claim"
+        )
+
+    if is_user_echo_takeover(
+        user_message,
+        candidate
+    ):
+        violations.append(
+            "user_echo_takeover"
+        )
+
+    if has_speaker_perspective_shift(
+        user_message,
+        draft,
+        candidate
+    ):
+        violations.append(
+            "speaker_perspective_shift"
         )
 
     violations = list(
@@ -1978,7 +2328,7 @@ def forced_repair_required(
 
 
 # =========================================================
-# VOICE SYSTEM PROMPT
+# VOICE SYSTEM
 # =========================================================
 
 VOICE_SYSTEM_PROMPT = """
@@ -1989,6 +2339,29 @@ Du bist NICHT ihr Brain.
 Der Inhalt wurde bereits entschieden.
 Du änderst nur die Formulierung.
 
+WICHTIG:
+Die finale Antwort wird von EVILNAE gesprochen.
+
+Die USER-Nachricht ist nur Kontext.
+Du darfst sie nicht übernehmen,
+als wäre Evilnae plötzlich der User.
+
+Beispiel:
+
+USER:
+wir testen dich später
+
+FALSCH:
+wir testen dich später
+
+RICHTIG:
+testet mich ruhig später
+
+RICHTIG:
+na dann testet mal
+
+Die Perspektive muss Evilnaes bleiben.
+
 Du darfst niemals:
 - neue Fakten erfinden
 - Fakten verändern
@@ -1998,6 +2371,7 @@ Du darfst niemals:
 - Versprechen hinzufügen
 - neue Discord-Mentions hinzufügen
 - die eigentliche Aussage verändern
+- die User-Perspektive kopieren
 
 Erkenne klassische Bot-Sprache:
 - "Das klingt spannend"
@@ -2035,37 +2409,20 @@ nur ein Emoji zu entfernen.
 
 Die Assistant-Struktur selbst muss weg.
 
-SEHR WICHTIG:
-
 Der konkrete Inhalt des Drafts
 muss erhalten bleiben.
 
-Wenn der Draft beispielsweise davon spricht,
-dass jemand Evilnae später testet,
-darfst du daraus NICHT einfach
-"bisschen wild" machen.
+Keine neuen Gewohnheiten wie:
+- wie immer
+- wie üblich
+- schon wieder
+- mal wieder
+- typisch
 
-Du darfst außerdem keine neuen
-Gewohnheiten oder Historien behaupten.
-
-Nicht neu hinzufügen:
-- "wie immer"
-- "wie üblich"
-- "schon wieder"
-- "mal wieder"
-- "typisch"
-
-wenn der Draft so etwas nicht enthält.
+wenn der Draft das nicht sagt.
 
 Kurz ist gut.
 Inhaltsverlust ist nicht gut.
-
-Character Drift,
-Theme Borrowing und
-unnötigen Gehorsam nur bewerten.
-Nicht eigenmächtig inhaltlich korrigieren.
-
-JSON kurz halten.
 
 Antworte ausschließlich mit
 gültigem vollständigem JSON.
@@ -2079,10 +2436,28 @@ gültigem vollständigem JSON.
 FOCUSED_REPAIR_SYSTEM_PROMPT = """
 Du bist Evilnaes Focused Voice Repair.
 
-Der deterministische Guard hat bereits entschieden,
-dass der Draft sprachlich nicht akzeptabel ist.
-
 Der Rewrite IST nötig.
+
+Die Antwort wird von EVILNAE gesprochen.
+
+Der USER ist die andere Person.
+
+Übernimm niemals die Perspektive
+der User-Nachricht.
+
+Beispiel:
+
+USER:
+wir testen dich später
+
+FALSCH:
+wir testen dich später
+
+RICHTIG:
+testet mich ruhig später
+
+RICHTIG:
+na dann testet mal
 
 Formuliere denselben Gedanken natürlicher neu.
 
@@ -2098,14 +2473,11 @@ Du darfst NICHT:
 - neue echte Gegenfragen hinzufügen
 - Lore korrigieren
 - neue Gewohnheiten behaupten
+- die User-Nachricht einfach kopieren
+- Evilnae zur Sprecherrolle des Users machen
 
-Der konkrete Inhalt des Drafts
-muss sichtbar erhalten bleiben.
-
-Wenn dir REQUIRED ANCHORS gegeben werden,
-muss mindestens einer dieser
-inhaltlichen Kerne im neuen Text
-erkennbar erhalten bleiben.
+Wenn REQUIRED CONTENT ANCHORS gegeben sind,
+muss mindestens einer erhalten bleiben.
 
 Wenn assistant_structure gemeldet wurde:
 entferne die Assistant-Struktur selbst.
@@ -2118,14 +2490,6 @@ nutze einen anderen Aspekt derselben Aussage.
 
 Wenn Semantic Repetition gemeldet wurde:
 formuliere deutlich anders.
-
-Nicht einfach:
-- ok
-- ja
-- lol
-- passt
-- wie immer
-- bisschen wild
 
 Keine Erklärung.
 
@@ -2195,13 +2559,11 @@ def build_voice_prompt(
 ):
 
     if allow_question:
-
         question_rule = (
             "Natürliche Frage erlaubt."
         )
 
     else:
-
         question_rule = (
             "Keine neue echte Gegenfrage."
         )
@@ -2240,6 +2602,7 @@ def build_voice_prompt(
     )
 
     anchor_text = (
+
         ", ".join(
             anchors
         )
@@ -2251,7 +2614,10 @@ def build_voice_prompt(
     )
 
     return f"""
-USER:
+SPEAKER:
+Evilnae
+
+USER MESSAGE:
 {user_message}
 
 MODE:
@@ -2266,7 +2632,7 @@ STATE:
 IDENTITY:
 {identity_text}
 
-DRAFT:
+EVILNAE DRAFT:
 {draft}
 
 REQUIRED CONTENT ANCHORS:
@@ -2322,13 +2688,15 @@ g = meaning_preserved
 f = new_facts
 w = rewrite
 z = Grund max 8 Wörter
-o = finale Antwort
+o = finale EVILNAE-Antwort
 
-Wenn REQUIRED CONTENT ANCHORS vorhanden sind,
-muss mindestens einer inhaltlich erhalten bleiben.
+WICHTIG:
 
-Keine neuen Aussagen wie "wie immer",
-wenn sie im Draft nicht vorkommen.
+o wird von Evilnae gesprochen.
+
+Nicht einfach USER MESSAGE kopieren.
+
+Perspektive nicht vertauschen.
 
 JSON:
 
@@ -2457,13 +2825,11 @@ def build_focused_repair_prompt(
     )
 
     if allow_question:
-
         question_rule = (
             "Frage erlaubt."
         )
 
     else:
-
         question_rule = (
             "Keine neue echte Gegenfrage."
         )
@@ -2483,10 +2849,13 @@ Diesen Fehler nicht wiederholen.
 """.strip()
 
     return f"""
-USER:
+SPEAKER:
+Evilnae
+
+USER MESSAGE:
 {user_message}
 
-DRAFT:
+EVILNAE DRAFT:
 {draft}
 
 REQUIRED CONTENT ANCHORS:
@@ -2520,23 +2889,32 @@ RECENT:
 
 AUFGABE:
 
-Formuliere denselben Gedanken neu.
+Formuliere EVILNAES Draft neu.
+
+Nicht die User-Nachricht neu formulieren.
+
+Die Antwort muss aus Evilnaes
+Sprecherperspektive kommen.
+
+Wenn User sagt:
+"wir testen dich"
+
+darf Evilnae NICHT sagen:
+"wir testen dich".
+
+Sie könnte zum Beispiel sagen:
+"testet mich ruhig".
 
 Wenn REQUIRED CONTENT ANCHORS
 nicht "keine" sind,
-muss mindestens einer davon
-im neuen Text erkennbar erhalten bleiben.
+muss mindestens einer erhalten bleiben.
 
-Keine neuen Gewohnheitsbehauptungen
-wie "wie immer".
-
-Kurz ist okay.
-Inhaltsverlust nicht.
+Keine neuen Gewohnheitsbehauptungen.
 
 g = Bedeutung erhalten
 f = neue Fakten
 z = kurzer Grund
-o = neue Antwort
+o = Evilnaes neue Antwort
 
 JSON:
 
@@ -2576,19 +2954,22 @@ def extract_json_dict(
     )
 
     try:
-
         data = json.loads(
             raw_text
         )
 
     except json.JSONDecodeError:
 
-        start = raw_text.find(
-            "{"
+        start = (
+            raw_text.find(
+                "{"
+            )
         )
 
-        end = raw_text.rfind(
-            "}"
+        end = (
+            raw_text.rfind(
+                "}"
+            )
         )
 
         if (
@@ -2900,6 +3281,7 @@ def parse_repair_result(
 
 def validate_voice_candidate(
     *,
+    user_message,
     draft,
     candidate,
     allow_question,
@@ -2999,6 +3381,27 @@ def validate_voice_candidate(
         return (
             False,
             "unsupported_habit_claim"
+        )
+
+    if is_user_echo_takeover(
+        user_message,
+        candidate
+    ):
+
+        return (
+            False,
+            "user_echo_takeover"
+        )
+
+    if has_speaker_perspective_shift(
+        user_message,
+        draft,
+        candidate
+    ):
+
+        return (
+            False,
+            "speaker_perspective_shift"
         )
 
     return (
@@ -3162,6 +3565,10 @@ async def attempt_focused_repair(
             validation_reason
         ) = validate_voice_candidate(
 
+            user_message=(
+                user_message
+            ),
+
             draft=(
                 draft
             ),
@@ -3214,6 +3621,10 @@ async def attempt_focused_repair(
 
             history=(
                 channel_recent_evilnae_messages
+            ),
+
+            user_message=(
+                user_message
             ),
 
             draft=(
@@ -3452,9 +3863,13 @@ async def humanize_evilnae_response(
                 )
             ),
 
-            reason=reason,
+            reason=(
+                reason
+            ),
 
-            duration=duration,
+            duration=(
+                duration
+            ),
 
             persona_cliche=(
                 scores.get(
@@ -3575,11 +3990,15 @@ async def humanize_evilnae_response(
 
     if coherence_analysis is None:
 
-        coherence_analysis = analyze_coherence(
+        coherence_analysis = (
+            analyze_coherence(
 
-            channel_recent_evilnae_messages,
+                channel_recent_evilnae_messages,
 
-            candidate=draft
+                candidate=(
+                    draft
+                )
+            )
         )
 
     draft_violations = list(
@@ -3600,7 +4019,7 @@ async def humanize_evilnae_response(
     )
 
     # =====================================================
-    # GPU QUEUE
+    # QUEUE
     # =====================================================
 
     try:
@@ -3708,22 +4127,24 @@ async def humanize_evilnae_response(
 
         try:
 
-            raw_content = await run_local_model(
+            raw_content = (
+                await run_local_model(
 
-                system_prompt=(
-                    VOICE_SYSTEM_PROMPT
-                ),
+                    system_prompt=(
+                        VOICE_SYSTEM_PROMPT
+                    ),
 
-                user_prompt=(
-                    prompt
-                ),
+                    user_prompt=(
+                        prompt
+                    ),
 
-                temperature=(
-                    LOCAL_VOICE_TEMPERATURE
-                ),
+                    temperature=(
+                        LOCAL_VOICE_TEMPERATURE
+                    ),
 
-                num_predict=(
-                    LOCAL_VOICE_NUM_PREDICT
+                    num_predict=(
+                        LOCAL_VOICE_NUM_PREDICT
+                    )
                 )
             )
 
@@ -3789,9 +4210,11 @@ async def humanize_evilnae_response(
                 )
             )
 
-        parsed = parse_voice_result(
-            raw_content,
-            draft
+        parsed = (
+            parse_voice_result(
+                raw_content,
+                draft
+            )
         )
 
         # =================================================
@@ -4037,7 +4460,7 @@ async def humanize_evilnae_response(
         )
 
         # =================================================
-        # FIRST CANDIDATE SAFETY
+        # FIRST PASS SAFETY
         # =================================================
 
         if should_rewrite:
@@ -4046,6 +4469,10 @@ async def humanize_evilnae_response(
                 valid,
                 validation_reason
             ) = validate_voice_candidate(
+
+                user_message=(
+                    user_message
+                ),
 
                 draft=(
                     draft
@@ -4099,6 +4526,10 @@ async def humanize_evilnae_response(
 
             history=(
                 channel_recent_evilnae_messages
+            ),
+
+            user_message=(
+                user_message
             ),
 
             draft=(
@@ -4575,6 +5006,11 @@ def _run_deterministic_self_test():
         "die mods brauchen auch ein bisschen Chaos 😏",
     ]
 
+    user_message = (
+        "wir testen dich später "
+        "noch ein bisschen"
+    )
+
     bad_draft = (
         "Cool, das klingt spannend! "
         "Ich bin gespannt, was ihr alles "
@@ -4588,29 +5024,100 @@ def _run_deterministic_self_test():
     )
 
     good_candidate = (
-        "testet ruhig weiter, mal sehen was ihr findet."
+        "testet mich ruhig später."
     )
 
     (
         good_analysis,
         good_violations
     ) = analyze_voice_candidate(
+
         history=history,
-        draft=bad_draft,
-        candidate=good_candidate
+
+        user_message=(
+            user_message
+        ),
+
+        draft=(
+            bad_draft
+        ),
+
+        candidate=(
+            good_candidate
+        )
     )
 
-    bad_previous_candidate = (
+    old_bad_candidate = (
         "bisschen wild, wie immer"
     )
 
     (
-        bad_previous_analysis,
-        bad_previous_violations
+        old_bad_analysis,
+        old_bad_violations
     ) = analyze_voice_candidate(
+
         history=history,
-        draft=bad_draft,
-        candidate=bad_previous_candidate
+
+        user_message=(
+            user_message
+        ),
+
+        draft=(
+            bad_draft
+        ),
+
+        candidate=(
+            old_bad_candidate
+        )
+    )
+
+    user_echo_candidate = (
+        "wir testen dich später "
+        "noch ein bisschen"
+    )
+
+    (
+        echo_analysis,
+        echo_violations
+    ) = analyze_voice_candidate(
+
+        history=history,
+
+        user_message=(
+            user_message
+        ),
+
+        draft=(
+            bad_draft
+        ),
+
+        candidate=(
+            user_echo_candidate
+        )
+    )
+
+    short_good_candidate = (
+        "na dann testet mal."
+    )
+
+    (
+        short_good_analysis,
+        short_good_violations
+    ) = analyze_voice_candidate(
+
+        history=history,
+
+        user_message=(
+            user_message
+        ),
+
+        draft=(
+            bad_draft
+        ),
+
+        candidate=(
+            short_good_candidate
+        )
     )
 
     trivial_candidate = (
@@ -4621,35 +5128,20 @@ def _run_deterministic_self_test():
         trivial_analysis,
         trivial_violations
     ) = analyze_voice_candidate(
+
         history=history,
-        draft=bad_draft,
-        candidate=trivial_candidate
-    )
 
-    short_good_candidate = (
-        "testet ruhig."
-    )
+        user_message=(
+            user_message
+        ),
 
-    (
-        short_good_analysis,
-        short_good_violations
-    ) = analyze_voice_candidate(
-        history=history,
-        draft=bad_draft,
-        candidate=short_good_candidate
-    )
+        draft=(
+            bad_draft
+        ),
 
-    habit_candidate = (
-        "testen, wie immer."
-    )
-
-    (
-        habit_analysis,
-        habit_violations
-    ) = analyze_voice_candidate(
-        history=history,
-        draft=bad_draft,
-        candidate=habit_candidate
+        candidate=(
+            trivial_candidate
+        )
     )
 
     bad_score = (
@@ -4662,6 +5154,12 @@ def _run_deterministic_self_test():
     good_score = (
         coherence_violation_score(
             good_violations
+        )
+    )
+
+    echo_score = (
+        coherence_violation_score(
+            echo_violations
         )
     )
 
@@ -4685,11 +5183,197 @@ def _run_deterministic_self_test():
         ),
 
         (
+            "anchors contain test",
+
+            "test"
+            in extract_semantic_anchors(
+                bad_draft
+            )
+        ),
+
+        (
+            "werdet no longer semantic anchor",
+
+            "werdet"
+            not in extract_semantic_anchors(
+                bad_draft
+            )
+        ),
+
+        (
+            "good rewrite preserves anchor",
+
+            semantic_anchor_preserved(
+                bad_draft,
+                good_candidate
+            )
+        ),
+
+        (
+            "old wild rewrite loses anchor",
+
+            not semantic_anchor_preserved(
+                bad_draft,
+                old_bad_candidate
+            )
+        ),
+
+        (
+            "old wild rewrite adds habit",
+
+            "unsupported_habit_claim"
+            in old_bad_violations
+        ),
+
+        (
+            "exact user echo detected",
+
+            is_user_echo_takeover(
+                user_message,
+                user_echo_candidate
+            )
+        ),
+
+        (
+            "exact user echo violation added",
+
+            "user_echo_takeover"
+            in echo_violations
+        ),
+
+        (
+            "speaker perspective shift detected",
+
+            has_speaker_perspective_shift(
+                user_message,
+                bad_draft,
+                user_echo_candidate
+            )
+        ),
+
+        (
+            "speaker shift violation added",
+
+            "speaker_perspective_shift"
+            in echo_violations
+        ),
+
+        (
+            "user echo is blocking",
+
+            has_forced_blocking_violations(
+                echo_violations
+            )
+        ),
+
+        (
+            "good rewrite is not user echo",
+
+            not is_user_echo_takeover(
+                user_message,
+                good_candidate
+            )
+        ),
+
+        (
+            "good rewrite has correct perspective",
+
+            not has_speaker_perspective_shift(
+                user_message,
+                bad_draft,
+                good_candidate
+            )
+        ),
+
+        (
+            "short good rewrite has correct perspective",
+
+            not has_speaker_perspective_shift(
+                user_message,
+                bad_draft,
+                short_good_candidate
+            )
+        ),
+
+        (
+            "trivial collapse detected",
+
+            "trivial_collapse"
+            in trivial_violations
+        ),
+
+        (
+            "good candidate has no blocking violations",
+
+            not has_forced_blocking_violations(
+                good_violations
+            )
+        ),
+
+        (
             "good candidate scores lower",
 
             good_score
             <
             bad_score
+        ),
+
+        (
+            "echo candidate is not accepted",
+
+            forced_repair_required(
+
+                deterministic_pressure=True,
+
+                draft=(
+                    bad_draft
+                ),
+
+                candidate=(
+                    user_echo_candidate
+                ),
+
+                pre_score=(
+                    bad_score
+                ),
+
+                post_score=(
+                    echo_score
+                ),
+
+                post_violations=(
+                    echo_violations
+                )
+            )
+        ),
+
+        (
+            "good rewrite needs no repair",
+
+            not forced_repair_required(
+
+                deterministic_pressure=True,
+
+                draft=(
+                    bad_draft
+                ),
+
+                candidate=(
+                    good_candidate
+                ),
+
+                pre_score=(
+                    bad_score
+                ),
+
+                post_score=(
+                    good_score
+                ),
+
+                post_violations=(
+                    good_violations
+                )
+            )
         ),
 
         (
@@ -4714,142 +5398,6 @@ def _run_deterministic_self_test():
             new_genuine_question_added(
                 "passt schon.",
                 "passt schon. was machst du?"
-            )
-        ),
-
-        (
-            "ok detected as trivial collapse",
-
-            "trivial_collapse"
-            in trivial_violations
-        ),
-
-        (
-            "trivial collapse blocking",
-
-            has_forced_blocking_violations(
-                trivial_violations
-            )
-        ),
-
-        (
-            "test anchor extracted",
-
-            "test"
-            in extract_semantic_anchors(
-                bad_draft
-            )
-        ),
-
-        (
-            "good rewrite preserves semantic anchor",
-
-            semantic_anchor_preserved(
-                bad_draft,
-                good_candidate
-            )
-        ),
-
-        (
-            "short rewrite preserves semantic anchor",
-
-            semantic_anchor_preserved(
-                bad_draft,
-                short_good_candidate
-            )
-        ),
-
-        (
-            "previous wild rewrite loses anchor",
-
-            not semantic_anchor_preserved(
-                bad_draft,
-                bad_previous_candidate
-            )
-        ),
-
-        (
-            "previous wild rewrite flagged",
-
-            "semantic_anchor_missing"
-            in bad_previous_violations
-        ),
-
-        (
-            "previous wild rewrite adds habit claim",
-
-            "unsupported_habit_claim"
-            in bad_previous_violations
-        ),
-
-        (
-            "unsupported habit claim detected",
-
-            introduces_unsupported_habit_claim(
-                bad_draft,
-                habit_candidate
-            )
-        ),
-
-        (
-            "habit claim is blocking",
-
-            has_forced_blocking_violations(
-                habit_violations
-            )
-        ),
-
-        (
-            "clean candidate has no blocking violations",
-
-            not has_forced_blocking_violations(
-                good_violations
-            )
-        ),
-
-        (
-            "good forced rewrite needs no repair",
-
-            not forced_repair_required(
-
-                deterministic_pressure=True,
-
-                draft=bad_draft,
-
-                candidate=good_candidate,
-
-                pre_score=bad_score,
-
-                post_score=good_score,
-
-                post_violations=(
-                    good_violations
-                )
-            )
-        ),
-
-        (
-            "wild previous rewrite requires repair",
-
-            forced_repair_required(
-
-                deterministic_pressure=True,
-
-                draft=bad_draft,
-
-                candidate=bad_previous_candidate,
-
-                pre_score=bad_score,
-
-                post_score=(
-                    coherence_violation_score(
-                        bad_previous_violations
-                    )
-                ),
-
-                post_violations=(
-                    bad_previous_violations
-                )
             )
         ),
     ]
@@ -4883,15 +5431,15 @@ def _run_deterministic_self_test():
     print("")
 
     print(
-        "OLD BAD REWRITE:"
+        "USER ECHO:"
     )
 
     print(
-        bad_previous_candidate
+        user_echo_candidate
     )
 
     print(
-        bad_previous_violations
+        echo_violations
     )
 
     print("")
@@ -4988,6 +5536,11 @@ async def _run_live_test():
         "die mods brauchen etwas Chaos 😏",
     ]
 
+    user_message = (
+        "wir testen dich später "
+        "noch ein bisschen"
+    )
+
     original = (
         "Cool, das klingt spannend! "
         "Ich bin gespannt, was ihr alles "
@@ -4998,8 +5551,7 @@ async def _run_live_test():
     result = await humanize_evilnae_response(
 
         user_message=(
-            "wir testen dich später "
-            "noch ein bisschen"
+            user_message
         ),
 
         draft=(
@@ -5027,6 +5579,16 @@ async def _run_live_test():
         channel_recent_evilnae_messages=(
             recent
         )
+    )
+
+    print("")
+
+    print(
+        "USER:"
+    )
+
+    print(
+        user_message
     )
 
     print("")

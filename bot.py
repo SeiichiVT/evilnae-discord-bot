@@ -35,10 +35,22 @@ from social_actions import (
 )
 
 from expression import (
+    EXPRESSION_VERSION,
     build_expression_plan,
     format_expression_plan,
     format_expression_debug,
     expression_violation_reasons,
+    apply_expression_final_guard,
+    format_expression_guard_debug,
+)
+
+from coherence import (
+    COHERENCE_VERSION,
+    extract_evilnae_messages,
+    analyze_coherence,
+    bump_channel_revision,
+    get_revision_delta,
+    is_context_fresh,
 )
 
 from inner_state import (
@@ -83,6 +95,7 @@ from local_voice import (
     humanize_evilnae_response,
     format_local_voice_debug,
     warm_local_voice,
+    count_genuine_questions,
 )
 
 from voice_memory import (
@@ -106,7 +119,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.10.0-local-voice"
+BOT_VERSION = "2.11.0-coherence-a"
 
 
 # =========================================================
@@ -254,9 +267,27 @@ MIN_MESSAGES_FOR_SOCIAL_TARGET = 1
 # EXPRESSION CONFIG
 # =========================================================
 
-EXPRESSION_HISTORY_LIMIT = 8
+EXPRESSION_HISTORY_LIMIT = 20
 
 EXPRESSION_VIOLATION_LOGGING = True
+
+
+# =========================================================
+# CONTEXT FRESHNESS CONFIG
+#
+# Wie viele neue Channel-Ereignisse
+# während Brain/Writer/Qwen entstehen dürfen,
+# bevor eine Antwort als zu alt gilt.
+#
+# Participation ist später noch strenger.
+# =========================================================
+
+CONTEXT_FRESHNESS_MAX_NEW_MESSAGES = int(
+    os.getenv(
+        "CONTEXT_FRESHNESS_MAX_NEW_MESSAGES",
+        "2"
+    )
+)
 
 
 # =========================================================
@@ -408,6 +439,8 @@ memory_tasks = {}
 
 response_locks = {}
 
+channel_send_locks = {}
+
 channel_contexts = {}
 
 user_contexts = {}
@@ -463,6 +496,49 @@ memory_semaphore = asyncio.Semaphore(
 reflection_semaphore = asyncio.Semaphore(
     MAX_PARALLEL_REFLECTION_JOBS
 )
+
+
+# =========================================================
+# CHANNEL SEND LOCK
+#
+# Wichtig:
+#
+# Brain/Writer/Qwen dürfen weiterhin
+# für mehrere User parallel laufen.
+#
+# Wir serialisieren nur den letzten
+# Freshness-Check + Discord-Send.
+#
+# Dadurch können zwei Antworten nicht
+# gleichzeitig auf einem veralteten
+# Channel-Zustand durchrutschen.
+# =========================================================
+
+def get_channel_send_lock(
+    channel_id
+):
+
+    key = str(
+        channel_id
+    )
+
+    lock = (
+        channel_send_locks.get(
+            key
+        )
+    )
+
+    if lock is None:
+
+        lock = (
+            asyncio.Lock()
+        )
+
+        channel_send_locks[
+            key
+        ] = lock
+
+    return lock
 
 
 # =========================================================
@@ -3173,7 +3249,10 @@ def get_writer_violation_reasons(
     if (
         not decision.ask_question
         and
-        "?" in answer
+        count_genuine_questions(
+            answer
+        )
+        > 0
     ):
 
         reasons.append(
@@ -3788,6 +3867,12 @@ async def execute_initiative(
         )
 
         return False
+
+    bump_channel_revision(
+        str(
+            channel.id
+        )
+    )
 
     register_initiative()
 
@@ -5734,6 +5819,7 @@ def build_writer_context(
     inner_state_guidance,
     learned_behavior_text,
     participation_context_text,
+    channel_recent_evilnae_messages=None,
     username,
     user_text,
     emoji_context_text,
@@ -5753,7 +5839,9 @@ def build_writer_context(
         )
     )
 
-    recent_evilnae = (
+    recent_evilnae = list(
+        channel_recent_evilnae_messages
+        or
         state.history
         .recent_evilnae_messages
     )
@@ -6448,6 +6536,10 @@ async def execute_social_action(
 
         return False
 
+    bump_channel_revision(
+        channel_id
+    )
+
     register_autonomous_ping(
         target_user_id
     )
@@ -6499,6 +6591,47 @@ async def decide_participation(
             channel_snapshot
         )
     )
+
+    # -----------------------------------------------------
+    # THIRD-PERSON EVILNAE MENTION
+    #
+    # Beispiel:
+    #
+    # "Sicher? Evil sagt da was anderes."
+    #
+    # Das ist KEINE direkte Ansprache.
+    #
+    # Es erhöht aber natürlich die Relevanz,
+    # falls Evilnae sich freiwillig einmischen will.
+    # -----------------------------------------------------
+
+    if (
+        getattr(
+            perception,
+            "name_mentioned",
+            False
+        )
+        and
+        not getattr(
+            perception,
+            "direct_address",
+            False
+        )
+    ):
+
+        channel_context_text += """
+        
+[PERCEPTION HINWEIS]
+Evilnae wurde in der aktuellen Nachricht
+in dritter Person erwähnt.
+
+Das ist KEINE direkte Ansprache.
+
+Es ist nur ein leichtes Relevanzsignal
+für freiwillige Participation.
+
+Nicht allein deshalb antworten.
+""".rstrip()
 
     participant_context_text = (
         format_participant_contexts(
@@ -6911,7 +7044,26 @@ async def on_ready():
     )
 
     print(
-        "Expression Layer v1: ACTIVE"
+        f"Expression Layer v"
+        f"{EXPRESSION_VERSION}: ACTIVE"
+    )
+
+    print(
+        f"Coherence v"
+        f"{COHERENCE_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Channel-wide Repetition Guard: ACTIVE"
+    )
+
+    print(
+        "Expression Final Guard: ACTIVE"
+    )
+
+    print(
+        "Context Freshness Guard: ACTIVE "
+        f"(max={CONTEXT_FRESHNESS_MAX_NEW_MESSAGES})"
     )
 
     print(
@@ -7159,6 +7311,23 @@ async def on_message(
     )
 
     # =====================================================
+    # CONTEXT REVISION
+    #
+    # Diese Revision gehört zum Zustand,
+    # auf dessen Basis diese Antwort startet.
+    #
+    # Wenn während Brain/Writer/Qwen
+    # zu viel Neues passiert,
+    # wird die Antwort später verworfen.
+    # =====================================================
+
+    response_start_revision = (
+        bump_channel_revision(
+            channel_id
+        )
+    )
+
+    # =====================================================
     # 2. OBSERVE EVERYTHING
     #
     # Auch Nachrichten,
@@ -7179,6 +7348,33 @@ async def on_message(
     channel_snapshot = list(
         get_channel_context(
             channel_id
+        )
+    )
+
+    # =====================================================
+    # CHANNEL-WIDE EVILNAE HISTORY
+    #
+    # Nicht mehr:
+    #
+    # "Was hat Evilnae zuletzt nur
+    #  zu DIESEM User gesagt?"
+    #
+    # Sondern:
+    #
+    # "Was hat Evilnae zuletzt
+    #  im gesamten Channel gesagt?"
+    # =====================================================
+
+    channel_evilnae_messages = (
+        extract_evilnae_messages(
+            channel_snapshot,
+            limit=30
+        )
+    )
+
+    channel_coherence_analysis = (
+        analyze_coherence(
+            channel_evilnae_messages
         )
     )
 
@@ -7834,8 +8030,7 @@ Participation-Entscheidung nötig.
         # =================================================
 
         recent_expression_messages = (
-            state.history
-            .recent_evilnae_messages[
+            channel_evilnae_messages[
                 -EXPRESSION_HISTORY_LIMIT:
             ]
         )
@@ -7867,6 +8062,10 @@ Participation-Entscheidung nötig.
 
                 is_hanae=(
                     is_hanae
+                ),
+
+                coherence_analysis=(
+                    channel_coherence_analysis
                 )
             )
         )
@@ -7946,6 +8145,12 @@ Participation-Entscheidung nötig.
 
                 participation_context_text=(
                     participation_context_text
+                ),
+
+                channel_recent_evilnae_messages=(
+                    channel_evilnae_messages[
+                        -20:
+                    ]
                 ),
 
                 username=username,
@@ -8153,6 +8358,30 @@ Participation-Entscheidung nötig.
                 "direct"
             )
 
+        # -------------------------------------------------
+        # FRESH CHANNEL HISTORY FOR LOCAL VOICE
+        # -------------------------------------------------
+
+        voice_channel_snapshot = list(
+            get_channel_context(
+                channel_id
+            )
+        )
+
+        voice_channel_evilnae_messages = (
+            extract_evilnae_messages(
+                voice_channel_snapshot,
+                limit=30
+            )
+        )
+
+        voice_coherence_analysis = (
+            analyze_coherence(
+                voice_channel_evilnae_messages,
+                candidate=answer
+            )
+        )
+
         original_writer_answer = (
             answer
         )
@@ -8191,6 +8420,14 @@ Participation-Entscheidung nötig.
                     recent_evilnae_messages=(
                         state.history
                         .recent_evilnae_messages
+                    ),
+
+                    channel_recent_evilnae_messages=(
+                        voice_channel_evilnae_messages
+                    ),
+
+                    coherence_analysis=(
+                        voice_coherence_analysis
                     )
                 )
             )
@@ -8274,79 +8511,396 @@ Participation-Entscheidung nötig.
             )
 
         # =================================================
-        # EXPRESSION LOGGING
+        # 11.6 EXPRESSION FINAL GUARD
+        #
+        # Jetzt wird nicht mehr nur geloggt.
+        #
+        # Dieser Layer darf sicher:
+        #
+        # - überbenutzte Emojis entfernen
+        # - Emoji-Budget durchsetzen
+        # - überbenutzte Opener entfernen
+        #
+        # Bedeutungsrelevante Probleme:
+        #
+        # - Assistant Structure
+        # - Concept Cooldown
+        # - Generic Filler
+        # - Semantic Repetition
+        #
+        # werden NICHT mechanisch gelöscht.
+        #
+        # Dafür gibt es genau einen
+        # echten Writer-Repair-Durchlauf.
         # =================================================
 
-        violation_reasons = (
-            expression_violation_reasons(
-                answer,
-                expression_plan
+        final_channel_snapshot = list(
+            get_channel_context(
+                channel_id
+            )
+        )
+
+        final_channel_evilnae_messages = (
+            extract_evilnae_messages(
+                final_channel_snapshot,
+                limit=30
+            )
+        )
+
+        final_coherence_analysis = (
+            analyze_coherence(
+                final_channel_evilnae_messages
+            )
+        )
+
+        final_expression_plan = (
+            build_expression_plan(
+
+                recent_messages=(
+                    final_channel_evilnae_messages[
+                        -EXPRESSION_HISTORY_LIMIT:
+                    ]
+                ),
+
+                tone=(
+                    decision.tone
+                ),
+
+                mood=(
+                    current_mood
+                ),
+
+                relationship_text=(
+                    state.memory.relationship
+                ),
+
+                is_hanae=(
+                    is_hanae
+                ),
+
+                coherence_analysis=(
+                    final_coherence_analysis
+                )
             )
         )
 
         if (
-            EXPRESSION_VIOLATION_LOGGING
-            and
-            violation_reasons
+            inner_style_hint
+            in {
+                "dry",
+                "playful",
+                "chaotic",
+                "warm",
+                "deadpan",
+                "natural",
+            }
         ):
 
+            final_expression_plan.style = (
+                inner_style_hint
+            )
+
+        final_expression_plan = (
+            apply_learned_behavior_to_expression_plan(
+
+                final_expression_plan,
+
+                is_hanae=is_hanae
+            )
+        )
+
+        expression_guard = (
+            apply_expression_final_guard(
+                answer,
+                final_expression_plan
+            )
+        )
+
+        print(
+            format_expression_guard_debug(
+                expression_guard
+            )
+        )
+
+        # -------------------------------------------------
+        # SAFE DETERMINISTIC CLEANUP SUCCESS
+        # -------------------------------------------------
+
+        if expression_guard.send_allowed:
+
+            answer = (
+                expression_guard.cleaned
+            )
+
+        # -------------------------------------------------
+        # MEANING-RELEVANT EXPRESSION PROBLEM
+        #
+        # Nicht einfach senden.
+        #
+        # Writer bekommt EINEN echten Repair.
+        # -------------------------------------------------
+
+        else:
+
+            expression_repair_context = (
+                writer_context
+                + "\n\n"
+                + "==================================================\n"
+                + "FINAL CHANNEL-WIDE EXPRESSION PLAN\n"
+                + "==================================================\n\n"
+                + format_expression_plan(
+                    final_expression_plan
+                )
+            )
+
+            expression_repair = (
+                await repair_writer_answer(
+
+                    original_answer=(
+                        expression_guard.cleaned
+                        or
+                        answer
+                    ),
+
+                    violation_reasons=(
+                        expression_guard
+                        .violations_after
+                    ),
+
+                    writer_context=(
+                        expression_repair_context
+                    ),
+
+                    current_mood=(
+                        current_mood
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    token_limit=(
+                        writer_token_limit
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if not expression_repair:
+
+                print(
+                    "[EXPRESSION FINAL ABORT] "
+                    f"user={username} "
+                    "reason=repair_failed "
+                    f"violations="
+                    f"{expression_guard.violations_after}"
+                )
+
+                return
+
+            expression_repair = (
+                clean_generated_answer(
+                    expression_repair
+                )
+            )
+
+            expression_repair = (
+                enforce_permanent_expression_bans(
+                    expression_repair
+                )
+            )
+
+            # ---------------------------------------------
+            # HARD WRITER RULES AGAIN
+            # ---------------------------------------------
+
+            repair_hard_violations = (
+                get_writer_violation_reasons(
+
+                    answer=(
+                        expression_repair
+                    ),
+
+                    decision=(
+                        decision
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if repair_hard_violations:
+
+                print(
+                    "[EXPRESSION FINAL ABORT] "
+                    f"user={username} "
+                    "reason=hard_guard_after_repair "
+                    f"violations="
+                    f"{repair_hard_violations}"
+                )
+
+                return
+
+            # ---------------------------------------------
+            # EXPRESSION GUARD AGAIN
+            # ---------------------------------------------
+
+            second_expression_guard = (
+                apply_expression_final_guard(
+                    expression_repair,
+                    final_expression_plan
+                )
+            )
+
             print(
-                "[EXPRESSION VIOLATION] "
-                f"user={username} "
-                f"reasons="
-                f"{violation_reasons} "
-                f"answer={answer!r}"
+                format_expression_guard_debug(
+                    second_expression_guard
+                )
+            )
+
+            if not (
+                second_expression_guard
+                .send_allowed
+            ):
+
+                print(
+                    "[EXPRESSION FINAL ABORT] "
+                    f"user={username} "
+                    "reason=still_blocked_after_repair "
+                    f"violations="
+                    f"{second_expression_guard.violations_after}"
+                )
+
+                return
+
+            answer = (
+                second_expression_guard.cleaned
             )
 
         # =================================================
-        # 12. SEND
+        # 12. CONTEXT FRESHNESS + SEND
         #
-        # DIRECT:
-        # Discord Reply
+        # DIRECT / CONTINUATION:
         #
-        # CONTINUATION:
-        # normale Channel-Nachricht
+        # maximal normale Freshness-Toleranz.
         #
         # PARTICIPATION:
-        # normale Channel-Nachricht
+        #
+        # strenger, weil ein freiwilliger Einwurf
+        # sehr schnell unpassend werden kann.
         # =================================================
 
-        try:
+        channel_send_lock = (
+            get_channel_send_lock(
+                channel_id
+            )
+        )
 
-            if (
-                autonomous_participation
-                or
-                conversation_continuation
-            ):
+        async with channel_send_lock:
 
-                sent_message = (
-                    await message.channel.send(
-                        answer[:1900]
+            if autonomous_participation:
+
+                freshness_limit = (
+                    min(
+                        1,
+                        CONTEXT_FRESHNESS_MAX_NEW_MESSAGES
                     )
                 )
 
             else:
 
-                sent_message = (
-                    await message.reply(
-                        answer[:1900],
-                        mention_author=False
-                    )
+                freshness_limit = (
+                    CONTEXT_FRESHNESS_MAX_NEW_MESSAGES
                 )
 
-        except discord.HTTPException as error:
-
-            print(
-                "[DISCORD SEND ERROR] "
-                f"user={username} "
-                f"error={error}"
+            freshness_delta = (
+                get_revision_delta(
+                    channel_id,
+                    response_start_revision
+                )
             )
 
-            return
+            if not (
+                is_context_fresh(
 
-        register_channel_message(
-            is_bot=True
-        )
+                    channel_id,
+                    response_start_revision,
+                    max_new_messages=(
+                        freshness_limit
+                    )
+                )
+            ):
+
+                print(
+                    "[CONTEXT STALE] "
+                    f"user={username} "
+                    f"mode="
+                    f"{voice_conversation_mode} "
+                    f"start_revision="
+                    f"{response_start_revision} "
+                    f"delta="
+                    f"{freshness_delta} "
+                    f"limit="
+                    f"{freshness_limit} "
+                    f"answer="
+                    f"{answer!r}"
+                )
+
+                return
+
+            try:
+
+                if (
+                    autonomous_participation
+                    or
+                    conversation_continuation
+                ):
+
+                    sent_message = (
+                        await message.channel.send(
+                            answer[:1900]
+                        )
+                    )
+
+                else:
+
+                    sent_message = (
+                        await message.reply(
+                            answer[:1900],
+                            mention_author=False
+                        )
+                    )
+
+            except discord.HTTPException as error:
+
+                print(
+                    "[DISCORD SEND ERROR] "
+                    f"user={username} "
+                    f"error={error}"
+                )
+
+                return
+
+            # ---------------------------------------------
+            # Eigene Nachricht verändert ebenfalls
+            # den Channel-Zustand.
+            #
+            # Dadurch sehen parallel generierte
+            # Antworten diese Änderung.
+            # ---------------------------------------------
+
+            bump_channel_revision(
+                channel_id
+            )
+
+            register_channel_message(
+                is_bot=True
+            )
 
         # =================================================
         # 13. DIRECT USER CONTEXT UPDATE
