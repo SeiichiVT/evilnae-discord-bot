@@ -22,6 +22,7 @@ from conversation_state import (
 )
 
 from brain import (
+    BRAIN_VERSION,
     run_brain,
     format_brain_debug,
     format_brain_decision,
@@ -135,6 +136,17 @@ from agency import (
     format_agency_debug,
 )
 
+from self_model import (
+    SELF_MODEL_VERSION,
+    resolve_self_query,
+    apply_self_evidence_to_decision,
+    format_self_model_for_brain,
+    format_self_evidence_for_writer,
+    self_knowledge_violation_reasons,
+    format_self_model_debug,
+    format_self_evidence_debug,
+)
+
 from voice_memory import (
     VOICE_MEMORY_VERSION,
     register_voice_feedback,
@@ -156,7 +168,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.3-agency-b3a"
+BOT_VERSION = "2.11.4-self-b3b"
 
 
 # =========================================================
@@ -7064,7 +7076,7 @@ async def on_ready():
     )
 
     print(
-        "Brain v2.1: ACTIVE"
+        f"Brain v{BRAIN_VERSION}: ACTIVE"
     )
 
     print(
@@ -7087,6 +7099,19 @@ async def on_ready():
 
     print(
         "Source Authority: ACTIVE"
+    )
+
+    print(
+        f"Self Model v"
+        f"{SELF_MODEL_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Self Knowledge Guard: ACTIVE"
+    )
+
+    print(
+        format_self_model_debug()
     )
 
     print(
@@ -7959,10 +7984,18 @@ async def on_message(
             )
         )
 
+        self_model_brain_text = (
+            format_self_model_for_brain()
+        )
+
         group_context_text += (
             "\n\n"
             +
             world_brain_text
+            +
+            "\n\n"
+            +
+            self_model_brain_text
         )
 
         reply_context_text = (
@@ -8196,6 +8229,29 @@ Participation-Entscheidung nötig.
             print(
                 format_world_evidence_debug(
                     world_evidence
+                )
+            )
+
+        # =================================================
+        # 2.11B3B SELF KNOWLEDGE AUTHORITY
+        # =================================================
+
+        self_evidence = (
+            resolve_self_query(
+                user_text
+            )
+        )
+
+        apply_self_evidence_to_decision(
+            decision,
+            self_evidence
+        )
+
+        if self_evidence.matched:
+
+            print(
+                format_self_evidence_debug(
+                    self_evidence
                 )
             )
 
@@ -8491,6 +8547,20 @@ Participation-Entscheidung nötig.
             )
 
         # =====================================================
+        # 2.11B3B SELF EVIDENCE -> WRITER
+        # =====================================================
+
+        if self_evidence.matched:
+
+            writer_context += (
+                "\n\n"
+                +
+                format_self_evidence_for_writer(
+                    self_evidence
+                )
+            )
+
+        # =====================================================
         # KNOWLEDGE GUARD v3 FOUNDATION
         #
         # Wenn Brain sagt:
@@ -8721,6 +8791,142 @@ Participation-Entscheidung nötig.
 
             voice_conversation_mode = (
                 "direct"
+            )
+
+        # =====================================================
+        # SELF KNOWLEDGE OUTPUT GUARD
+        # =====================================================
+
+        self_violations = (
+            self_knowledge_violation_reasons(
+                answer,
+                self_evidence
+            )
+        )
+
+        if self_violations:
+
+            print(
+                "[SELF KNOWLEDGE VIOLATION] "
+                f"user={username} "
+                f"violations="
+                f"{self_violations} "
+                f"answer={answer!r}"
+            )
+
+            self_repair_context = (
+                writer_context
+                +
+                "\n\n"
+                +
+                format_self_evidence_for_writer(
+                    self_evidence
+                )
+            )
+
+            self_repair = (
+                await repair_writer_answer(
+
+                    original_answer=(
+                        answer
+                    ),
+
+                    violation_reasons=(
+                        self_violations
+                    ),
+
+                    writer_context=(
+                        self_repair_context
+                    ),
+
+                    current_mood=(
+                        current_mood
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    token_limit=(
+                        writer_token_limit
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if not self_repair:
+
+                print(
+                    "[SELF KNOWLEDGE ABORT] "
+                    f"user={username} "
+                    "reason=repair_failed"
+                )
+
+                return
+
+            self_repair = (
+                clean_generated_answer(
+                    self_repair
+                )
+            )
+
+            self_repair = (
+                enforce_permanent_expression_bans(
+                    self_repair
+                )
+            )
+
+            self_repair_hard = (
+                get_writer_violation_reasons(
+
+                    answer=(
+                        self_repair
+                    ),
+
+                    decision=(
+                        decision
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            self_repair_violations = (
+                self_knowledge_violation_reasons(
+                    self_repair,
+                    self_evidence
+                )
+            )
+
+            if (
+                self_repair_hard
+                or
+                self_repair_violations
+            ):
+
+                print(
+                    "[SELF KNOWLEDGE ABORT] "
+                    f"user={username} "
+                    f"hard="
+                    f"{self_repair_hard} "
+                    f"self="
+                    f"{self_repair_violations}"
+                )
+
+                return
+
+            print(
+                "[SELF KNOWLEDGE REPAIR SUCCESS] "
+                f"user={username}"
+            )
+
+            answer = (
+                self_repair
             )
 
         # =====================================================
@@ -9010,6 +9216,48 @@ Participation-Entscheidung nötig.
             answer = (
                 original_writer_answer
             )
+
+        # =====================================================
+        # POST-VOICE SELF KNOWLEDGE GUARD
+        # =====================================================
+
+        post_voice_self_violations = (
+            self_knowledge_violation_reasons(
+                answer,
+                self_evidence
+            )
+        )
+
+        if post_voice_self_violations:
+
+            print(
+                "[LOCAL VOICE SELF REVERT] "
+                f"user={username} "
+                f"violations="
+                f"{post_voice_self_violations}"
+            )
+
+            answer = (
+                original_writer_answer
+            )
+
+            reverted_self_violations = (
+                self_knowledge_violation_reasons(
+                    answer,
+                    self_evidence
+                )
+            )
+
+            if reverted_self_violations:
+
+                print(
+                    "[LOCAL VOICE SELF ABORT] "
+                    f"user={username} "
+                    f"violations="
+                    f"{reverted_self_violations}"
+                )
+
+                return
 
         # =====================================================
         # POST-VOICE UNDERSTANDING GUARDS
@@ -9590,6 +9838,29 @@ Participation-Entscheidung nötig.
             answer = (
                 second_expression_guard.cleaned
             )
+
+        # =================================================
+        # FINAL SELF KNOWLEDGE GUARD
+        # =================================================
+
+        final_self_violations = (
+            self_knowledge_violation_reasons(
+                answer,
+                self_evidence
+            )
+        )
+
+        if final_self_violations:
+
+            print(
+                "[SELF FINAL ABORT] "
+                f"user={username} "
+                f"violations="
+                f"{final_self_violations} "
+                f"answer={answer!r}"
+            )
+
+            return
 
         # =================================================
         # 12. CONTEXT FRESHNESS + SEND
