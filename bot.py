@@ -147,6 +147,14 @@ from self_model import (
     format_self_evidence_debug,
 )
 
+from curiosity import (
+    CURIOSITY_VERSION,
+    apply_curiosity_policy,
+    format_curiosity_for_writer,
+    format_curiosity_debug,
+    question_output_violation_reasons,
+)
+
 from voice_memory import (
     VOICE_MEMORY_VERSION,
     register_voice_feedback,
@@ -168,7 +176,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.4-self-b3b"
+BOT_VERSION = "2.11.6-curiosity-stable-b3b1a1"
 
 
 # =========================================================
@@ -7115,6 +7123,27 @@ async def on_ready():
     )
 
     print(
+        f"Curiosity / Question Policy v"
+        f"{CURIOSITY_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Information Gap Questions: ACTIVE"
+    )
+
+    print(
+        "Anti-Interview Question Pressure: ACTIVE"
+    )
+
+    print(
+        "Post-Voice Question Guard: ACTIVE"
+    )
+
+    print(
+        "Single Question Shape Guard: ACTIVE"
+    )
+
+    print(
         f"Response Agency v"
         f"{AGENCY_VERSION}: ACTIVE"
     )
@@ -8255,6 +8284,40 @@ Participation-Entscheidung nötig.
                 )
             )
 
+        # =================================================
+        # 2.11 B3B.1A CURIOSITY / QUESTION POLICY
+        # =================================================
+
+        curiosity_result = (
+            apply_curiosity_policy(
+
+                decision=decision,
+
+                recent_evilnae_messages=(
+                    state.history
+                    .recent_evilnae_messages
+                ),
+
+                conversation_mode=(
+                    brain_conversation_mode
+                )
+            )
+        )
+
+        # run_brain() created state.brain before this
+        # deterministic policy runs.
+        #
+        # Keep the final writer-facing state synchronized.
+        state.brain.ask_question = (
+            decision.ask_question
+        )
+
+        print(
+            format_curiosity_debug(
+                curiosity_result
+            )
+        )
+
         print(
             format_brain_debug(
                 decision
@@ -8559,6 +8622,18 @@ Participation-Entscheidung nötig.
                     self_evidence
                 )
             )
+
+        # =====================================================
+        # 2.11 B3B.1A CURIOSITY -> WRITER
+        # =====================================================
+
+        writer_context += (
+            "\n\n"
+            +
+            format_curiosity_for_writer(
+                curiosity_result
+            )
+        )
 
         # =====================================================
         # KNOWLEDGE GUARD v3 FOUNDATION
@@ -9089,6 +9164,150 @@ Participation-Entscheidung nötig.
             )
         )
 
+        # =====================================================
+        # B3B.1A.1 PRE-VOICE QUESTION SHAPE GUARD
+        #
+        # Curiosity entscheidet:
+        #
+        # - keine Frage
+        # ODER
+        # - maximal eine Frage
+        #
+        # Writer darf diese Entscheidung nicht umgehen.
+        # =====================================================
+
+        pre_voice_question_violations = (
+            question_output_violation_reasons(
+                answer,
+                curiosity_result
+            )
+        )
+
+        if pre_voice_question_violations:
+
+            print(
+                "[QUESTION SHAPE VIOLATION] "
+                f"user={username} "
+                f"violations="
+                f"{pre_voice_question_violations} "
+                f"answer={answer!r}"
+            )
+
+            question_repair_context = (
+                writer_context
+                +
+                "\n\n"
+                +
+                format_curiosity_for_writer(
+                    curiosity_result
+                )
+            )
+
+            question_repair = (
+                await repair_writer_answer(
+
+                    original_answer=(
+                        answer
+                    ),
+
+                    violation_reasons=(
+                        pre_voice_question_violations
+                    ),
+
+                    writer_context=(
+                        question_repair_context
+                    ),
+
+                    current_mood=(
+                        current_mood
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    token_limit=(
+                        writer_token_limit
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if not question_repair:
+
+                print(
+                    "[QUESTION SHAPE ABORT] "
+                    f"user={username} "
+                    "reason=repair_failed"
+                )
+
+                return
+
+            question_repair = (
+                clean_generated_answer(
+                    question_repair
+                )
+            )
+
+            question_repair = (
+                enforce_permanent_expression_bans(
+                    question_repair
+                )
+            )
+
+            question_repair_hard = (
+                get_writer_violation_reasons(
+
+                    answer=(
+                        question_repair
+                    ),
+
+                    decision=(
+                        decision
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            question_repair_violations = (
+                question_output_violation_reasons(
+                    question_repair,
+                    curiosity_result
+                )
+            )
+
+            if (
+                question_repair_hard
+                or
+                question_repair_violations
+            ):
+
+                print(
+                    "[QUESTION SHAPE ABORT] "
+                    f"user={username} "
+                    f"hard="
+                    f"{question_repair_hard} "
+                    f"question="
+                    f"{question_repair_violations}"
+                )
+
+                return
+
+            answer = (
+                question_repair
+            )
+
+            print(
+                "[QUESTION SHAPE REPAIR SUCCESS] "
+                f"user={username}"
+            )
+
         original_writer_answer = (
             answer
         )
@@ -9215,6 +9434,58 @@ Participation-Entscheidung nötig.
 
             answer = (
                 original_writer_answer
+            )
+
+        # =====================================================
+        # B3B.1A.1 POST-VOICE QUESTION GUARD
+        # =====================================================
+
+        post_voice_question_violations = (
+            question_output_violation_reasons(
+                answer,
+                curiosity_result
+            )
+        )
+
+        if post_voice_question_violations:
+
+            print(
+                "[LOCAL VOICE QUESTION REVERT] "
+                f"user={username} "
+                f"violations="
+                f"{post_voice_question_violations} "
+                f"answer={answer!r}"
+            )
+
+            # Original Writer Draft wurde bereits
+            # vor Qwen validiert.
+            #
+            # Deshalb zuerst sauber zurückfallen.
+            answer = (
+                original_writer_answer
+            )
+
+            reverted_question_violations = (
+                question_output_violation_reasons(
+                    answer,
+                    curiosity_result
+                )
+            )
+
+            if reverted_question_violations:
+
+                print(
+                    "[LOCAL VOICE QUESTION ABORT] "
+                    f"user={username} "
+                    f"violations="
+                    f"{reverted_question_violations}"
+                )
+
+                return
+
+            print(
+                "[LOCAL VOICE QUESTION REVERT SUCCESS] "
+                f"user={username}"
             )
 
         # =====================================================
@@ -9838,6 +10109,29 @@ Participation-Entscheidung nötig.
             answer = (
                 second_expression_guard.cleaned
             )
+
+        # =================================================
+        # B3B.1A.1 FINAL QUESTION GUARD
+        # =================================================
+
+        final_question_violations = (
+            question_output_violation_reasons(
+                answer,
+                curiosity_result
+            )
+        )
+
+        if final_question_violations:
+
+            print(
+                "[QUESTION FINAL ABORT] "
+                f"user={username} "
+                f"violations="
+                f"{final_question_violations} "
+                f"answer={answer!r}"
+            )
+
+            return
 
         # =================================================
         # FINAL SELF KNOWLEDGE GUARD

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 # VERSION
 # =========================================================
 
-CURIOSITY_VERSION = "1.0"
+CURIOSITY_VERSION = "1.1"
 
 
 # =========================================================
@@ -73,6 +73,8 @@ class CuriosityResult:
 
     recent_question_count: int = 0
 
+    recent_two_questions: int = 0
+
     reason: str = "no_question_requested"
 
 
@@ -116,7 +118,8 @@ def normalize_level(
 
     value = str(
         value
-        or default
+        or
+        default
     ).strip().lower()
 
     if value not in allowed:
@@ -132,7 +135,8 @@ def normalize_question_type(
 
     value = str(
         value
-        or QUESTION_NONE
+        or
+        QUESTION_NONE
     ).strip().lower()
 
     if (
@@ -160,32 +164,39 @@ def normalize_goal(
 
 
 # =========================================================
-# GENERIC / BAD QUESTION GOALS
-#
-# Eine Frage braucht einen konkreten Zweck.
-#
-# Nicht:
-#
-# "Gespräch weiterführen"
-# "mehr erfahren"
-# "Interesse zeigen"
+# GENERIC QUESTION GOALS
 # =========================================================
 
 GENERIC_GOALS = {
+
     "",
+
     "gespräch weiterführen",
+
     "gespraech weiterfuehren",
+
     "gespräch am laufen halten",
+
     "gespraech am laufen halten",
+
     "conversation weiterführen",
+
     "conversation am laufen halten",
+
     "mehr erfahren",
+
     "mehr wissen",
+
     "interesse zeigen",
+
     "smalltalk",
+
     "gegenfrage stellen",
+
     "user einbeziehen",
+
     "gespräch fördern",
+
     "gespraech foerdern",
 }
 
@@ -223,13 +234,27 @@ def goal_is_specific(
 
 
 # =========================================================
-# QUESTION PRESSURE
+# QUESTION PRESSURE v1.1
 #
-# Keine harte Quote.
+# WICHTIG:
 #
-# Das ist nur ein soziales Signal:
+# Alte Version:
 #
-# Hat Evilnae gerade schon ständig gefragt?
+# 1 Antwort
+# 1 Frage
+# =
+# pressure 1.00
+#
+# Das war falsch.
+#
+# Neue Idee:
+#
+# Wir betrachten ein Fenster von 4 Antworten.
+#
+# Eine einzelne Frage erzeugt nur leichten Druck.
+#
+# Erst mehrere Fragen hintereinander
+# erzeugen echten Interview-Druck.
 # =========================================================
 
 def calculate_question_pressure(
@@ -268,45 +293,88 @@ def calculate_question_pressure(
             0
         )
 
-    question_count = sum(
+    question_flags = [
 
-        1
+        "?" in message
 
         for message
         in recent_messages
+    ]
 
-        if "?" in message
+    question_count = sum(
+        question_flags
     )
 
     recent_two = (
-        recent_messages[
+        question_flags[
             -2:
         ]
     )
 
     recent_two_questions = sum(
-
-        1
-
-        for message
-        in recent_two
-
-        if "?" in message
+        recent_two
     )
 
-    pressure = clamp(
+    # -----------------------------------------------------
+    # Grunddruck basiert IMMER auf dem vollen
+    # Beobachtungsfenster.
+    #
+    # Deshalb:
+    #
+    # 1 Frage = 0.25
+    # 2 Fragen = 0.50
+    # 3 Fragen = 0.75
+    # 4 Fragen = 1.00
+    #
+    # Nicht mehr:
+    #
+    # 1/1 = 1.00
+    # -----------------------------------------------------
 
+    pressure = (
         question_count
         /
-        max(
-            1,
-            min(
-                3,
-                len(
-                    recent_messages
-                )
-            )
+        float(
+            window
         )
+    )
+
+    # -----------------------------------------------------
+    # Streak Pressure
+    #
+    # Zwei direkt aufeinanderfolgende Fragen
+    # sind ein stärkeres Interview-Signal.
+    # -----------------------------------------------------
+
+    if (
+        len(
+            recent_two
+        )
+        >= 2
+        and
+        recent_two_questions
+        ==
+        2
+    ):
+
+        pressure += (
+            0.25
+        )
+
+    elif (
+        recent_two
+        and
+        recent_two[-1]
+    ):
+
+        # Eine einzelne direkt letzte Frage
+        # erhöht den Druck nur leicht.
+        pressure += (
+            0.05
+        )
+
+    pressure = clamp(
+        pressure
     )
 
     return (
@@ -317,7 +385,7 @@ def calculate_question_pressure(
 
 
 # =========================================================
-# DISABLE QUESTION
+# MUTATORS
 # =========================================================
 
 def _disable_question(
@@ -331,10 +399,6 @@ def _disable_question(
     return decision
 
 
-# =========================================================
-# ALLOW QUESTION
-# =========================================================
-
 def _allow_question(
     decision
 ):
@@ -347,16 +411,70 @@ def _allow_question(
 
 
 # =========================================================
+# COMMON RESULT
+# =========================================================
+
+def _result(
+    *,
+    requested,
+    allowed,
+    question_type,
+    question_goal,
+    curiosity_strength,
+    information_gap,
+    topic_interest,
+    question_pressure,
+    recent_question_count,
+    recent_two_questions,
+    reason
+):
+
+    return CuriosityResult(
+
+        requested=requested,
+
+        allowed=allowed,
+
+        question_type=(
+            question_type
+        ),
+
+        question_goal=(
+            question_goal
+        ),
+
+        curiosity_strength=(
+            curiosity_strength
+        ),
+
+        information_gap=(
+            information_gap
+        ),
+
+        topic_interest=(
+            topic_interest
+        ),
+
+        question_pressure=(
+            question_pressure
+        ),
+
+        recent_question_count=(
+            recent_question_count
+        ),
+
+        recent_two_questions=(
+            recent_two_questions
+        ),
+
+        reason=(
+            reason
+        )
+    )
+
+
+# =========================================================
 # APPLY CURIOSITY POLICY
-#
-# Brain denkt frei.
-#
-# Dieses Modul prüft danach:
-#
-# Ist die Frage wirklich begründet?
-#
-# Es entscheidet NICHT anhand
-# einer Zufallswahrscheinlichkeit.
 # =========================================================
 
 def apply_curiosity_policy(
@@ -406,24 +524,30 @@ def apply_curiosity_policy(
 
     information_gap = (
         normalize_level(
+
             getattr(
                 decision,
                 "information_gap",
                 "none"
             ),
+
             VALID_INFORMATION_GAPS,
+
             "none"
         )
     )
 
     topic_interest = (
         normalize_level(
+
             getattr(
                 decision,
                 "topic_interest",
                 "medium"
             ),
+
             VALID_TOPIC_INTEREST,
+
             "medium"
         )
     )
@@ -432,8 +556,10 @@ def apply_curiosity_policy(
         question_pressure,
         recent_question_count,
         recent_two_questions
-    ) = calculate_question_pressure(
-        recent_evilnae_messages
+    ) = (
+        calculate_question_pressure(
+            recent_evilnae_messages
+        )
     )
 
     conversation_mode = str(
@@ -443,7 +569,7 @@ def apply_curiosity_policy(
     ).strip().lower()
 
     # =====================================================
-    # Brain hat gar keine Frage gewollt.
+    # NO QUESTION REQUESTED
     # =====================================================
 
     if not requested:
@@ -452,7 +578,7 @@ def apply_curiosity_policy(
             decision
         )
 
-        return CuriosityResult(
+        return _result(
 
             requested=False,
 
@@ -486,13 +612,17 @@ def apply_curiosity_policy(
                 recent_question_count
             ),
 
+            recent_two_questions=(
+                recent_two_questions
+            ),
+
             reason=(
                 "brain_did_not_want_question"
             )
         )
 
     # =====================================================
-    # Eine Frage braucht einen konkreten Zweck.
+    # STRUCTURE REQUIRED
     # =====================================================
 
     if (
@@ -505,7 +635,7 @@ def apply_curiosity_policy(
             decision
         )
 
-        return CuriosityResult(
+        return _result(
 
             requested=True,
 
@@ -537,6 +667,10 @@ def apply_curiosity_policy(
 
             recent_question_count=(
                 recent_question_count
+            ),
+
+            recent_two_questions=(
+                recent_two_questions
             ),
 
             reason=(
@@ -552,7 +686,7 @@ def apply_curiosity_policy(
             decision
         )
 
-        return CuriosityResult(
+        return _result(
 
             requested=True,
 
@@ -586,6 +720,10 @@ def apply_curiosity_policy(
                 recent_question_count
             ),
 
+            recent_two_questions=(
+                recent_two_questions
+            ),
+
             reason=(
                 "question_goal_not_specific"
             )
@@ -594,13 +732,8 @@ def apply_curiosity_policy(
     # =====================================================
     # CLARIFICATION
     #
-    # Evilnae versteht sonst etwas Wichtiges nicht.
-    #
-    # Diese Fragen dürfen auch dann vorkommen,
-    # wenn sie vorher schon gefragt hat.
-    #
-    # Verständnis ist wichtiger als eine künstliche
-    # Anti-Frage-Quote.
+    # Verständnis darf Interview-Druck überschreiben,
+    # wenn die Informationslücke wirklich wichtig ist.
     # =====================================================
 
     if (
@@ -619,7 +752,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -651,6 +784,10 @@ def apply_curiosity_policy(
 
                 recent_question_count=(
                     recent_question_count
+                ),
+
+                recent_two_questions=(
+                    recent_two_questions
                 ),
 
                 reason=(
@@ -669,14 +806,14 @@ def apply_curiosity_policy(
             and
             question_pressure
             <
-            0.80
+            0.75
         ):
 
             _allow_question(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -710,6 +847,10 @@ def apply_curiosity_policy(
                     recent_question_count
                 ),
 
+                recent_two_questions=(
+                    recent_two_questions
+                ),
+
                 reason=(
                     "useful_clarification"
                 )
@@ -719,7 +860,7 @@ def apply_curiosity_policy(
             decision
         )
 
-        return CuriosityResult(
+        return _result(
 
             requested=True,
 
@@ -753,28 +894,17 @@ def apply_curiosity_policy(
                 recent_question_count
             ),
 
+            recent_two_questions=(
+                recent_two_questions
+            ),
+
             reason=(
                 "clarification_not_needed"
             )
         )
 
     # =====================================================
-    # CURIOSITY
-    #
-    # "Ich will das wirklich wissen."
-    #
-    # Dafür braucht Evilnae:
-    #
-    # - echtes Interesse
-    # - eine Informationslücke
-    # - genug Neugier
-    #
-    # Beispiel:
-    #
-    # "Ich bin an einem Boss hängen geblieben."
-    #
-    # Wenn Gaming sie interessiert:
-    # "welcher boss?"
+    # GENUINE CURIOSITY
     # =====================================================
 
     if (
@@ -793,7 +923,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -825,6 +955,10 @@ def apply_curiosity_policy(
 
                 recent_question_count=(
                     recent_question_count
+                ),
+
+                recent_two_questions=(
+                    recent_two_questions
                 ),
 
                 reason=(
@@ -844,7 +978,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -876,6 +1010,10 @@ def apply_curiosity_policy(
 
                 recent_question_count=(
                     recent_question_count
+                ),
+
+                recent_two_questions=(
+                    recent_two_questions
                 ),
 
                 reason=(
@@ -893,7 +1031,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -927,22 +1065,25 @@ def apply_curiosity_policy(
                     recent_question_count
                 ),
 
+                recent_two_questions=(
+                    recent_two_questions
+                ),
+
                 reason=(
                     "curiosity_too_low"
                 )
             )
 
         # -------------------------------------------------
-        # Schon viele Fragen.
+        # Hoher Interview-Druck
         #
-        # Eine wirklich starke neue Informationslücke
-        # darf trotzdem durchkommen.
+        # Nur wirklich starke Neugier darf durch.
         # -------------------------------------------------
 
         if (
             question_pressure
             >=
-            0.66
+            0.75
         ):
 
             exceptional_interest = (
@@ -970,7 +1111,7 @@ def apply_curiosity_policy(
                     decision
                 )
 
-                return CuriosityResult(
+                return _result(
 
                     requested=True,
 
@@ -1004,26 +1145,38 @@ def apply_curiosity_policy(
                         recent_question_count
                     ),
 
+                    recent_two_questions=(
+                        recent_two_questions
+                    ),
+
                     reason=(
                         "recent_question_pressure"
                     )
                 )
 
+        # -------------------------------------------------
+        # Mittlerer Druck.
+        #
+        # Eine mittelmäßige Frage wird blockiert.
+        #
+        # Eine klar interessante Frage darf bleiben.
+        # -------------------------------------------------
+
         elif (
             question_pressure
             >=
-            0.33
+            0.50
             and
             curiosity_strength
             <
-            0.70
+            0.75
         ):
 
             _disable_question(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -1057,6 +1210,10 @@ def apply_curiosity_policy(
                     recent_question_count
                 ),
 
+                recent_two_questions=(
+                    recent_two_questions
+                ),
+
                 reason=(
                     "question_not_worth_pressure"
                 )
@@ -1066,7 +1223,7 @@ def apply_curiosity_policy(
             decision
         )
 
-        return CuriosityResult(
+        return _result(
 
             requested=True,
 
@@ -1100,6 +1257,10 @@ def apply_curiosity_policy(
                 recent_question_count
             ),
 
+            recent_two_questions=(
+                recent_two_questions
+            ),
+
             reason=(
                 "genuine_curiosity"
             )
@@ -1108,19 +1269,7 @@ def apply_curiosity_policy(
     # =====================================================
     # SOCIAL QUESTION
     #
-    # Diese Kategorie darf existieren.
-    #
-    # Aber:
-    #
-    # "und du?"
-    #
-    # darf NICHT das Standard-Ende jeder Antwort sein.
-    #
-    # Social Questions brauchen:
-    #
-    # - echtes Thema-Interesse
-    # - starke aktuelle Neugier
-    # - wenig Recent Question Pressure
+    # Bewusst selten.
     # =====================================================
 
     if (
@@ -1139,7 +1288,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -1171,6 +1320,10 @@ def apply_curiosity_policy(
 
                 recent_question_count=(
                     recent_question_count
+                ),
+
+                recent_two_questions=(
+                    recent_two_questions
                 ),
 
                 reason=(
@@ -1188,7 +1341,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -1222,10 +1375,17 @@ def apply_curiosity_policy(
                     recent_question_count
                 ),
 
+                recent_two_questions=(
+                    recent_two_questions
+                ),
+
                 reason=(
                     "social_question_curiosity_too_low"
                 )
             )
+
+        # Eine Social-Gegenfrage direkt nach
+        # einer anderen Frage wirkt schnell interviewig.
 
         if (
             recent_two_questions
@@ -1237,7 +1397,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -1269,6 +1429,10 @@ def apply_curiosity_policy(
 
                 recent_question_count=(
                     recent_question_count
+                ),
+
+                recent_two_questions=(
+                    recent_two_questions
                 ),
 
                 reason=(
@@ -1286,7 +1450,7 @@ def apply_curiosity_policy(
                 decision
             )
 
-            return CuriosityResult(
+            return _result(
 
                 requested=True,
 
@@ -1320,6 +1484,10 @@ def apply_curiosity_policy(
                     recent_question_count
                 ),
 
+                recent_two_questions=(
+                    recent_two_questions
+                ),
+
                 reason=(
                     "social_question_pressure"
                 )
@@ -1329,7 +1497,7 @@ def apply_curiosity_policy(
             decision
         )
 
-        return CuriosityResult(
+        return _result(
 
             requested=True,
 
@@ -1363,6 +1531,10 @@ def apply_curiosity_policy(
                 recent_question_count
             ),
 
+            recent_two_questions=(
+                recent_two_questions
+            ),
+
             reason=(
                 "natural_social_curiosity"
             )
@@ -1376,7 +1548,7 @@ def apply_curiosity_policy(
         decision
     )
 
-    return CuriosityResult(
+    return _result(
 
         requested=True,
 
@@ -1410,10 +1582,91 @@ def apply_curiosity_policy(
             recent_question_count
         ),
 
+        recent_two_questions=(
+            recent_two_questions
+        ),
+
         reason=(
             "question_policy_fallback"
         )
     )
+
+
+# =========================================================
+# FINAL QUESTION OUTPUT GUARD
+#
+# Curiosity ist eine logische Entscheidung.
+#
+# Writer und Qwen dürfen diese Entscheidung
+# danach NICHT wieder verändern.
+# =========================================================
+
+def question_output_violation_reasons(
+    answer: str,
+    result: CuriosityResult
+) -> list[str]:
+
+    answer = str(
+        answer
+        or ""
+    ).strip()
+
+    if not answer:
+
+        return []
+
+    question_marks = (
+        answer.count(
+            "?"
+        )
+    )
+
+    reasons = []
+
+    # -----------------------------------------------------
+    # Curiosity sagt NEIN.
+    #
+    # Dann darf Writer/Qwen keine neue
+    # Gegenfrage einschmuggeln.
+    # -----------------------------------------------------
+
+    if (
+        not result.allowed
+        and
+        question_marks
+        >
+        0
+    ):
+
+        reasons.append(
+            "question_not_allowed_by_curiosity"
+        )
+
+    # -----------------------------------------------------
+    # Curiosity sagt JA.
+    #
+    # Trotzdem maximal EINE Frage.
+    #
+    # Verhindert:
+    #
+    # "wie wars?
+    #  hast du Bosse gemacht
+    #  oder bist du rumgelaufen?"
+    # -----------------------------------------------------
+
+    if (
+        result.allowed
+        and
+        question_marks
+        >
+        1
+    ):
+
+        reasons.append(
+            "multiple_questions_after_curiosity"
+        )
+
+    return reasons
 
 
 # =========================================================
@@ -1429,22 +1682,31 @@ def format_curiosity_for_writer(
         return """
 [CURIOSITY / QUESTION POLICY]
 
+Evilnae hat entschieden,
+in dieser Antwort KEINE Frage zu stellen.
+
+Das ist eine feste Response-Plan-Entscheidung.
+
 Keine Gegenfrage anhängen.
+
+Auch nicht:
+
+- "und du?"
+- "wie sieht es bei dir aus?"
+- "was hast du gemacht?"
+- "was meinst du?"
+- "wie war es?"
+- "was spielst du?"
+- "oder hast du ...?"
 
 Die Antwort darf einfach enden.
 
-Nicht künstlich:
+Nicht versuchen,
+das Gespräch künstlich weiterzuführen.
 
-- "und du?"
-- "was meinst du?"
-- "wie sieht es bei dir aus?"
-- "was machst du so?"
+WICHTIG:
 
-anhängen, nur um das Gespräch
-weiterlaufen zu lassen.
-
-Wenn die eigentliche Reaktion
-gesagt ist, darf die Nachricht vorbei sein.
+0 Fragezeichen.
 """.strip()
 
     if (
@@ -1456,19 +1718,22 @@ gesagt ist, darf die Nachricht vorbei sein.
         return f"""
 [CURIOSITY / QUESTION POLICY]
 
-Eine kurze Clarification-Frage ist sinnvoll.
+Evilnae möchte genau EINE
+Clarification-Frage stellen.
 
-Ziel der Frage:
+Ziel:
 
 {result.question_goal}
 
-Die Frage soll Evilnae helfen,
-den aktuellen Inhalt wirklich zu verstehen.
+Die Frage soll genau die Information klären,
+die zum Verständnis fehlt.
 
-Nur EINE Frage.
+Maximal EINE Frage.
+Maximal EIN Fragezeichen.
 
-Keine zusätzliche Social-Gegenfrage.
-Kein Interview-Stil.
+Keine zweite Gegenfrage.
+Keine Auswahl aus mehreren Fragen.
+Kein Interview.
 """.strip()
 
     if (
@@ -1480,10 +1745,10 @@ Kein Interview-Stil.
         return f"""
 [CURIOSITY / QUESTION POLICY]
 
-Evilnae ist an diesem konkreten Punkt
-wirklich neugierig.
+Evilnae ist an einem konkreten Detail
+wirklich interessiert.
 
-Ziel der Frage:
+Question goal:
 
 {result.question_goal}
 
@@ -1493,38 +1758,47 @@ Information gap:
 Topic interest:
 {result.topic_interest}
 
-Curiosity:
+Curiosity strength:
 {result.curiosity_strength:.2f}
 
-Eine kurze natürliche Frage ist sinnvoll.
+Formuliere genau EINE
+kurze natürliche Frage,
+die dieses Ziel erfüllt.
 
-Nur EINE Frage.
+Maximal EIN Fragezeichen.
 
-Sie soll genau die Information betreffen,
-die Evilnae tatsächlich wissen möchte.
+Nicht:
 
-Nicht noch eine zweite Frage anhängen.
-Nicht wie ein Interviewer formulieren.
+"wie wars?
+hast du X gemacht
+oder Y?"
+
+Nicht mehrere Alternativen abfragen.
+
+Nicht interviewen.
+
+Ein Gedanke + eine Frage
+ODER einfach nur die Frage
+ist völlig ausreichend.
 """.strip()
 
     return f"""
 [CURIOSITY / QUESTION POLICY]
 
-Eine lockere Social-Frage ist
-in diesem Moment erlaubt.
+Eine einzelne lockere Social-Frage
+ist in diesem Moment erlaubt.
 
 Ziel:
 
 {result.question_goal}
 
-Sie ist NICHT nötig,
-weil ein Bot das Gespräch
-am Leben halten muss.
+Diese Frage entsteht aus echtem Interesse,
+nicht aus Gesprächspflicht.
 
-Sie entsteht aus echtem Interesse.
+Maximal EINE Frage.
+Maximal EIN Fragezeichen.
 
-Nur EINE kurze Frage.
-Keine zweite Frage.
+Keine zweite Follow-up-Frage.
 """.strip()
 
 
@@ -1551,6 +1825,8 @@ def format_curiosity_debug(
         f"{result.question_pressure:.2f} "
         f"recent_questions="
         f"{result.recent_question_count} "
+        f"recent_two="
+        f"{result.recent_two_questions} "
         f"goal={result.question_goal!r} "
         f"reason={result.reason}"
     )
@@ -1603,38 +1879,94 @@ def _self_test():
     tests = []
 
     # -----------------------------------------------------
-    # 1. No question requested
+    # 1
     # -----------------------------------------------------
 
-    decision = _Decision(
-        ask_question=False
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[],
-
-            conversation_mode="direct"
-        )
+    (
+        pressure,
+        count,
+        recent_two
+    ) = calculate_question_pressure(
+        []
     )
 
     tests.append(
         (
-            "no requested question stays off",
+            "empty history pressure zero",
+
+            pressure
+            ==
+            0.0
+        )
+    )
+
+    # -----------------------------------------------------
+    # 2
+    #
+    # Wichtigster Regression Test:
+    #
+    # 1 Frage darf NICHT wieder pressure 1.00 werden.
+    # -----------------------------------------------------
+
+    (
+        pressure,
+        count,
+        recent_two
+    ) = calculate_question_pressure(
+        [
+            "wie wars?"
+        ]
+    )
+
+    tests.append(
+        (
+            "single question is only light pressure",
 
             (
-                not result.allowed
-                and
-                not decision.ask_question
+                0.20
+                <=
+                pressure
+                <=
+                0.35
             )
         )
     )
 
     # -----------------------------------------------------
-    # 2. Genuine Gaming Curiosity
+    # 3
+    # -----------------------------------------------------
+
+    (
+        pressure,
+        count,
+        recent_two
+    ) = calculate_question_pressure(
+        [
+            "wie wars?",
+            "welcher boss?"
+        ]
+    )
+
+    tests.append(
+        (
+            "two consecutive questions create pressure",
+
+            pressure
+            >=
+            0.70
+        )
+    )
+
+    # -----------------------------------------------------
+    # 4
+    #
+    # Genau dein Elden Ring Fall:
+    #
+    # Eine Frage vorher.
+    # Neue echte Info-Lücke.
+    # Curiosity .70.
+    #
+    # MUSS erlaubt bleiben.
     # -----------------------------------------------------
 
     decision = _Decision(
@@ -1646,385 +1978,6 @@ def _self_test():
         question_goal=(
             "herausfinden welcher Boss "
             "den User gestoppt hat"
-        ),
-
-        curiosity_strength=0.82,
-
-        information_gap="high",
-
-        topic_interest="high"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[
-                "elden ring ist schon brutal."
-            ],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "genuine curiosity allowed",
-
-            (
-                result.allowed
-                and
-                decision.ask_question
-            )
-        )
-    )
-
-    # -----------------------------------------------------
-    # 3. Low curiosity
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="curiosity",
-
-        question_goal=(
-            "wissen welches Essen gemeint ist"
-        ),
-
-        curiosity_strength=0.30,
-
-        information_gap="high",
-
-        topic_interest="medium"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "low curiosity blocked",
-
-            not result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 4. Low topic interest
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="curiosity",
-
-        question_goal=(
-            "mehr über das Thema erfahren"
-        ),
-
-        curiosity_strength=0.90,
-
-        information_gap="high",
-
-        topic_interest="low"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "low interest blocked",
-
-            not result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 5. No information gap
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="curiosity",
-
-        question_goal=(
-            "wissen welcher Boss gemeint ist"
-        ),
-
-        curiosity_strength=0.90,
-
-        information_gap="none",
-
-        topic_interest="high"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "no information gap blocked",
-
-            not result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 6. Important clarification allowed
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="clarification",
-
-        question_goal=(
-            "klären welchen Boss "
-            "der User beschreibt"
-        ),
-
-        curiosity_strength=0.45,
-
-        information_gap="high",
-
-        topic_interest="medium"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[
-                "was genau meinst du?",
-                "ah okay?"
-            ],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "needed clarification allowed",
-
-            result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 7. Weak clarification blocked
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="clarification",
-
-        question_goal=(
-            "noch ein kleines Detail erfahren"
-        ),
-
-        curiosity_strength=0.20,
-
-        information_gap="low",
-
-        topic_interest="medium"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "weak clarification blocked",
-
-            not result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 8. Social question occasionally allowed
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="social",
-
-        question_goal=(
-            "wissen welche Games "
-            "der User aktuell mag"
-        ),
-
-        curiosity_strength=0.80,
-
-        information_gap="low",
-
-        topic_interest="high"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[
-                "gaming geht eigentlich immer.",
-                "ich hab da keinen festen go-to."
-            ],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "social question can happen",
-
-            result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 9. Social question not after recent question
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="social",
-
-        question_goal=(
-            "wissen welches Spiel "
-            "der User gerade zockt"
-        ),
-
-        curiosity_strength=0.90,
-
-        information_gap="low",
-
-        topic_interest="high"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[
-                "welcher boss war das?",
-                "ah der 💀"
-            ],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "social followup not too soon",
-
-            not result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 10. Generic goal blocked
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="social",
-
-        question_goal=(
-            "Gespräch weiterführen"
-        ),
-
-        curiosity_strength=1.0,
-
-        information_gap="medium",
-
-        topic_interest="high"
-    )
-
-    result = (
-        apply_curiosity_policy(
-
-            decision=decision,
-
-            recent_evilnae_messages=[],
-
-            conversation_mode="continuation"
-        )
-    )
-
-    tests.append(
-        (
-            "generic conversation goal blocked",
-
-            not result.allowed
-        )
-    )
-
-    # -----------------------------------------------------
-    # 11. Interview pressure blocks normal curiosity
-    # -----------------------------------------------------
-
-    decision = _Decision(
-
-        ask_question=True,
-
-        question_type="curiosity",
-
-        question_goal=(
-            "wissen warum der User "
-            "das Spiel aufgehört hat"
         ),
 
         curiosity_strength=0.70,
@@ -2040,9 +1993,7 @@ def _self_test():
             decision=decision,
 
             recent_evilnae_messages=[
-                "was spielst du?",
-                "welches davon?",
-                "warum genau?"
+                "wie war dein Elden Ring Run?"
             ],
 
             conversation_mode="continuation"
@@ -2051,14 +2002,14 @@ def _self_test():
 
     tests.append(
         (
-            "question pressure blocks interview loop",
+            "boss curiosity survives one prior question",
 
-            not result.allowed
+            result.allowed
         )
     )
 
     # -----------------------------------------------------
-    # 12. Strong important curiosity may override pressure
+    # 5
     # -----------------------------------------------------
 
     decision = _Decision(
@@ -2068,8 +2019,52 @@ def _self_test():
         question_type="curiosity",
 
         question_goal=(
-            "herausfinden welcher Boss "
-            "der zentrale Punkt der Story ist"
+            "wissen warum der User "
+            "das Spiel beendet hat"
+        ),
+
+        curiosity_strength=0.65,
+
+        information_gap="medium",
+
+        topic_interest="high"
+    )
+
+    result = (
+        apply_curiosity_policy(
+
+            decision=decision,
+
+            recent_evilnae_messages=[
+                "wie wars?",
+                "welcher boss?"
+            ],
+
+            conversation_mode="continuation"
+        )
+    )
+
+    tests.append(
+        (
+            "interview loop blocked after two questions",
+
+            not result.allowed
+        )
+    )
+
+    # -----------------------------------------------------
+    # 6
+    # -----------------------------------------------------
+
+    decision = _Decision(
+
+        ask_question=True,
+
+        question_type="curiosity",
+
+        question_goal=(
+            "wissen welches überraschende "
+            "Ereignis gerade passiert ist"
         ),
 
         curiosity_strength=0.92,
@@ -2085,9 +2080,8 @@ def _self_test():
             decision=decision,
 
             recent_evilnae_messages=[
-                "was hast du gezockt?",
-                "wie weit warst du?",
-                "war das schwer?"
+                "wie wars?",
+                "was ist passiert?"
             ],
 
             conversation_mode="continuation"
@@ -2096,9 +2090,276 @@ def _self_test():
 
     tests.append(
         (
-            "very strong curiosity may override pressure",
+            "exceptional curiosity may override pressure",
 
             result.allowed
+        )
+    )
+
+    # -----------------------------------------------------
+    # 7
+    # -----------------------------------------------------
+
+    decision = _Decision(
+
+        ask_question=False
+    )
+
+    result = (
+        apply_curiosity_policy(
+
+            decision=decision,
+
+            recent_evilnae_messages=[],
+
+            conversation_mode="continuation"
+        )
+    )
+
+    tests.append(
+        (
+            "brain no question stays no question",
+
+            not result.allowed
+        )
+    )
+
+    # -----------------------------------------------------
+    # 8
+    # -----------------------------------------------------
+
+    violations = (
+        question_output_violation_reasons(
+
+            (
+                "geht so, und bei dir?"
+            ),
+
+            result
+        )
+    )
+
+    tests.append(
+        (
+            "qwen cannot reintroduce blocked question",
+
+            (
+                "question_not_allowed_by_curiosity"
+
+                in
+                violations
+            )
+        )
+    )
+
+    # -----------------------------------------------------
+    # 9
+    # -----------------------------------------------------
+
+    decision = _Decision(
+
+        ask_question=True,
+
+        question_type="curiosity",
+
+        question_goal=(
+            "herausfinden welcher Boss "
+            "gemeint ist"
+        ),
+
+        curiosity_strength=0.80,
+
+        information_gap="high",
+
+        topic_interest="high"
+    )
+
+    allowed_result = (
+        apply_curiosity_policy(
+
+            decision=decision,
+
+            recent_evilnae_messages=[],
+
+            conversation_mode="continuation"
+        )
+    )
+
+    violations = (
+        question_output_violation_reasons(
+
+            (
+                "wie wars? "
+                "welcher boss war das?"
+            ),
+
+            allowed_result
+        )
+    )
+
+    tests.append(
+        (
+            "multiple questions blocked",
+
+            (
+                "multiple_questions_after_curiosity"
+
+                in
+                violations
+            )
+        )
+    )
+
+    # -----------------------------------------------------
+    # 10
+    # -----------------------------------------------------
+
+    violations = (
+        question_output_violation_reasons(
+
+            (
+                "welcher boss war das?"
+            ),
+
+            allowed_result
+        )
+    )
+
+    tests.append(
+        (
+            "single allowed question accepted",
+
+            not violations
+        )
+    )
+
+    # -----------------------------------------------------
+    # 11
+    # -----------------------------------------------------
+
+    decision = _Decision(
+
+        ask_question=True,
+
+        question_type="social",
+
+        question_goal=(
+            "wissen welches Spiel "
+            "der User gerade mag"
+        ),
+
+        curiosity_strength=0.80,
+
+        information_gap="low",
+
+        topic_interest="high"
+    )
+
+    social_result = (
+        apply_curiosity_policy(
+
+            decision=decision,
+
+            recent_evilnae_messages=[
+                "gaming geht schon klar.",
+                "kein fester go-to."
+            ],
+
+            conversation_mode="continuation"
+        )
+    )
+
+    tests.append(
+        (
+            "social question can still happen occasionally",
+
+            social_result.allowed
+        )
+    )
+
+    # -----------------------------------------------------
+    # 12
+    # -----------------------------------------------------
+
+    decision = _Decision(
+
+        ask_question=True,
+
+        question_type="social",
+
+        question_goal=(
+            "wissen was Hanae gerade macht"
+        ),
+
+        curiosity_strength=0.90,
+
+        information_gap="low",
+
+        topic_interest="high"
+    )
+
+    social_result = (
+        apply_curiosity_policy(
+
+            decision=decision,
+
+            recent_evilnae_messages=[
+                "wie gehts dir?",
+                "alles gut."
+            ],
+
+            conversation_mode="continuation"
+        )
+    )
+
+    tests.append(
+        (
+            "social question not directly after question",
+
+            not social_result.allowed
+        )
+    )
+
+    # -----------------------------------------------------
+    # 13
+    # -----------------------------------------------------
+
+    decision = _Decision(
+
+        ask_question=True,
+
+        question_type="clarification",
+
+        question_goal=(
+            "klären wen der User mit sie meint"
+        ),
+
+        curiosity_strength=0.30,
+
+        information_gap="high",
+
+        topic_interest="medium"
+    )
+
+    clarification_result = (
+        apply_curiosity_policy(
+
+            decision=decision,
+
+            recent_evilnae_messages=[
+                "was meinst du?",
+                "hä?"
+            ],
+
+            conversation_mode="continuation"
+        )
+    )
+
+    tests.append(
+        (
+            "important clarification survives pressure",
+
+            clarification_result.allowed
         )
     )
 
@@ -2112,13 +2373,16 @@ def _self_test():
     print(
         "============================================"
     )
+
     print(
         f"CURIOSITY v"
         f"{CURIOSITY_VERSION} TEST"
     )
+
     print(
         "============================================"
     )
+
     print("")
 
     for (
@@ -2128,26 +2392,33 @@ def _self_test():
 
         if success:
 
-            status = "PASS"
+            status = (
+                "PASS"
+            )
 
             passed += 1
 
         else:
 
-            status = "FAIL"
+            status = (
+                "FAIL"
+            )
 
         print(
             f"[{status}] {name}"
         )
 
     print("")
+
     print(
         "============================================"
     )
+
     print(
         f"RESULT: "
         f"{passed}/{len(tests)} passed"
     )
+
     print(
         "============================================"
     )

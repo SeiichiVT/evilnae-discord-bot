@@ -13,7 +13,7 @@ from conversation_state import (
 # VERSION
 # =========================================================
 
-BRAIN_VERSION = "2.2-agency"
+BRAIN_VERSION = "2.3-curiosity"
 
 
 # =========================================================
@@ -32,6 +32,30 @@ class BrainDecision:
     tone: str = "relaxed"
 
     ask_question: bool = False
+
+    # -----------------------------------------------------
+    # CURIOSITY / QUESTION DECISION
+    #
+    # ask_question bedeutet:
+    #
+    # Evilnae selbst möchte eine Frage stellen.
+    #
+    # NICHT:
+    #
+    # Der User hat eine Frage gestellt.
+    # -----------------------------------------------------
+
+    question_type: str = "none"
+
+    question_goal: str = ""
+
+    question_reason: str = ""
+
+    curiosity_strength: float = 0.0
+
+    information_gap: str = "none"
+
+    topic_interest: str = "medium"
 
     acknowledge_correction: bool = False
 
@@ -118,6 +142,32 @@ ALLOWED_TONES = {
 }
 
 
+ALLOWED_QUESTION_TYPES = {
+
+    "none",
+    "curiosity",
+    "clarification",
+    "social",
+}
+
+
+ALLOWED_INFORMATION_GAPS = {
+
+    "none",
+    "low",
+    "medium",
+    "high",
+}
+
+
+ALLOWED_TOPIC_INTEREST = {
+
+    "low",
+    "medium",
+    "high",
+}
+
+
 ALLOWED_KNOWLEDGE_CONFIDENCE = {
 
     "high",
@@ -157,6 +207,20 @@ def default_brain_decision(
         tone="relaxed",
 
         ask_question=False,
+
+        question_type="none",
+
+        question_goal="",
+
+        question_reason=(
+            "Keine Frage nötig."
+        ),
+
+        curiosity_strength=0.0,
+
+        information_gap="none",
+
+        topic_interest="medium",
 
         acknowledge_correction=False,
 
@@ -369,6 +433,33 @@ def safe_bool(
             return False
 
     return default
+
+
+def safe_float_01(
+    value,
+    default=0.0
+):
+
+    try:
+
+        result = float(
+            value
+        )
+
+    except (
+        TypeError,
+        ValueError
+    ):
+
+        return default
+
+    return max(
+        0.0,
+        min(
+            1.0,
+            result
+        )
+    )
 
 
 def safe_list(
@@ -861,19 +952,301 @@ nur weil ein User einen Imperativ benutzt.
 
 
 ==================================================
-GEGENFRAGEN
+CURIOSITY / GEGENFRAGEN
 ==================================================
+
+EXTREM WICHTIG:
+
+ask_question beschreibt NICHT,
+ob der USER gerade eine Frage gestellt hat.
+
+ask_question bedeutet ausschließlich:
+
+"Soll Evilnae in IHRER eigenen Antwort
+selbst eine Frage stellen?"
+
 
 DEFAULT:
 
 ask_question = false
 
-Eine Frage nur,
-wenn Evilnae wirklich etwas
-wissen möchte oder wissen muss.
 
-Nicht fragen,
-nur damit das Gespräch weitergeht.
+Eine Frage ist eine eigene
+soziale Entscheidung von Evilnae.
+
+Nicht automatisch:
+
+User stellt Frage
+→ Evilnae stellt Gegenfrage
+
+Nicht automatisch:
+
+User erzählt etwas
+→ Evilnae fragt weiter
+
+
+--------------------------------------------------
+QUESTION TYPES
+--------------------------------------------------
+
+question_type = "none"
+
+Keine Frage.
+
+
+question_type = "curiosity"
+
+Evilnae möchte ein konkretes Detail
+wirklich wissen.
+
+Beispiel:
+
+User:
+"Ich bin bei Elden Ring
+an einem Boss hängen geblieben."
+
+Wenn das Thema Evilnae interessiert
+und ihr dieses Detail fehlt:
+
+question_type = "curiosity"
+
+question_goal =
+"herausfinden welcher Boss
+den User gestoppt hat"
+
+
+question_type = "clarification"
+
+Evilnae braucht eine Information,
+um überhaupt sicher zu verstehen,
+was gemeint ist.
+
+
+question_type = "social"
+
+Eine lockere soziale Gegenfrage.
+
+Zum Beispiel:
+
+"und du?"
+
+Diese Art darf vorkommen.
+
+ABER:
+
+Sie ist die SELTENSTE Kategorie.
+
+Nicht als Standard-Abschluss
+einer Antwort benutzen.
+
+
+--------------------------------------------------
+TOPIC INTEREST
+--------------------------------------------------
+
+topic_interest:
+
+low
+medium
+high
+
+
+high:
+
+- Thema passt stark zu Evilnaes Interessen
+- etwas überrascht oder fasziniert sie
+- es ist sozial/persönlich relevant
+- sie möchte wirklich mehr darüber wissen
+
+
+medium:
+
+- Thema ist okay
+- ein Detail könnte interessant sein
+- aber es besteht kein starker Drang
+
+
+low:
+
+- Thema interessiert sie gerade kaum
+- sie versteht bereits genug
+- weitere Details würden ihre Reaktion
+  nicht wesentlich verändern
+
+
+Nutze dabei den bereitgestellten Kontext
+und Evilnaes Self Model.
+
+Gaming ist grundsätzlich
+ein Interesse von Evilnae.
+
+Das bedeutet aber NICHT,
+dass jede Gaming-Nachricht automatisch
+topic_interest = high bekommt.
+
+
+--------------------------------------------------
+INFORMATION GAP
+--------------------------------------------------
+
+information_gap:
+
+none
+low
+medium
+high
+
+
+none:
+
+Evilnae versteht genug.
+
+
+low:
+
+Es fehlt ein kleines Detail,
+das für die Antwort kaum wichtig ist.
+
+
+medium:
+
+Ein fehlendes Detail würde
+ihr Verständnis oder ihre Einschätzung
+merklich verbessern.
+
+
+high:
+
+Ohne dieses Detail fehlt
+ein zentraler Teil der Situation.
+
+
+--------------------------------------------------
+CURIOSITY STRENGTH
+--------------------------------------------------
+
+curiosity_strength:
+
+0.0 bis 1.0
+
+
+0.0:
+
+Evilnae will nichts weiter wissen.
+
+
+0.5:
+
+leicht neugierig.
+
+
+0.7:
+
+klar interessiert.
+
+
+0.9:
+
+sie WILL dieses Detail wirklich wissen.
+
+
+Nicht künstlich hochsetzen,
+nur damit eine Frage entstehen kann.
+
+
+--------------------------------------------------
+QUESTION GOAL
+--------------------------------------------------
+
+Wenn ask_question = true:
+
+question_goal MUSS konkret sagen,
+welche Information Evilnae will.
+
+GUT:
+
+"herausfinden welcher Boss
+den User gestoppt hat"
+
+"klären ob mit 'sie'
+Hanae gemeint ist"
+
+"wissen welches Game
+der User gerade aktiv spielt"
+
+
+SCHLECHT:
+
+"Gespräch weiterführen"
+
+"mehr erfahren"
+
+"Interesse zeigen"
+
+"User einbeziehen"
+
+"eine Gegenfrage stellen"
+
+
+--------------------------------------------------
+QUESTION REASON
+--------------------------------------------------
+
+question_reason beschreibt kurz,
+WARUM Evilnae das wissen möchte.
+
+
+--------------------------------------------------
+KEIN INTERVIEW
+--------------------------------------------------
+
+Evilnae ist kein Interviewer.
+
+Wenn sie gerade bereits
+mehrfach Fragen gestellt hat,
+braucht die nächste Frage
+einen stärkeren Grund.
+
+Aber:
+
+Keine starre Quote.
+
+Eine wirklich wichtige
+Clarification darf trotzdem kommen.
+
+Eine starke echte Neugier
+darf ebenfalls manchmal
+eine weitere Frage rechtfertigen.
+
+
+--------------------------------------------------
+GESPRÄCH DARF EINFACH WEITERLAUFEN
+--------------------------------------------------
+
+Gegenfragen können ein Gespräch
+natürlich am Laufen halten.
+
+Das ist okay.
+
+Aber das ist ein Nebeneffekt,
+NICHT der Grund für die Frage.
+
+Der Grund muss sein:
+
+Evilnae möchte die Information
+wirklich wissen
+
+ODER
+
+sie braucht sie zum Verstehen.
+
+
+Wenn sie bereits genug weiß:
+
+ask_question = false
+
+Dann darf ihre Antwort
+einfach natürlich enden.
 
 
 ==================================================
@@ -1258,6 +1631,12 @@ Schema:
   "response_length": "short",
   "tone": "relaxed",
   "ask_question": false,
+  "question_type": "none",
+  "question_goal": "",
+  "question_reason": "",
+  "curiosity_strength": 0.0,
+  "information_gap": "none",
+  "topic_interest": "medium",
   "acknowledge_correction": false,
   "topic_exhausted": false,
   "repetition_risk": false,
@@ -1337,6 +1716,57 @@ def parse_brain_decision(
                 "ask_question"
             ),
             False
+        ),
+
+        question_type=safe_enum(
+            data.get(
+                "question_type"
+            ),
+            ALLOWED_QUESTION_TYPES,
+            "none"
+        ),
+
+        question_goal=(
+            str(
+                data.get(
+                    "question_goal",
+                    ""
+                )
+            )[:300]
+        ),
+
+        question_reason=(
+            str(
+                data.get(
+                    "question_reason",
+                    ""
+                )
+            )[:400]
+        ),
+
+        curiosity_strength=(
+            safe_float_01(
+                data.get(
+                    "curiosity_strength"
+                ),
+                0.0
+            )
+        ),
+
+        information_gap=safe_enum(
+            data.get(
+                "information_gap"
+            ),
+            ALLOWED_INFORMATION_GAPS,
+            "none"
+        ),
+
+        topic_interest=safe_enum(
+            data.get(
+                "topic_interest"
+            ),
+            ALLOWED_TOPIC_INTEREST,
+            "medium"
         ),
 
         acknowledge_correction=safe_bool(
@@ -1434,6 +1864,20 @@ def parse_brain_decision(
             )[:500]
         )
     )
+
+    # -----------------------------------------------------
+    # QUESTION NORMALIZATION
+    # -----------------------------------------------------
+
+    if not decision.ask_question:
+
+        decision.question_type = (
+            "none"
+        )
+
+        decision.question_goal = (
+            ""
+        )
 
     # -----------------------------------------------------
     # SAFETY NORMALIZATION
@@ -1697,6 +2141,24 @@ Tone:
 
 Ask question:
 {decision.ask_question}
+
+Question type:
+{decision.question_type}
+
+Question goal:
+{decision.question_goal}
+
+Question reason:
+{decision.question_reason}
+
+Curiosity strength:
+{decision.curiosity_strength:.2f}
+
+Information gap:
+{decision.information_gap}
+
+Topic interest:
+{decision.topic_interest}
 
 Acknowledge correction:
 {decision.acknowledge_correction}
