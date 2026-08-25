@@ -169,6 +169,13 @@ from voice_memory import (
     format_voice_memory_debug,
 )
 
+from evilnae_emotes import (
+    EVILNAE_EMOTE_VERSION,
+    load_application_emojis,
+    apply_evilnae_emote_layer,
+    format_evilnae_emote_debug,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -184,7 +191,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.8-human-rhythm-b3b1b1"
+BOT_VERSION = "2.11.9-evilnae-emotes-v1"
 
 
 # =========================================================
@@ -1186,7 +1193,34 @@ CUSTOM EMOTES
 ==================================================
 
 Discord-Emote-Namen
+in Nachrichten des Users
 sind keine Tatsachen.
+
+WICHTIG:
+
+Schreibe in Evilnaes eigener Antwort
+KEINE Unicode-Emojis
+und KEINE Discord-Custom-Emotes.
+
+Also nicht:
+
+😂
+😭
+💀
+😈
+❤️
+
+und auch nicht:
+
+<:irgendein_emote:123>
+
+Evilnaes eigene Emotes werden
+nach allen Writer-/Voice-/Guard-Schritten
+separat durch den
+Evilnae Emote Layer ausgewählt.
+
+Konzentriere dich nur
+auf den eigentlichen Text.
 
 
 ==================================================
@@ -7377,6 +7411,14 @@ async def on_ready():
     apply_time_decay()
 
     # -----------------------------------------------------
+    # EVILNAE APPLICATION EMOJIS
+    # -----------------------------------------------------
+
+    await load_application_emojis(
+        bot
+    )
+
+    # -----------------------------------------------------
     # LOCAL VOICE WARMUP
     #
     # Qwen wird im Hintergrund vorgeladen.
@@ -7520,6 +7562,19 @@ async def on_ready():
 
     print(
         "No Forced Completion: ACTIVE"
+    )
+
+    print(
+        f"Evilnae Emote Layer v"
+        f"{EVILNAE_EMOTE_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Evilnae Application Emojis Only: ACTIVE"
+    )
+
+    print(
+        "Maximum One Evilnae Emote Per Reply: ACTIVE"
     )
 
     print(
@@ -8238,7 +8293,7 @@ async def on_message(
                 return
 
             await message.reply(
-                "darüber reden wir lieber nicht 😭",
+                "darüber reden wir lieber nicht.",
                 mention_author=False
             )
 
@@ -8254,7 +8309,7 @@ async def on_message(
             await message.reply(
                 "hey, das klingt grad ernst. "
                 "bitte hol dir jemanden dazu, "
-                "mit dem du direkt reden kannst ❤️",
+                "mit dem du direkt reden kannst.",
                 mention_author=False
             )
 
@@ -10887,6 +10942,49 @@ Participation-Entscheidung nötig.
             )
 
             return
+
+        # =================================================
+        # 11.9 EVILNAE APPLICATION EMOTE LAYER
+        #
+        # Der eigentliche Text ist jetzt vollständig fertig.
+        #
+        # Ab hier:
+        #
+        # - Unicode-Emojis raus
+        # - fremde Discord-Emotes raus
+        # - höchstens EIN passendes Evilnae-App-Emote
+        # - bei neutralen / ernsten Antworten auch KEINS
+        # =================================================
+
+        (
+            answer,
+            evilnae_emote_result
+        ) = apply_evilnae_emote_layer(
+
+            answer,
+
+            user_text=(
+                user_text
+            ),
+
+            mood=(
+                current_mood
+            ),
+
+            inner_state=(
+                current_inner_state
+            ),
+
+            is_hanae=(
+                is_hanae
+            )
+        )
+
+        print(
+            format_evilnae_emote_debug(
+                evilnae_emote_result
+            )
+        )
 
         # =================================================
         # 12. CONTEXT FRESHNESS + SEND
