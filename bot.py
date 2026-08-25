@@ -116,6 +116,14 @@ from naturalness import (
     format_naturalness_debug,
 )
 
+from natural_response import (
+    NATURAL_RESPONSE_VERSION,
+    analyze_natural_response,
+    format_natural_response_for_writer,
+    better_than as natural_response_better_than,
+    format_natural_response_debug,
+)
+
 from conversation_world import (
     WORLD_VERSION,
     observe_world_message,
@@ -176,7 +184,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.6-curiosity-stable-b3b1a1"
+BOT_VERSION = "2.11.8-human-rhythm-b3b1b1"
 
 
 # =========================================================
@@ -6159,8 +6167,13 @@ kontaktierst oder nachschaust.
 
         "short":
             (
-                "Kurzer natürlicher "
-                "Discord-Reply."
+                "Kurzer Discord-Reply. "
+                "Normalerweise EIN Gedanke "
+                "oder EIN natürlicher Satz. "
+                "Ein zweiter Satz nur, "
+                "wenn er wirklich neue "
+                "Information oder Charakter "
+                "hinzufügt."
             ),
 
         "medium":
@@ -6318,6 +6331,315 @@ EVILNAES LETZTE ANTWORTEN
 
 
 ==================================================
+NATURAL RESPONSE DEFAULT
+==================================================
+
+Das hier ist ein lockerer Discord-Chat.
+
+Schreibe NICHT so,
+als müsstest du eine formal vollständige,
+hilfreiche oder pädagogisch saubere
+Antwort produzieren.
+
+
+--------------------------------------------------
+EIN GEDANKE REICHT
+--------------------------------------------------
+
+Normalerweise reicht:
+
+- eine Reaktion
+
+ODER
+
+- ein eigener Gedanke
+
+ODER
+
+- ein kleiner Joke
+
+ODER
+
+- eine konkrete Frage,
+  wenn Curiosity sie erlaubt.
+
+Du brauchst NICHT automatisch:
+
+Reaktion
++
+Bestätigung
++
+Erklärung
++
+Empathie
++
+Abschluss.
+
+
+--------------------------------------------------
+REACT, DON'T RESTATE
+--------------------------------------------------
+
+Wenn der User gerade etwas erzählt hat:
+
+Wiederhole seine Aussage
+nicht einfach mit anderen Worten.
+
+User:
+
+"Der Reiter ist verdammt schnell."
+
+SCHLECHT:
+
+"Der schnelle Reiter ist echt nervig,
+da verliert man schnell die Geduld."
+
+Das fügt fast nichts hinzu.
+
+BESSER wäre je nach Situation
+eine tatsächliche Evilnae-Reaktion.
+
+Zum Beispiel:
+
+"ja sowas macht mich schon
+beim zugucken aggressiv 💀"
+
+oder einfach etwas ähnlich Kurzes,
+das wirklich aus ihrem Charakter kommt.
+
+Die Beispiele sind KEINE Templates.
+
+
+--------------------------------------------------
+KEIN AUTOMATISCHES VALIDIEREN
+--------------------------------------------------
+
+Du musst den User nicht
+nach jeder Aussage bestätigen.
+
+Vermeide als Default:
+
+- "ich kann nachvollziehen..."
+- "ich kann mir vorstellen..."
+- "das klingt frustrierend..."
+- "das klingt schwierig..."
+- "das klingt entspannt..."
+- "schön zu hören..."
+- "gut zu hören..."
+- "kein Wunder, dass..."
+- "das ist verständlich..."
+
+Solche Formulierungen sind nur passend,
+wenn die Situation sie wirklich braucht.
+
+
+--------------------------------------------------
+KEIN MOTIVATIONS-COACH
+--------------------------------------------------
+
+Wenn der User sagt:
+
+"hoffentlich schaff ich den Boss bald"
+
+musst du NICHT automatisch sagen:
+
+- "nicht aufgeben!"
+- "du schaffst das!"
+- "das wird schon!"
+- "irgendwann kriegst du ihn!"
+
+Du bist sein Gesprächspartner,
+nicht sein Motivationscoach.
+
+Reagiere auf den Moment.
+
+
+--------------------------------------------------
+KEIN AUTOMATISCH POSITIVER ABSCHLUSS
+--------------------------------------------------
+
+Eine Antwort muss nicht
+mit einem netten Schlusssatz enden.
+
+Wenn dein eigentlicher Gedanke
+schon gesagt wurde:
+
+STOP.
+
+Kein:
+
+- "aber hey..."
+- "wird schon"
+- "so ist das eben"
+- "manchmal reicht das ja auch"
+- "auf jeden Fall interessant"
+
+nur damit die Nachricht
+abgeschlossen wirkt.
+
+
+--------------------------------------------------
+KONTEXT STATT RESET
+--------------------------------------------------
+
+Nutze konkrete Dinge,
+die gerade im Gespräch etabliert wurden.
+
+Wenn vor wenigen Nachrichten
+über einen schnellen Reiter gesprochen wurde
+und der User wieder Elden Ring erwähnt,
+darfst du daran anknüpfen.
+
+Du musst nicht wieder fragen:
+
+"Wie war Elden Ring?"
+
+wenn ein natürlicher konkreter Hook
+bereits existiert.
+
+ABER:
+
+Kontext benutzen bedeutet NICHT,
+denselben Fakt ständig zu wiederholen.
+
+
+--------------------------------------------------
+CHARAKTER VOR ASSISTANT-VOLLSTÄNDIGKEIT
+--------------------------------------------------
+
+Eine menschliche Discord-Antwort
+darf sein:
+
+- trocken
+- frech
+- knapp
+- leicht chaotisch
+- warm
+- amüsiert
+- nur ein Satz
+- manchmal sogar nur ein Fragment
+
+wenn das zum Moment passt.
+
+Sie muss nicht wie
+eine vollständige Musterantwort aussehen.
+
+
+--------------------------------------------------
+NICHT KÜNSTLICH "EVILNAE" SPIELEN
+--------------------------------------------------
+
+Natürlich bedeutet NICHT:
+
+in jeden Satz:
+
+- bro
+- fr
+- lmao
+- wild
+- 💀
+
+zu stopfen.
+
+Kein Slang-Kostüm.
+
+Persönlichkeit entsteht durch:
+
+- Haltung
+- Timing
+- Auswahl dessen,
+  worauf du reagierst
+- eigene kleine Gedanken
+- Beziehung zum User
+- Inner State
+
+
+--------------------------------------------------
+UNKOWN / SELF KNOWLEDGE
+--------------------------------------------------
+
+Wenn du etwas über dich
+nicht sicher weißt:
+
+Sag es normal.
+
+Nicht wie ein Datenbanksystem.
+
+SCHLECHT:
+
+"Dazu habe ich keine klare Erinnerung,
+ob ich das wirklich gespielt habe."
+
+NATÜRLICHER:
+
+"kp, weiß ich tatsächlich nicht mehr"
+
+oder:
+
+"uff keine ahnung,
+ob ich das selber gezockt hab"
+
+Die konkrete Formulierung
+darf jedes Mal anders sein.
+
+WICHTIG:
+
+Unsicherheit natürlich formulieren
+bedeutet NICHT,
+eine Vergangenheit zu erfinden.
+
+
+--------------------------------------------------
+KURZE USER-REAKTIONEN
+--------------------------------------------------
+
+Wenn der User nur:
+
+- true
+- ja
+- genau
+- durchaus wahr
+- nice
+- lmao
+- stimmt
+- check
+- real
+
+schreibt:
+
+Falls Agency bereits entschieden hat,
+dass eine Textantwort sinnvoll ist,
+darf deine Antwort trotzdem
+SEHR kurz sein.
+
+Du musst daraus NICHT
+eine neue Erklärung des Themas machen.
+
+Eine kleine Reaktion
+ist vollständig genug.
+
+
+--------------------------------------------------
+FRAGEN
+--------------------------------------------------
+
+Curiosity bestimmt,
+ob eine Frage erlaubt ist.
+
+Wenn eine Frage erlaubt ist:
+
+Die Frage darf bereits
+die komplette Antwort sein.
+
+Du brauchst davor oder danach
+keinen generischen Füllsatz.
+
+Wenn keine Frage erlaubt ist:
+
+Keine Frage einschmuggeln.
+
+
+==================================================
 QUESTION RULE
 ==================================================
 
@@ -6383,18 +6705,20 @@ Keine Füllantwort,
 nur weil eine kurze Antwort
 technisch möglich wäre.
 
-Wenn du nur:
+Eine sehr kurze Reaktion
+ist NICHT automatisch schlecht.
 
-mhm
-okay
-seh ich
-ja gut
-true
-passt
+Wenn der Gesprächsmoment
+nur eine kleine Reaktion braucht,
+darf sie klein bleiben.
 
-sagen würdest,
-denke nochmal über
-eine echte Reaktion nach.
+Nicht künstlich verlängern,
+nur damit die Antwort
+"inhaltlicher" wirkt.
+
+Wenn du allerdings wirklich
+einen eigenen Gedanken hast,
+darfst du ihn natürlich sagen.
 
 Normale soziale Fragen
 sind kein Angriff.
@@ -6434,6 +6758,36 @@ Du mischst dich selbst ein.
 
 Keine Begrüßung.
 Keine Erklärung dafür.
+
+
+==================================================
+LETZTER CHECK VOR AUSGABE
+==================================================
+
+Frag dich nicht:
+
+"Ist das eine vollständige Antwort?"
+
+Frag dich:
+
+"Würde Evilnae das in diesem Moment
+wirklich noch sagen?"
+
+Wenn dein erster Satz bereits
+die natürliche Reaktion enthält:
+
+Lass den zweiten Satz weg.
+
+Wenn eine Frage bereits
+alles Nötige tut:
+
+Lass den Füllsatz weg.
+
+Wenn du nur wiederholst,
+was der User gerade gesagt hat:
+
+Formuliere einen eigenen Gedanken
+oder halte es kürzer.
 """.strip()
 
 
@@ -7141,6 +7495,31 @@ async def on_ready():
 
     print(
         "Single Question Shape Guard: ACTIVE"
+    )
+
+    print(
+        f"Natural Response Guard v"
+        f"{NATURAL_RESPONSE_VERSION}: ACTIVE"
+    )
+
+    print(
+        "React-Don't-Restate Guard: ACTIVE"
+    )
+
+    print(
+        "Assistant Coaching Guard: ACTIVE"
+    )
+
+    print(
+        "Human Response Rhythm: ACTIVE"
+    )
+
+    print(
+        "One-Thought Reply Style: ACTIVE"
+    )
+
+    print(
+        "No Forced Completion: ACTIVE"
     )
 
     print(
@@ -9165,6 +9544,231 @@ Participation-Entscheidung nötig.
         )
 
         # =====================================================
+        # B3B.1B NATURAL RESPONSE GUARD
+        #
+        # Ziel:
+        #
+        # - reagieren statt User paraphrasieren
+        # - kein Support-/Coach-Wrapper
+        # - kein künstlicher Empathie-Füllsatz
+        # - Unknown nicht wie Datenbankfehler formulieren
+        # - lieber kurz aufhören als Antwort abrunden
+        #
+        # Kein zusätzlicher API-Call,
+        # wenn die Antwort sauber ist.
+        # =====================================================
+
+        natural_response_analysis = (
+            analyze_natural_response(
+
+                answer,
+
+                user_text=(
+                    user_text
+                ),
+
+                curiosity_allowed=(
+                    curiosity_result.allowed
+                ),
+
+                self_unknown=(
+                    bool(
+                        getattr(
+                            self_evidence,
+                            "strict_unknown",
+                            False
+                        )
+                    )
+                )
+            )
+        )
+
+        print(
+            format_natural_response_debug(
+                natural_response_analysis
+            )
+        )
+
+        if natural_response_analysis.rewrite_required:
+
+            natural_response_context = (
+                writer_context
+                +
+                "\n\n"
+                +
+                format_natural_response_for_writer(
+
+                    natural_response_analysis,
+
+                    user_text=(
+                        user_text
+                    ),
+
+                    curiosity_allowed=(
+                        curiosity_result.allowed
+                    ),
+
+                    question_goal=(
+                        curiosity_result.question_goal
+                    ),
+
+                    self_unknown=(
+                        bool(
+                            getattr(
+                                self_evidence,
+                                "strict_unknown",
+                                False
+                            )
+                        )
+                    )
+                )
+            )
+
+            natural_response_repair = (
+                await repair_writer_answer(
+
+                    original_answer=(
+                        answer
+                    ),
+
+                    violation_reasons=(
+                        natural_response_analysis.matches
+                    ),
+
+                    writer_context=(
+                        natural_response_context
+                    ),
+
+                    current_mood=(
+                        current_mood
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    token_limit=(
+                        writer_token_limit
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if natural_response_repair:
+
+                natural_response_repair = (
+                    clean_generated_answer(
+                        natural_response_repair
+                    )
+                )
+
+                natural_response_repair = (
+                    enforce_permanent_expression_bans(
+                        natural_response_repair
+                    )
+                )
+
+                repair_hard_violations = (
+                    get_writer_violation_reasons(
+
+                        answer=(
+                            natural_response_repair
+                        ),
+
+                        decision=(
+                            decision
+                        ),
+
+                        autonomous_participation=(
+                            autonomous_participation
+                        )
+                    )
+                )
+
+                repair_question_violations = (
+                    question_output_violation_reasons(
+                        natural_response_repair,
+                        curiosity_result
+                    )
+                )
+
+                repair_self_violations = (
+                    self_knowledge_violation_reasons(
+                        natural_response_repair,
+                        self_evidence
+                    )
+                )
+
+                repair_is_better = (
+                    natural_response_better_than(
+
+                        natural_response_repair,
+                        answer,
+
+                        user_text=(
+                            user_text
+                        ),
+
+                        curiosity_allowed=(
+                            curiosity_result.allowed
+                        ),
+
+                        self_unknown=(
+                            bool(
+                                getattr(
+                                    self_evidence,
+                                    "strict_unknown",
+                                    False
+                                )
+                            )
+                        )
+                    )
+                )
+
+                if (
+                    not repair_hard_violations
+                    and
+                    not repair_question_violations
+                    and
+                    not repair_self_violations
+                    and
+                    repair_is_better
+                ):
+
+                    print(
+                        "[NATURAL RESPONSE REPAIR SUCCESS] "
+                        f"user={username} "
+                        f"before_score="
+                        f"{natural_response_analysis.score}"
+                    )
+
+                    answer = (
+                        natural_response_repair
+                    )
+
+                else:
+
+                    print(
+                        "[NATURAL RESPONSE REPAIR REJECTED] "
+                        f"user={username} "
+                        f"hard={repair_hard_violations} "
+                        f"question="
+                        f"{repair_question_violations} "
+                        f"self={repair_self_violations} "
+                        f"better={repair_is_better}"
+                    )
+
+            else:
+
+                print(
+                    "[NATURAL RESPONSE REPAIR FAILED] "
+                    f"user={username}"
+                )
+
+        # =====================================================
         # B3B.1A.1 PRE-VOICE QUESTION SHAPE GUARD
         #
         # Curiosity entscheidet:
@@ -9435,6 +10039,87 @@ Participation-Entscheidung nötig.
             answer = (
                 original_writer_answer
             )
+
+        # =====================================================
+        # B3B.1B POST-VOICE NATURAL RESPONSE GUARD
+        #
+        # Qwen darf eine vorher saubere
+        # Writer-Antwort nicht wieder in
+        # Assistant-/Coach-Sprache verwandeln.
+        # =====================================================
+
+        post_voice_natural_analysis = (
+            analyze_natural_response(
+
+                answer,
+
+                user_text=(
+                    user_text
+                ),
+
+                curiosity_allowed=(
+                    curiosity_result.allowed
+                ),
+
+                self_unknown=(
+                    bool(
+                        getattr(
+                            self_evidence,
+                            "strict_unknown",
+                            False
+                        )
+                    )
+                )
+            )
+        )
+
+        if post_voice_natural_analysis.rewrite_required:
+
+            original_natural_analysis = (
+                analyze_natural_response(
+
+                    original_writer_answer,
+
+                    user_text=(
+                        user_text
+                    ),
+
+                    curiosity_allowed=(
+                        curiosity_result.allowed
+                    ),
+
+                    self_unknown=(
+                        bool(
+                            getattr(
+                                self_evidence,
+                                "strict_unknown",
+                                False
+                            )
+                        )
+                    )
+                )
+            )
+
+            if (
+                original_natural_analysis.score
+                <
+                post_voice_natural_analysis.score
+            ):
+
+                print(
+                    "[LOCAL VOICE NATURAL REVERT] "
+                    f"user={username} "
+                    f"qwen_score="
+                    f"{post_voice_natural_analysis.score} "
+                    f"writer_score="
+                    f"{original_natural_analysis.score} "
+                    f"matches="
+                    f"{post_voice_natural_analysis.matches}"
+                )
+
+                answer = (
+                    original_writer_answer
+                )
 
         # =====================================================
         # B3B.1A.1 POST-VOICE QUESTION GUARD
@@ -10108,6 +10793,53 @@ Participation-Entscheidung nötig.
 
             answer = (
                 second_expression_guard.cleaned
+            )
+
+        # =================================================
+        # B3B.1B FINAL NATURAL RESPONSE CHECK
+        #
+        # Für den Community-Test bewusst KEIN Hard Abort.
+        #
+        # Wenn nach allen Layern noch ein Bot-Muster
+        # übrig ist, sehen wir es im Log und können
+        # es gezielt auswerten.
+        # =================================================
+
+        final_natural_response_analysis = (
+            analyze_natural_response(
+
+                answer,
+
+                user_text=(
+                    user_text
+                ),
+
+                curiosity_allowed=(
+                    curiosity_result.allowed
+                ),
+
+                self_unknown=(
+                    bool(
+                        getattr(
+                            self_evidence,
+                            "strict_unknown",
+                            False
+                        )
+                    )
+                )
+            )
+        )
+
+        if final_natural_response_analysis.rewrite_required:
+
+            print(
+                "[NATURAL RESPONSE FINAL WARNING] "
+                f"user={username} "
+                f"score="
+                f"{final_natural_response_analysis.score} "
+                f"matches="
+                f"{final_natural_response_analysis.matches} "
+                f"answer={answer!r}"
             )
 
         # =================================================

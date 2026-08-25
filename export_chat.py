@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 import discord
 from dotenv import load_dotenv
@@ -14,7 +14,7 @@ load_dotenv()
 DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 # HIER DIE CHANNEL-ID EINTRAGEN
-CHANNEL_ID = 1540825121990778942
+CHANNEL_ID = 1540713345856970884
 
 
 # =========================================================
@@ -158,14 +158,16 @@ async def on_ready():
     )
 
     today_start_local = (
-        now_local
-        .replace(
-            hour=0,
-            minute=0,
-            second=0,
-            microsecond=0
-        )
+    now_local
+    .replace(
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0
     )
+    -
+    timedelta(days=1)
+)
 
     # Discord arbeitet mit UTC.
     today_start_utc = (
