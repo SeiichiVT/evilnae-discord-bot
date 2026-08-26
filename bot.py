@@ -203,7 +203,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.12.0-context-b3c"
+BOT_VERSION = "2.12.1-reliability-b3d"
 
 
 # =========================================================
@@ -3579,6 +3579,215 @@ async def finalize_writer_answer(
         "[WRITER VALIDATION FAILED] "
         f"user={username}"
     )
+
+    return ""
+
+
+
+# =========================================================
+# B3D RESPONSE RELIABILITY
+# =========================================================
+
+def choose_reliability_fallback(
+    *,
+    candidates,
+    curiosity_result,
+    self_evidence,
+    knowledge_constraint,
+    username,
+    stage
+):
+
+    seen = set()
+
+    for (
+        source_name,
+        candidate
+    ) in candidates:
+
+        candidate = (
+            clean_generated_answer(
+                candidate
+                or ""
+            )
+        )
+
+        candidate = (
+            enforce_permanent_expression_bans(
+                candidate
+            )
+        )
+
+        if not candidate:
+
+            continue
+
+        if candidate in seen:
+
+            continue
+
+        seen.add(
+            candidate
+        )
+
+        # -------------------------------------------------
+        # QUESTION POLICY
+        #
+        # Try deterministic salvage before rejecting.
+        # -------------------------------------------------
+
+        question_violations = (
+            question_output_violation_reasons(
+                candidate,
+                curiosity_result
+            )
+        )
+
+        if question_violations:
+
+            candidate = (
+                salvage_question_shape(
+
+                    candidate,
+
+                    allow_question=bool(
+                        getattr(
+                            curiosity_result,
+                            "allowed",
+                            False
+                        )
+                    )
+                )
+            )
+
+            candidate = (
+                clean_generated_answer(
+                    candidate
+                )
+            )
+
+            candidate = (
+                enforce_permanent_expression_bans(
+                    candidate
+                )
+            )
+
+            if not candidate:
+
+                print(
+                    "[RELIABILITY CANDIDATE REJECTED] "
+                    f"user={username} "
+                    f"stage={stage} "
+                    f"source={source_name} "
+                    "reason=question_salvage_empty"
+                )
+
+                continue
+
+            question_violations = (
+                question_output_violation_reasons(
+                    candidate,
+                    curiosity_result
+                )
+            )
+
+        if question_violations:
+
+            print(
+                "[RELIABILITY CANDIDATE REJECTED] "
+                f"user={username} "
+                f"stage={stage} "
+                f"source={source_name} "
+                f"question={question_violations}"
+            )
+
+            continue
+
+        # -------------------------------------------------
+        # SELF KNOWLEDGE
+        # -------------------------------------------------
+
+        self_violations = []
+
+        if self_evidence is not None:
+
+            self_violations = (
+                self_knowledge_violation_reasons(
+                    candidate,
+                    self_evidence
+                )
+            )
+
+        if self_violations:
+
+            print(
+                "[RELIABILITY CANDIDATE REJECTED] "
+                f"user={username} "
+                f"stage={stage} "
+                f"source={source_name} "
+                f"self={self_violations}"
+            )
+
+            continue
+
+        # -------------------------------------------------
+        # KNOWLEDGE AUTHORITY
+        # -------------------------------------------------
+
+        knowledge_violations = []
+
+        if knowledge_constraint is not None:
+
+            knowledge_violations = (
+                knowledge_violation_reasons(
+                    candidate,
+                    knowledge_constraint
+                )
+            )
+
+        if knowledge_violations:
+
+            print(
+                "[RELIABILITY CANDIDATE REJECTED] "
+                f"user={username} "
+                f"stage={stage} "
+                f"source={source_name} "
+                f"knowledge={knowledge_violations}"
+            )
+
+            continue
+
+        # -------------------------------------------------
+        # GARBLED OUTPUT
+        # -------------------------------------------------
+
+        garbled = (
+            analyze_garbled_output(
+                candidate
+            )
+        )
+
+        if garbled.garbled:
+
+            print(
+                "[RELIABILITY CANDIDATE REJECTED] "
+                f"user={username} "
+                f"stage={stage} "
+                f"source={source_name} "
+                f"garbled={garbled.matches}"
+            )
+
+            continue
+
+        print(
+            "[RELIABILITY FALLBACK] "
+            f"user={username} "
+            f"stage={stage} "
+            f"source={source_name} "
+            f"answer={candidate!r}"
+        )
+
+        return candidate
 
     return ""
 
@@ -7529,6 +7738,22 @@ async def on_ready():
     )
 
     print(
+        "Response Reliability v1: ACTIVE"
+    )
+
+    print(
+        "No Lost Harmless Replies: ACTIVE"
+    )
+
+    print(
+        "Safe Draft Fallback: ACTIVE"
+    )
+
+    print(
+        "Explicit Silence Diagnostics: ACTIVE"
+    )
+
+    print(
         f"Response Agency v"
         f"{AGENCY_VERSION}: ACTIVE"
     )
@@ -8191,6 +8416,13 @@ async def on_message(
 
         if not PARTICIPATION_ENABLED:
 
+            print(
+                "[SILENT FINAL] "
+                f"user={username} "
+                "stage=participation "
+                "reason=participation_disabled"
+            )
+
             return
 
         participation_decision = (
@@ -8208,6 +8440,14 @@ async def on_message(
             participation_decision.action
             != "join"
         ):
+
+            print(
+                "[SILENT FINAL] "
+                f"user={username} "
+                "stage=participation "
+                f"reason="
+                f"{getattr(participation_decision, 'reason', 'not_joining')}"
+            )
 
             return
 
@@ -8805,9 +9045,10 @@ Participation-Entscheidung nötig.
         ):
 
             print(
-                "[RESPONSE SKIPPED] "
+                "[SILENT FINAL] "
                 f"user={username} "
-                "reason=agency_stay_silent"
+                "stage=agency "
+                f"reason={agency_result.reason or 'agency_stay_silent'}"
             )
 
             return
@@ -9229,6 +9470,13 @@ Participation-Entscheidung nötig.
                 f"{error}"
             )
 
+            print(
+                "[SILENT FINAL] "
+                f"user={username} "
+                "stage=writer "
+                "reason=writer_api_failure"
+            )
+
             return
 
         # =================================================
@@ -9266,13 +9514,77 @@ Participation-Entscheidung nötig.
 
         if not answer:
 
-            print(
-                "[RESPONSE ABORTED] "
-                f"user={username} "
-                "reason=no_valid_writer_output"
+            recovery_candidates = [
+                (
+                    "raw_writer",
+                    response.output_text
+                ),
+            ]
+
+            if (
+                not autonomous_participation
+                and
+                (
+                    getattr(
+                        self_evidence,
+                        "matched",
+                        False
+                    )
+                    or
+                    getattr(
+                        knowledge_constraint,
+                        "active",
+                        False
+                    )
+                )
+            ):
+
+                recovery_candidates.append(
+                    (
+                        "epistemic_unknown",
+                        "weiß ich grad nicht sicher."
+                    )
+                )
+
+            answer = (
+                choose_reliability_fallback(
+
+                    candidates=(
+                        recovery_candidates
+                    ),
+
+                    curiosity_result=(
+                        curiosity_result
+                    ),
+
+                    self_evidence=(
+                        self_evidence
+                    ),
+
+                    knowledge_constraint=(
+                        knowledge_constraint
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    stage=(
+                        "writer_finalize"
+                    )
+                )
             )
 
-            return
+            if not answer:
+
+                print(
+                    "[SILENT FINAL] "
+                    f"user={username} "
+                    "stage=writer_finalize "
+                    "reason=no_safe_fallback"
+                )
+
+                return
 
         # =================================================
         # 11.5 LOCAL VOICE / HUMANIZATION
@@ -9376,13 +9688,61 @@ Participation-Entscheidung nötig.
 
             if not self_repair:
 
-                print(
-                    "[SELF KNOWLEDGE ABORT] "
-                    f"user={username} "
-                    "reason=repair_failed"
+                fallback_candidates = [
+                    (
+                        "self_violation_source",
+                        answer
+                    ),
+                ]
+
+                if not autonomous_participation:
+
+                    fallback_candidates.append(
+                        (
+                            "epistemic_unknown",
+                            "weiß ich grad nicht sicher."
+                        )
+                    )
+
+                self_repair = (
+                    choose_reliability_fallback(
+
+                        candidates=(
+                            fallback_candidates
+                        ),
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "self_repair_failed"
+                        )
+                    )
                 )
 
-                return
+                if not self_repair:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=self_knowledge "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
 
             self_repair = (
                 clean_generated_answer(
@@ -9426,16 +9786,69 @@ Participation-Entscheidung nötig.
                 self_repair_violations
             ):
 
-                print(
-                    "[SELF KNOWLEDGE ABORT] "
-                    f"user={username} "
-                    f"hard="
-                    f"{self_repair_hard} "
-                    f"self="
-                    f"{self_repair_violations}"
+                fallback_candidates = [
+                    (
+                        "self_repair_invalid",
+                        self_repair
+                    ),
+                    (
+                        "self_violation_source",
+                        answer
+                    ),
+                ]
+
+                if not autonomous_participation:
+
+                    fallback_candidates.append(
+                        (
+                            "epistemic_unknown",
+                            "weiß ich grad nicht sicher."
+                        )
+                    )
+
+                safe_self_fallback = (
+                    choose_reliability_fallback(
+
+                        candidates=(
+                            fallback_candidates
+                        ),
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "self_repair_invalid"
+                        )
+                    )
                 )
 
-                return
+                if not safe_self_fallback:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=self_knowledge "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
+
+                self_repair = (
+                    safe_self_fallback
+                )
 
             print(
                 "[SELF KNOWLEDGE REPAIR SUCCESS] "
@@ -9517,13 +9930,61 @@ Participation-Entscheidung nötig.
 
             if not knowledge_repair:
 
-                print(
-                    "[KNOWLEDGE OUTPUT ABORT] "
-                    f"user={username} "
-                    "reason=repair_failed"
+                fallback_candidates = [
+                    (
+                        "knowledge_violation_source",
+                        answer
+                    ),
+                ]
+
+                if not autonomous_participation:
+
+                    fallback_candidates.append(
+                        (
+                            "epistemic_unknown",
+                            "weiß ich grad nicht sicher."
+                        )
+                    )
+
+                knowledge_repair = (
+                    choose_reliability_fallback(
+
+                        candidates=(
+                            fallback_candidates
+                        ),
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "knowledge_repair_failed"
+                        )
+                    )
                 )
 
-                return
+                if not knowledge_repair:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=knowledge "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
 
             knowledge_repair = (
                 clean_generated_answer(
@@ -9567,19 +10028,128 @@ Participation-Entscheidung nötig.
                 repair_knowledge_violations
             ):
 
-                print(
-                    "[KNOWLEDGE OUTPUT ABORT] "
-                    f"user={username} "
-                    f"hard="
-                    f"{repair_hard_violations} "
-                    f"knowledge="
-                    f"{repair_knowledge_violations}"
+                fallback_candidates = [
+                    (
+                        "knowledge_repair_invalid",
+                        knowledge_repair
+                    ),
+                    (
+                        "knowledge_violation_source",
+                        answer
+                    ),
+                ]
+
+                if not autonomous_participation:
+
+                    fallback_candidates.append(
+                        (
+                            "epistemic_unknown",
+                            "weiß ich grad nicht sicher."
+                        )
+                    )
+
+                safe_knowledge_fallback = (
+                    choose_reliability_fallback(
+
+                        candidates=(
+                            fallback_candidates
+                        ),
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "knowledge_repair_invalid"
+                        )
+                    )
                 )
 
-                return
+                if not safe_knowledge_fallback:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=knowledge "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
+
+                knowledge_repair = (
+                    safe_knowledge_fallback
+                )
 
             answer = (
                 knowledge_repair
+            )
+
+        # =====================================================
+        # B3D SAFE BASELINE CAPTURE
+        # =====================================================
+
+        reliability_baseline_answer = (
+            choose_reliability_fallback(
+
+                candidates=[
+                    (
+                        "post_knowledge_writer",
+                        answer
+                    ),
+                ],
+
+                curiosity_result=(
+                    curiosity_result
+                ),
+
+                self_evidence=(
+                    self_evidence
+                ),
+
+                knowledge_constraint=(
+                    knowledge_constraint
+                ),
+
+                username=(
+                    username
+                ),
+
+                stage=(
+                    "baseline_capture"
+                )
+            )
+        )
+
+        if reliability_baseline_answer:
+
+            answer = (
+                reliability_baseline_answer
+            )
+
+            print(
+                "[RELIABILITY BASELINE] "
+                f"user={username} "
+                f"answer={answer!r}"
+            )
+
+        else:
+
+            print(
+                "[RELIABILITY BASELINE WARNING] "
+                f"user={username} "
+                "reason=no_clean_baseline"
             )
 
         # -------------------------------------------------
@@ -9949,12 +10519,57 @@ Participation-Entscheidung nötig.
                     )
                     answer = salvaged
                 else:
-                    print(
-                        "[QUESTION SHAPE ABORT] "
-                        f"user={username} "
-                        "reason=repair_and_failsafe_failed"
+
+                    safe_question_fallback = (
+                        choose_reliability_fallback(
+
+                            candidates=[
+                                (
+                                    "pre_question_source",
+                                    source_before_question_repair
+                                ),
+                                (
+                                    "safe_baseline",
+                                    reliability_baseline_answer
+                                ),
+                            ],
+
+                            curiosity_result=(
+                                curiosity_result
+                            ),
+
+                            self_evidence=(
+                                self_evidence
+                            ),
+
+                            knowledge_constraint=(
+                                knowledge_constraint
+                            ),
+
+                            username=(
+                                username
+                            ),
+
+                            stage=(
+                                "pre_voice_question"
+                            )
+                        )
                     )
-                    return
+
+                    if not safe_question_fallback:
+
+                        print(
+                            "[SILENT FINAL] "
+                            f"user={username} "
+                            "stage=pre_voice_question "
+                            "reason=no_safe_fallback"
+                        )
+
+                        return
+
+                    answer = (
+                        safe_question_fallback
+                    )
 
         original_writer_answer = (
             answer
@@ -10224,14 +10839,56 @@ Participation-Entscheidung nötig.
 
             if reverted_question_violations:
 
-                print(
-                    "[LOCAL VOICE QUESTION ABORT] "
-                    f"user={username} "
-                    f"violations="
-                    f"{reverted_question_violations}"
+                safe_voice_question_fallback = (
+                    choose_reliability_fallback(
+
+                        candidates=[
+                            (
+                                "safe_baseline",
+                                reliability_baseline_answer
+                            ),
+                            (
+                                "writer_before_voice",
+                                original_writer_answer
+                            ),
+                        ],
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "post_voice_question"
+                        )
+                    )
                 )
 
-                return
+                if not safe_voice_question_fallback:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=post_voice_question "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
+
+                answer = (
+                    safe_voice_question_fallback
+                )
 
             print(
                 "[LOCAL VOICE QUESTION REVERT SUCCESS] "
@@ -10271,14 +10928,56 @@ Participation-Entscheidung nötig.
 
             if reverted_self_violations:
 
-                print(
-                    "[LOCAL VOICE SELF ABORT] "
-                    f"user={username} "
-                    f"violations="
-                    f"{reverted_self_violations}"
+                safe_voice_self_fallback = (
+                    choose_reliability_fallback(
+
+                        candidates=[
+                            (
+                                "safe_baseline",
+                                reliability_baseline_answer
+                            ),
+                            (
+                                "writer_before_voice",
+                                original_writer_answer
+                            ),
+                        ],
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "post_voice_self"
+                        )
+                    )
                 )
 
-                return
+                if not safe_voice_self_fallback:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=post_voice_self "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
+
+                answer = (
+                    safe_voice_self_fallback
+                )
 
         # =====================================================
         # POST-VOICE UNDERSTANDING GUARDS
@@ -10382,12 +11081,56 @@ Participation-Entscheidung nötig.
 
                 if not question_repair:
 
-                    print(
-                        "[QUESTION GUARD ABORT] "
-                        f"user={username}"
+                    question_repair = (
+                        choose_reliability_fallback(
+
+                            candidates=[
+                                (
+                                    "safe_baseline",
+                                    reliability_baseline_answer
+                                ),
+                                (
+                                    "writer_before_voice",
+                                    original_writer_answer
+                                ),
+                                (
+                                    "current_answer",
+                                    answer
+                                ),
+                            ],
+
+                            curiosity_result=(
+                                curiosity_result
+                            ),
+
+                            self_evidence=(
+                                self_evidence
+                            ),
+
+                            knowledge_constraint=(
+                                knowledge_constraint
+                            ),
+
+                            username=(
+                                username
+                            ),
+
+                            stage=(
+                                "question_guard_repair_failed"
+                            )
+                        )
                     )
 
-                    return
+                    if not question_repair:
+
+                        print(
+                            "[SILENT FINAL] "
+                            f"user={username} "
+                            "stage=question_guard "
+                            "reason=no_safe_fallback"
+                        )
+
+                        return
 
                 question_repair = (
                     clean_generated_answer(
@@ -10402,13 +11145,60 @@ Participation-Entscheidung nötig.
                     > 0
                 ):
 
-                    print(
-                        "[QUESTION GUARD ABORT] "
-                        f"user={username} "
-                        "reason=repair_still_question"
+                    safe_question_guard_fallback = (
+                        choose_reliability_fallback(
+
+                            candidates=[
+                                (
+                                    "safe_baseline",
+                                    reliability_baseline_answer
+                                ),
+                                (
+                                    "writer_before_voice",
+                                    original_writer_answer
+                                ),
+                                (
+                                    "question_repair",
+                                    question_repair
+                                ),
+                            ],
+
+                            curiosity_result=(
+                                curiosity_result
+                            ),
+
+                            self_evidence=(
+                                self_evidence
+                            ),
+
+                            knowledge_constraint=(
+                                knowledge_constraint
+                            ),
+
+                            username=(
+                                username
+                            ),
+
+                            stage=(
+                                "question_guard_still_question"
+                            )
+                        )
                     )
 
-                    return
+                    if not safe_question_guard_fallback:
+
+                        print(
+                            "[SILENT FINAL] "
+                            f"user={username} "
+                            "stage=question_guard "
+                            "reason=no_safe_fallback"
+                        )
+
+                        return
+
+                    question_repair = (
+                        safe_question_guard_fallback
+                    )
 
                 answer = (
                     question_repair
@@ -10769,15 +11559,56 @@ Participation-Entscheidung nötig.
 
             if not expression_repair:
 
-                print(
-                    "[EXPRESSION FINAL ABORT] "
-                    f"user={username} "
-                    "reason=repair_failed "
-                    f"violations="
-                    f"{expression_guard.violations_after}"
+                expression_repair = (
+                    choose_reliability_fallback(
+
+                        candidates=[
+                            (
+                                "safe_baseline",
+                                reliability_baseline_answer
+                            ),
+                            (
+                                "writer_before_voice",
+                                original_writer_answer
+                            ),
+                            (
+                                "expression_cleaned",
+                                expression_guard.cleaned
+                            ),
+                        ],
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "expression_repair_failed"
+                        )
+                    )
                 )
 
-                return
+                if not expression_repair:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=expression "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
 
             expression_repair = (
                 clean_generated_answer(
@@ -10814,15 +11645,52 @@ Participation-Entscheidung nötig.
 
             if repair_hard_violations:
 
-                print(
-                    "[EXPRESSION FINAL ABORT] "
-                    f"user={username} "
-                    "reason=hard_guard_after_repair "
-                    f"violations="
-                    f"{repair_hard_violations}"
+                expression_repair = (
+                    choose_reliability_fallback(
+
+                        candidates=[
+                            (
+                                "safe_baseline",
+                                reliability_baseline_answer
+                            ),
+                            (
+                                "writer_before_voice",
+                                original_writer_answer
+                            ),
+                        ],
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "expression_hard_after_repair"
+                        )
+                    )
                 )
 
-                return
+                if not expression_repair:
+
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=expression "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
 
             # ---------------------------------------------
             # EXPRESSION GUARD AGAIN
@@ -10846,19 +11714,66 @@ Participation-Entscheidung nötig.
                 .send_allowed
             ):
 
-                print(
-                    "[EXPRESSION FINAL ABORT] "
-                    f"user={username} "
-                    "reason=still_blocked_after_repair "
-                    f"violations="
-                    f"{second_expression_guard.violations_after}"
+                safe_expression_fallback = (
+                    choose_reliability_fallback(
+
+                        candidates=[
+                            (
+                                "safe_baseline",
+                                reliability_baseline_answer
+                            ),
+                            (
+                                "writer_before_voice",
+                                original_writer_answer
+                            ),
+                            (
+                                "expression_repair",
+                                expression_repair
+                            ),
+                        ],
+
+                        curiosity_result=(
+                            curiosity_result
+                        ),
+
+                        self_evidence=(
+                            self_evidence
+                        ),
+
+                        knowledge_constraint=(
+                            knowledge_constraint
+                        ),
+
+                        username=(
+                            username
+                        ),
+
+                        stage=(
+                            "expression_still_blocked"
+                        )
+                    )
                 )
 
-                return
+                if not safe_expression_fallback:
 
-            answer = (
-                second_expression_guard.cleaned
-            )
+                    print(
+                        "[SILENT FINAL] "
+                        f"user={username} "
+                        "stage=expression "
+                        "reason=no_safe_fallback"
+                    )
+
+                    return
+
+                answer = (
+                    safe_expression_fallback
+                )
+
+            else:
+
+                answer = (
+                    second_expression_guard.cleaned
+                )
 
         # =================================================
         # B3B.1B FINAL NATURAL RESPONSE CHECK
@@ -10920,15 +11835,60 @@ Participation-Entscheidung nötig.
 
         if final_question_violations:
 
-            print(
-                "[QUESTION FINAL ABORT] "
-                f"user={username} "
-                f"violations="
-                f"{final_question_violations} "
-                f"answer={answer!r}"
+            safe_final_question = (
+                choose_reliability_fallback(
+
+                    candidates=[
+                        (
+                            "current_answer",
+                            answer
+                        ),
+                        (
+                            "safe_baseline",
+                            reliability_baseline_answer
+                        ),
+                        (
+                            "writer_before_voice",
+                            original_writer_answer
+                        ),
+                    ],
+
+                    curiosity_result=(
+                        curiosity_result
+                    ),
+
+                    self_evidence=(
+                        self_evidence
+                    ),
+
+                    knowledge_constraint=(
+                        knowledge_constraint
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    stage=(
+                        "final_question"
+                    )
+                )
             )
 
-            return
+            if not safe_final_question:
+
+                print(
+                    "[SILENT FINAL] "
+                    f"user={username} "
+                    "stage=final_question "
+                    "reason=no_safe_fallback"
+                )
+
+                return
+
+            answer = (
+                safe_final_question
+            )
 
         # =================================================
         # FINAL SELF KNOWLEDGE GUARD
@@ -10943,15 +11903,60 @@ Participation-Entscheidung nötig.
 
         if final_self_violations:
 
-            print(
-                "[SELF FINAL ABORT] "
-                f"user={username} "
-                f"violations="
-                f"{final_self_violations} "
-                f"answer={answer!r}"
+            safe_final_self = (
+                choose_reliability_fallback(
+
+                    candidates=[
+                        (
+                            "safe_baseline",
+                            reliability_baseline_answer
+                        ),
+                        (
+                            "writer_before_voice",
+                            original_writer_answer
+                        ),
+                        (
+                            "epistemic_unknown",
+                            "weiß ich grad nicht sicher."
+                        ),
+                    ],
+
+                    curiosity_result=(
+                        curiosity_result
+                    ),
+
+                    self_evidence=(
+                        self_evidence
+                    ),
+
+                    knowledge_constraint=(
+                        knowledge_constraint
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    stage=(
+                        "final_self"
+                    )
+                )
             )
 
-            return
+            if not safe_final_self:
+
+                print(
+                    "[SILENT FINAL] "
+                    f"user={username} "
+                    "stage=final_self "
+                    "reason=no_safe_fallback"
+                )
+
+                return
+
+            answer = (
+                safe_final_self
+            )
 
         # =================================================
         # B3C FINAL GARBLED OUTPUT GUARD
@@ -10969,6 +11974,8 @@ Participation-Entscheidung nötig.
             )
 
             fallback_candidate = clean_generated_answer(
+                reliability_baseline_answer
+                or
                 original_writer_answer
             )
 
@@ -11065,12 +12072,56 @@ Participation-Entscheidung nötig.
                     )
                     answer = garbled_repair
                 else:
-                    print(
-                        "[GARBLED OUTPUT ABORT] "
-                        f"user={username} "
-                        "reason=no_safe_fallback"
+                    emergency_garbled_fallback = (
+                        choose_reliability_fallback(
+
+                            candidates=[
+                                (
+                                    "safe_baseline",
+                                    reliability_baseline_answer
+                                ),
+                                (
+                                    "writer_before_voice",
+                                    original_writer_answer
+                                ),
+                            ],
+
+                            curiosity_result=(
+                                curiosity_result
+                            ),
+
+                            self_evidence=(
+                                self_evidence
+                            ),
+
+                            knowledge_constraint=(
+                                knowledge_constraint
+                            ),
+
+                            username=(
+                                username
+                            ),
+
+                            stage=(
+                                "final_garbled"
+                            )
+                        )
                     )
-                    return
+
+                    if not emergency_garbled_fallback:
+
+                        print(
+                            "[SILENT FINAL] "
+                            f"user={username} "
+                            "stage=garbled "
+                            "reason=no_safe_fallback"
+                        )
+
+                        return
+
+                    answer = (
+                        emergency_garbled_fallback
+                    )
 
         # =================================================
         # 11.9 EVILNAE APPLICATION EMOTE LAYER
@@ -11139,8 +12190,14 @@ Participation-Entscheidung nötig.
             if autonomous_participation:
 
                 freshness_limit = (
-                    min(
-                        1,
+                    1
+                )
+
+            elif conversation_continuation:
+
+                freshness_limit = (
+                    max(
+                        3,
                         CONTEXT_FRESHNESS_MAX_NEW_MESSAGES
                     )
                 )
@@ -11148,7 +12205,10 @@ Participation-Entscheidung nötig.
             else:
 
                 freshness_limit = (
-                    CONTEXT_FRESHNESS_MAX_NEW_MESSAGES
+                    max(
+                        6,
+                        CONTEXT_FRESHNESS_MAX_NEW_MESSAGES
+                    )
                 )
 
             freshness_delta = (
@@ -11182,6 +12242,15 @@ Participation-Entscheidung nötig.
                     f"{freshness_limit} "
                     f"answer="
                     f"{answer!r}"
+                )
+
+                print(
+                    "[SILENT FINAL] "
+                    f"user={username} "
+                    "stage=freshness "
+                    f"reason=context_stale "
+                    f"delta={freshness_delta} "
+                    f"limit={freshness_limit}"
                 )
 
                 return
