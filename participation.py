@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 # VERSION
 # =========================================================
 
-PARTICIPATION_VERSION = "1.1"
+PARTICIPATION_VERSION = "1.2"
 
 
 # =========================================================

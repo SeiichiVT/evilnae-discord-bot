@@ -188,6 +188,46 @@ from conversation_understanding import (
     format_garbled_debug,
 )
 
+from performance import (
+    PERFORMANCE_VERSION,
+    RESPONSE_REPAIR_BUDGET,
+    reset_response_repair_budget,
+    get_response_repair_count,
+    claim_response_repair_slot,
+    format_repair_budget_debug,
+    start_response_timer,
+    elapsed_response_time,
+)
+
+from discord_actions import (
+    DISCORD_ACTIONS_VERSION,
+    prepare_application_reaction,
+    register_application_reaction,
+    apply_text_emote_cooldown,
+    format_application_reaction_debug,
+    format_text_emote_cooldown_debug,
+)
+
+from routing_hardening import (
+    ROUTING_HARDENING_VERSION,
+    harden_perception_addressing,
+    build_routing_context,
+    apply_participation_routing_boost,
+    format_routing_debug,
+    format_participation_boost_debug,
+)
+
+from response_quality import (
+    OUTPUT_QUALITY_VERSION,
+    analyze_response_quality,
+    compare_response_candidates,
+    select_best_quality_candidate,
+    trim_safe_generic_tail,
+    format_quality_for_writer,
+    format_quality_debug,
+    format_candidate_decision_debug,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -203,7 +243,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.12.1-reliability-b3d"
+BOT_VERSION = "2.16.0-performance-b3h"
 
 
 # =========================================================
@@ -337,7 +377,7 @@ ACTIVE_CONVERSATION_WINDOW = (
     8 * 60
 )
 
-ACTIVE_CONVERSATION_CONTEXT_GAP = 4
+ACTIVE_CONVERSATION_CONTEXT_GAP = 8
 
 
 # =========================================================
@@ -383,7 +423,7 @@ CONTEXT_FRESHNESS_MAX_NEW_MESSAGES = int(
 # formuliert er selbst neu.
 # =========================================================
 
-WRITER_MAX_REPAIRS = 2
+WRITER_MAX_REPAIRS = 1
 
 
 # =========================================================
@@ -439,6 +479,8 @@ OPENAI_RESPONSE_TIMEOUT = 20
 OPENAI_MEMORY_TIMEOUT = 30
 
 OPENAI_MAX_RETRIES = 3
+
+OPENAI_RESPONSE_MAX_RETRIES = 2
 
 RETRY_BASE_DELAY = 1.5
 
@@ -1370,9 +1412,28 @@ async def safe_openai_request(
 
     last_error = None
 
+    if (
+        request_type
+        in {
+            "memory",
+            "reflection",
+        }
+    ):
+
+        max_attempts = (
+            OPENAI_MAX_RETRIES
+        )
+
+    else:
+
+        max_attempts = min(
+            OPENAI_RESPONSE_MAX_RETRIES,
+            OPENAI_MAX_RETRIES
+        )
+
     for attempt in range(
         1,
-        OPENAI_MAX_RETRIES + 1
+        max_attempts + 1
     ):
 
         start_time = (
@@ -1559,7 +1620,7 @@ async def safe_openai_request(
 
         if (
             attempt
-            < OPENAI_MAX_RETRIES
+            < max_attempts
         ):
 
             delay = (
@@ -1589,7 +1650,7 @@ async def safe_openai_request(
 
     raise RuntimeError(
         f"OpenAI request failed after "
-        f"{OPENAI_MAX_RETRIES} attempts. "
+        f"{max_attempts} attempts. "
         f"Last error: {last_error}"
     )
 
@@ -3322,6 +3383,45 @@ async def repair_writer_answer(
     token_limit,
     autonomous_participation=False
 ):
+
+    repair_budget_decision = (
+        claim_response_repair_slot(
+
+            label=(
+                "+"
+                .join(
+                    str(reason)
+
+                    for reason
+                    in (
+                        violation_reasons
+                        or []
+                    )[:3]
+                )
+            )
+        )
+    )
+
+    print(
+        format_repair_budget_debug(
+            repair_budget_decision
+        )
+    )
+
+    if not (
+        repair_budget_decision
+        .allowed
+    ):
+
+        print(
+            "[WRITER REPAIR BUDGET SKIP] "
+            f"user={username} "
+            f"used="
+            f"{repair_budget_decision.used_after}/"
+            f"{repair_budget_decision.limit}"
+        )
+
+        return ""
 
     participation_rule = ""
 
@@ -5834,16 +5934,16 @@ def get_writer_token_limit(
 ):
 
     limits = {
-        "tiny": 60,
-        "short": 120,
-        "medium": 220,
-        "long": 400,
+        "tiny": 50,
+        "short": 90,
+        "medium": 160,
+        "long": 280,
     }
 
     base_limit = (
         limits.get(
             response_length,
-            150
+            110
         )
     )
 
@@ -7713,6 +7813,30 @@ async def on_ready():
     )
 
     print(
+        f"Discord Actions v{DISCORD_ACTIONS_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Application Emoji Reactions Only: ACTIVE"
+    )
+
+    print(
+        "Unicode Reaction Fallback: DISABLED"
+    )
+
+    print(
+        "Thumbs-Up Fallback: DISABLED"
+    )
+
+    print(
+        "Reaction Cooldowns: ACTIVE"
+    )
+
+    print(
+        "Text Emote Cooldowns: ACTIVE"
+    )
+
+    print(
         f"Conversation Understanding v"
         f"{CONVERSATION_UNDERSTANDING_VERSION}: ACTIVE"
     )
@@ -7754,6 +7878,82 @@ async def on_ready():
     )
 
     print(
+        f"Output Quality v{OUTPUT_QUALITY_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Qwen Acceptance v2: ACTIVE"
+    )
+
+    print(
+        "Semantic Repetition v2: ACTIVE"
+    )
+
+    print(
+        "Grammar / Garbled v2: ACTIVE"
+    )
+
+    print(
+        "One-Thought Quality Check v2: ACTIVE"
+    )
+
+    print(
+        "Targeted Quality Repair: ACTIVE"
+    )
+
+    print(
+        f"Performance v{PERFORMANCE_VERSION}: ACTIVE"
+    )
+
+    print(
+        f"Response Repair API Budget: "
+        f"{RESPONSE_REPAIR_BUDGET}"
+    )
+
+    print(
+        f"Writer Validation Repairs: "
+        f"{WRITER_MAX_REPAIRS}"
+    )
+
+    print(
+        f"Response API Retries: "
+        f"{OPENAI_RESPONSE_MAX_RETRIES}"
+    )
+
+    print(
+        "Local Voice Clean-Short Fast Path: ACTIVE"
+    )
+
+    print(
+        "End-to-End Latency Telemetry: ACTIVE"
+    )
+
+    print(
+        f"Routing Hardening v{ROUTING_HARDENING_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Stretched Evil/Evilnae Vocatives: ACTIVE"
+    )
+
+    print(
+        "Reply-To Priority Routing: ACTIVE"
+    )
+
+    print(
+        "Reference Resolver v2: ACTIVE"
+    )
+
+    print(
+        "Parallel Group Thread Scan: ACTIVE "
+        f"(depth={ACTIVE_CONVERSATION_CONTEXT_GAP})"
+    )
+
+    print(
+        "Participation Routing Boost: ACTIVE"
+    )
+
+    print(
         f"Response Agency v"
         f"{AGENCY_VERSION}: ACTIVE"
     )
@@ -7782,7 +7982,8 @@ async def on_ready():
 
     print(
         "Context Freshness Guard: ACTIVE "
-        f"(max={CONTEXT_FRESHNESS_MAX_NEW_MESSAGES})"
+        f"(base={CONTEXT_FRESHNESS_MAX_NEW_MESSAGES}, "
+        "direct>=6, continuation>=3, participation=1)"
     )
 
     print(
@@ -8037,6 +8238,34 @@ async def on_message(
             )
         )
 
+    # =====================================================
+    # B3F ROUTING HARDENING
+    # =====================================================
+
+    routing_signals = (
+        harden_perception_addressing(
+            perception,
+            bot_user_id=(
+                str(bot.user.id)
+                if bot.user
+                else None
+            )
+        )
+    )
+
+    if (
+        routing_signals.changed
+        or routing_signals.name_variant
+        or routing_signals.reply_to_evilnae
+        or routing_signals.reference_types
+    ):
+
+        print(
+            format_routing_debug(
+                routing_signals
+            )
+        )
+
     print(
         format_perception_debug(
             perception
@@ -8053,6 +8282,16 @@ async def on_message(
 
     username = (
         perception.username
+    )
+
+    # =====================================================
+    # B3H RESPONSE PERFORMANCE STATE
+    # =====================================================
+
+    reset_response_repair_budget()
+
+    response_pipeline_started_at = (
+        start_response_timer()
     )
 
     # =====================================================
@@ -8112,6 +8351,23 @@ async def on_message(
         build_episode_focus(
             channel_snapshot,
             limit=10,
+        )
+    )
+
+    # =====================================================
+    # B3F ROUTING / REFERENCE CONTEXT
+    # =====================================================
+
+    b3f_routing_context_text = (
+        build_routing_context(
+            perception,
+            channel_snapshot,
+            current_user_id=user_id,
+            bot_user_id=(
+                str(bot.user.id)
+                if bot.user
+                else None
+            )
         )
     )
 
@@ -8436,6 +8692,27 @@ async def on_message(
             )
         )
 
+        # =================================================
+        # B3F PARTICIPATION ROUTING BOOST
+        # =================================================
+
+        participation_routing_boost = (
+            apply_participation_routing_boost(
+                participation_decision,
+                perception=perception,
+                channel_snapshot=channel_snapshot,
+                current_user_id=user_id,
+            )
+        )
+
+        if participation_routing_boost.changed:
+
+            print(
+                format_participation_boost_debug(
+                    participation_routing_boost
+                )
+            )
+
         if (
             participation_decision.action
             != "join"
@@ -8452,6 +8729,43 @@ async def on_message(
             return
 
         autonomous_participation = True
+
+    # =====================================================
+    # B3F FINAL ROUTING DIAGNOSTIC
+    # =====================================================
+
+    if directly_addressed:
+
+        final_route_mode = (
+            "direct"
+        )
+
+    elif conversation_continuation:
+
+        final_route_mode = (
+            "continuation"
+        )
+
+    elif autonomous_participation:
+
+        final_route_mode = (
+            "participation"
+        )
+
+    else:
+
+        final_route_mode = (
+            "silent"
+        )
+
+    print(
+        "[ROUTING FINAL] "
+        f"user={username} "
+        f"mode={final_route_mode} "
+        f"direct={directly_addressed} "
+        f"continuation={conversation_continuation} "
+        f"participation={autonomous_participation}"
+    )
 
     # =====================================================
     # RESPONSE LOCK
@@ -8696,6 +9010,13 @@ async def on_message(
             + b3c_reference_context_text
             + "\n\n"
             + b3c_episode_focus_text
+        )
+
+        # B3F -> BRAIN
+
+        group_context_text += (
+            "\n\n"
+            + b3f_routing_context_text
         )
 
         reply_context_text = (
@@ -9059,16 +9380,66 @@ Participation-Entscheidung nötig.
             ACTION_REACT
         ):
 
-            reaction = (
-                agency_result.reaction
-                or
-                "👍"
+            application_reaction = (
+                prepare_application_reaction(
+
+                    user_text=(
+                        user_text
+                    ),
+
+                    suggested_reaction=(
+                        agency_result.reaction
+                    ),
+
+                    channel_id=(
+                        channel_id
+                    )
+                )
             )
+
+            print(
+                format_application_reaction_debug(
+                    application_reaction
+                )
+            )
+
+            if not (
+                application_reaction.allowed
+                and
+                application_reaction.rendered
+                and
+                application_reaction.semantic
+            ):
+
+                print(
+                    "[REACTION SILENT] "
+                    f"user={username} "
+                    f"reason={application_reaction.reason}"
+                )
+
+                return
 
             try:
 
+                reaction_value = (
+                    discord.PartialEmoji.from_str(
+                        application_reaction.rendered
+                    )
+                )
+
                 await message.add_reaction(
-                    reaction
+                    reaction_value
+                )
+
+                register_application_reaction(
+
+                    channel_id=(
+                        channel_id
+                    ),
+
+                    semantic=(
+                        application_reaction.semantic
+                    )
                 )
 
                 register_channel_message(
@@ -9076,9 +9447,12 @@ Participation-Entscheidung nötig.
                 )
 
                 print(
-                    "[AGENCY REACTION] "
+                    "[AGENCY APPLICATION REACTION] "
                     f"user={username} "
-                    f"reaction={reaction!r}"
+                    f"semantic="
+                    f"{application_reaction.semantic!r} "
+                    f"reaction="
+                    f"{application_reaction.rendered!r}"
                 )
 
             except Exception as error:
@@ -9086,6 +9460,8 @@ Participation-Entscheidung nötig.
                 print(
                     "[AGENCY REACTION ERROR] "
                     f"user={username} "
+                    f"semantic="
+                    f"{application_reaction.semantic!r} "
                     f"error="
                     f"{type(error).__name__}: "
                     f"{error}"
@@ -9276,6 +9652,13 @@ Participation-Entscheidung nötig.
             + b3c_reference_context_text
             + "\n\n"
             + b3c_episode_focus_text
+        )
+
+        # B3F -> WRITER
+
+        writer_context += (
+            "\n\n"
+            + b3f_routing_context_text
         )
 
         # =====================================================
@@ -10575,6 +10958,32 @@ Participation-Entscheidung nötig.
             answer
         )
 
+        # =====================================================
+        # B3E WRITER QUALITY BASELINE
+        # =====================================================
+
+        writer_quality_analysis = (
+            analyze_response_quality(
+
+                original_writer_answer,
+
+                user_text=(
+                    user_text
+                ),
+
+                recent_evilnae_messages=(
+                    voice_channel_evilnae_messages
+                )
+            )
+        )
+
+        print(
+            format_quality_debug(
+                writer_quality_analysis,
+                label="WRITER QUALITY"
+            )
+        )
+
         try:
 
             voice_result = (
@@ -10653,6 +11062,71 @@ Participation-Entscheidung nötig.
                     f"candidate={voice_candidate!r}"
                 )
                 voice_candidate = ""
+
+            # ---------------------------------------------
+            # B3E QWEN ACCEPTANCE v2
+            #
+            # Qwen is a candidate,
+            # not an authority.
+            # ---------------------------------------------
+
+            voice_quality_decision = (
+                compare_response_candidates(
+
+                    candidate=(
+                        voice_candidate
+                    ),
+
+                    baseline=(
+                        original_writer_answer
+                    ),
+
+                    user_text=(
+                        user_text
+                    ),
+
+                    recent_evilnae_messages=(
+                        voice_channel_evilnae_messages
+                    ),
+
+                    meaning_preserved=(
+                        getattr(
+                            voice_result,
+                            "meaning_preserved",
+                            1.0
+                        )
+                    )
+                )
+            )
+
+            print(
+                format_candidate_decision_debug(
+                    voice_quality_decision
+                )
+            )
+
+            if not (
+                voice_quality_decision
+                .accepted
+            ):
+
+                print(
+                    "[QWEN CANDIDATE REJECTED] "
+                    f"user={username} "
+                    f"reason="
+                    f"{voice_quality_decision.reason}"
+                )
+
+                voice_candidate = ""
+
+            else:
+
+                print(
+                    "[QWEN CANDIDATE ACCEPTED] "
+                    f"user={username} "
+                    f"reason="
+                    f"{voice_quality_decision.reason}"
+                )
 
             # ---------------------------------------------
             # FINAL EVILNAE HARD GUARD
@@ -12124,6 +12598,352 @@ Participation-Entscheidung nötig.
                     )
 
         # =================================================
+        # B3E FINAL OUTPUT QUALITY v2
+        # =================================================
+
+        answer = (
+            trim_safe_generic_tail(
+                answer
+            )
+        )
+
+        pre_final_quality_analysis = (
+            analyze_response_quality(
+
+                answer,
+
+                user_text=(
+                    user_text
+                ),
+
+                recent_evilnae_messages=(
+                    final_channel_evilnae_messages
+                )
+            )
+        )
+
+        print(
+            format_quality_debug(
+                pre_final_quality_analysis,
+                label="OUTPUT QUALITY PRE-FINAL"
+            )
+        )
+
+        quality_repair_needed = (
+            pre_final_quality_analysis
+            .grammar_score
+            >= 3
+
+            or
+
+            pre_final_quality_analysis
+            .repetition_score
+            >= 2
+
+            or
+
+            pre_final_quality_analysis
+            .generic_score
+            >= 3
+
+            or
+
+            pre_final_quality_analysis
+            .total_penalty
+            >= 5
+        )
+
+        if quality_repair_needed:
+
+            quality_repair_context = (
+                writer_context
+                + "\n\n"
+                + format_quality_for_writer(
+                    pre_final_quality_analysis
+                )
+            )
+
+            quality_repair = (
+                await repair_writer_answer(
+
+                    original_answer=(
+                        answer
+                    ),
+
+                    violation_reasons=[
+                        "output_quality_v2",
+                        *pre_final_quality_analysis.issues,
+                    ],
+
+                    writer_context=(
+                        quality_repair_context
+                    ),
+
+                    current_mood=(
+                        current_mood
+                    ),
+
+                    username=(
+                        username
+                    ),
+
+                    token_limit=(
+                        writer_token_limit
+                    ),
+
+                    autonomous_participation=(
+                        autonomous_participation
+                    )
+                )
+            )
+
+            if quality_repair:
+
+                quality_repair = (
+                    clean_generated_answer(
+                        quality_repair
+                    )
+                )
+
+                quality_repair = (
+                    enforce_permanent_expression_bans(
+                        quality_repair
+                    )
+                )
+
+                quality_repair_hard = (
+                    get_writer_violation_reasons(
+
+                        answer=(
+                            quality_repair
+                        ),
+
+                        decision=(
+                            decision
+                        ),
+
+                        autonomous_participation=(
+                            autonomous_participation
+                        )
+                    )
+                )
+
+                quality_repair_questions = (
+                    question_output_violation_reasons(
+                        quality_repair,
+                        curiosity_result
+                    )
+                )
+
+                quality_repair_self = (
+                    self_knowledge_violation_reasons(
+                        quality_repair,
+                        self_evidence
+                    )
+                )
+
+                quality_repair_knowledge = (
+                    knowledge_violation_reasons(
+                        quality_repair,
+                        knowledge_constraint
+                    )
+                )
+
+                quality_repair_garbled = (
+                    analyze_garbled_output(
+                        quality_repair
+                    )
+                )
+
+                quality_expression_guard = (
+                    apply_expression_final_guard(
+                        quality_repair,
+                        final_expression_plan
+                    )
+                )
+
+                repair_safe = (
+                    not quality_repair_hard
+
+                    and
+
+                    not quality_repair_questions
+
+                    and
+
+                    not quality_repair_self
+
+                    and
+
+                    not quality_repair_knowledge
+
+                    and
+
+                    not quality_repair_garbled
+                    .garbled
+
+                    and
+
+                    quality_expression_guard
+                    .send_allowed
+                )
+
+                if repair_safe:
+
+                    quality_repair_candidate = (
+                        trim_safe_generic_tail(
+                            quality_expression_guard
+                            .cleaned
+                        )
+                    )
+
+                    quality_repair_analysis = (
+                        analyze_response_quality(
+
+                            quality_repair_candidate,
+
+                            user_text=(
+                                user_text
+                            ),
+
+                            recent_evilnae_messages=(
+                                final_channel_evilnae_messages
+                            )
+                        )
+                    )
+
+                    if (
+                        quality_repair_analysis
+                        .total_penalty
+                        <
+                        pre_final_quality_analysis
+                        .total_penalty
+                    ):
+
+                        print(
+                            "[OUTPUT QUALITY REPAIR ACCEPTED] "
+                            f"user={username} "
+                            f"before="
+                            f"{pre_final_quality_analysis.total_penalty} "
+                            f"after="
+                            f"{quality_repair_analysis.total_penalty}"
+                        )
+
+                        answer = (
+                            quality_repair_candidate
+                        )
+
+                    else:
+
+                        print(
+                            "[OUTPUT QUALITY REPAIR REJECTED] "
+                            f"user={username} "
+                            "reason=no_quality_gain "
+                            f"before="
+                            f"{pre_final_quality_analysis.total_penalty} "
+                            f"after="
+                            f"{quality_repair_analysis.total_penalty}"
+                        )
+
+                else:
+
+                    print(
+                        "[OUTPUT QUALITY REPAIR REJECTED] "
+                        f"user={username} "
+                        "reason=guard_failure "
+                        f"hard={quality_repair_hard} "
+                        f"question={quality_repair_questions} "
+                        f"self={quality_repair_self} "
+                        f"knowledge={quality_repair_knowledge} "
+                        f"garbled="
+                        f"{quality_repair_garbled.garbled} "
+                        f"expression="
+                        f"{quality_expression_guard.send_allowed}"
+                    )
+
+            else:
+
+                print(
+                    "[OUTPUT QUALITY REPAIR FAILED] "
+                    f"user={username}"
+                )
+
+        # -------------------------------------------------
+        # BEST SAFE STAGE
+        # -------------------------------------------------
+
+        final_quality_selection = (
+            select_best_quality_candidate(
+
+                candidates=[
+                    (
+                        "final",
+                        answer
+                    ),
+                    (
+                        "writer",
+                        original_writer_answer
+                    ),
+                    (
+                        "reliability_baseline",
+                        reliability_baseline_answer
+                    ),
+                ],
+
+                user_text=(
+                    user_text
+                ),
+
+                recent_evilnae_messages=(
+                    final_channel_evilnae_messages
+                )
+            )
+        )
+
+        if final_quality_selection.text:
+
+            if (
+                final_quality_selection
+                .source
+                !=
+                "final"
+            ):
+
+                print(
+                    "[OUTPUT QUALITY FALLBACK] "
+                    f"user={username} "
+                    f"source="
+                    f"{final_quality_selection.source}"
+                )
+
+            answer = (
+                final_quality_selection
+                .text
+            )
+
+        final_quality_analysis = (
+            analyze_response_quality(
+
+                answer,
+
+                user_text=(
+                    user_text
+                ),
+
+                recent_evilnae_messages=(
+                    final_channel_evilnae_messages
+                )
+            )
+        )
+
+        print(
+            format_quality_debug(
+                final_quality_analysis,
+                label="OUTPUT QUALITY FINAL"
+            )
+        )
+
+        # =================================================
         # 11.9 EVILNAE APPLICATION EMOTE LAYER
         #
         # Der eigentliche Text ist jetzt vollständig fertig.
@@ -12157,6 +12977,25 @@ Participation-Entscheidung nötig.
 
             is_hanae=(
                 is_hanae
+            )
+        )
+
+        (
+            answer,
+            text_emote_cooldown_result
+        ) = apply_text_emote_cooldown(
+
+            answer,
+            evilnae_emote_result,
+
+            channel_id=(
+                channel_id
+            )
+        )
+
+        print(
+            format_text_emote_cooldown_debug(
+                text_emote_cooldown_result
             )
         )
 
@@ -12302,6 +13141,21 @@ Participation-Entscheidung nötig.
 
             register_channel_message(
                 is_bot=True
+            )
+
+            response_total_duration = (
+                elapsed_response_time(
+                    response_pipeline_started_at
+                )
+            )
+
+            print(
+                "[RESPONSE LATENCY] "
+                f"user={username} "
+                f"mode={voice_conversation_mode} "
+                f"total={response_total_duration:.2f}s "
+                f"repairs="
+                f"{get_response_repair_count()}"
             )
 
         # =================================================

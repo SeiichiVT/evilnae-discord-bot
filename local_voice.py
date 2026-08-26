@@ -9,6 +9,11 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Optional
 
+from performance import (
+    PERFORMANCE_VERSION,
+    should_fast_path_local_voice,
+)
+
 from dotenv import load_dotenv
 
 from voice_memory import (
@@ -27,7 +32,7 @@ from coherence import (
 # VERSION
 # =========================================================
 
-LOCAL_VOICE_VERSION = "1.2.6"
+LOCAL_VOICE_VERSION = "1.3.0"
 
 
 # =========================================================
@@ -85,7 +90,7 @@ LOCAL_VOICE_TIMEOUT = float(
 LOCAL_VOICE_QUEUE_TIMEOUT = float(
     os.getenv(
         "LOCAL_VOICE_QUEUE_TIMEOUT",
-        "5"
+        "1.5"
     )
 )
 
@@ -104,7 +109,7 @@ LOCAL_VOICE_NUM_CTX = int(
 LOCAL_VOICE_NUM_PREDICT = int(
     os.getenv(
         "LOCAL_VOICE_NUM_PREDICT",
-        "240"
+        "200"
     )
 )
 
@@ -123,7 +128,7 @@ LOCAL_VOICE_TEMPERATURE = float(
 LOCAL_VOICE_REPAIR_NUM_PREDICT = int(
     os.getenv(
         "LOCAL_VOICE_REPAIR_NUM_PREDICT",
-        "180"
+        "120"
     )
 )
 
@@ -137,7 +142,7 @@ LOCAL_VOICE_REPAIR_TEMPERATURE = float(
 LOCAL_VOICE_REPAIR_MAX_ATTEMPTS = int(
     os.getenv(
         "LOCAL_VOICE_REPAIR_MAX_ATTEMPTS",
-        "2"
+        "1"
     )
 )
 
@@ -4017,6 +4022,50 @@ async def humanize_evilnae_response(
             coherence_analysis
         )
     )
+
+    # =====================================================
+    # B3H CLEAN-SHORT FAST PATH
+    #
+    # No local model call if the Writer already produced
+    # one short, clean, deterministic-safe thought.
+    # =====================================================
+
+    if should_fast_path_local_voice(
+
+        draft,
+
+        violation_score=(
+            draft_violation_score
+        ),
+
+        deterministic_pressure=(
+            deterministic_pressure
+        )
+    ):
+
+        print(
+            "[LOCAL VOICE FAST PATH] "
+            f"v={PERFORMANCE_VERSION} "
+            f"words={len(extract_words(draft))} "
+            "reason=clean_short_writer_draft"
+        )
+
+        return fallback(
+
+            "fast_path_clean_short",
+
+            duration=0.0,
+
+            deterministic_violations=(
+                draft_violations
+            ),
+
+            forced_rewrite=False,
+
+            pre_score=(
+                draft_violation_score
+            )
+        )
 
     # =====================================================
     # QUEUE
