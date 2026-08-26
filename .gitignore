@@ -1,4 +1,4 @@
-.env
+﻿.env
 .venv/
 __pycache__/
 
@@ -9,5 +9,9 @@ initiative_state.json
 social_actions_state.json
 reflection_state.json
 voice_memory.json
+evilnae_self_model.json
+
 *.bak
-\nevilnae_self_model.json\n
+*.tmp
+dev_reset_backups/
+discord_export_*.txt
