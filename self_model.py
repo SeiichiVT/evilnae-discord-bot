@@ -8,12 +8,18 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Optional
 
+from character_foundation import (
+    foundation_violation_reasons,
+    get_foundation_entry,
+    resolve_foundation_self_query,
+)
+
 
 # =========================================================
 # VERSION
 # =========================================================
 
-SELF_MODEL_VERSION = "1.0"
+SELF_MODEL_VERSION = "2.0-character-foundation"
 
 
 # =========================================================
@@ -83,177 +89,12 @@ class SelfEvidence:
 SEED_FACTS = (
 
     SelfFact(
-
         key="identity:name",
-
         value="Evilnae",
-
         category="identity",
-
-        source="core_seed",
-
+        source="foundation_fallback",
         confidence="high",
-
-        stability="fixed"
-    ),
-
-    SelfFact(
-
-        key="identity:kind",
-
-        value=(
-            "eigenständige deutschsprachige "
-            "AI-Persönlichkeit"
-        ),
-
-        category="identity",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="fixed"
-    ),
-
-    SelfFact(
-
-        key="relationship:hanae",
-
-        value=(
-            "Hanae ist Evilnaes "
-            "Zwillingsschwester"
-        ),
-
-        category="relationship",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="fixed"
-    ),
-
-    SelfFact(
-
-        key="home:hanae",
-
-        value=(
-            "Evilnae und Hanae wohnen zusammen"
-        ),
-
-        category="relationship",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="fixed"
-    ),
-
-    SelfFact(
-
-        key="interest:gaming",
-
-        value=(
-            "Evilnae interessiert sich "
-            "allgemein für Gaming"
-        ),
-
-        category="interest",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="stable"
-    ),
-
-    SelfFact(
-
-        key="interest:anime",
-
-        value=(
-            "Evilnae interessiert sich für Anime"
-        ),
-
-        category="interest",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="stable"
-    ),
-
-    SelfFact(
-
-        key="interest:movies_series",
-
-        value=(
-            "Evilnae interessiert sich "
-            "für Filme und Serien"
-        ),
-
-        category="interest",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="stable"
-    ),
-
-    SelfFact(
-
-        key="interest:internet_culture",
-
-        value=(
-            "Evilnae interessiert sich "
-            "für Internet- und Social-Media-Kultur"
-        ),
-
-        category="interest",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="stable"
-    ),
-
-    SelfFact(
-
-        key="interest:animals",
-
-        value=(
-            "Evilnae mag Tiere"
-        ),
-
-        category="interest",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="stable"
-    ),
-
-    SelfFact(
-
-        key="interest:creepy_animals",
-
-        value=(
-            "Evilnae findet auch Schlangen "
-            "und Spinnen interessant"
-        ),
-
-        category="interest",
-
-        source="core_seed",
-
-        confidence="high",
-
-        stability="stable"
+        stability="fixed",
     ),
 )
 
@@ -866,6 +707,42 @@ def resolve_self_query(
             text
         )
     )
+
+    # =====================================================
+    # CHARACTER FOUNDATION FIRST
+    #
+    # Die Excel ist die höchste Character-Autorität.
+    # Legacy Self Model läuft nur als Fallback, wenn die
+    # Foundation für diese Self-Frage keinen Treffer hat.
+    # =====================================================
+
+    foundation_hit = (
+        resolve_foundation_self_query(
+            text
+        )
+    )
+
+    if foundation_hit is not None:
+
+        foundation_fact = SelfFact(
+            key=f"foundation:{foundation_hit.nr}",
+            value=foundation_hit.answer,
+            category=foundation_hit.area or "foundation",
+            source="excel_character_foundation",
+            confidence="high",
+            stability="fixed",
+        )
+
+        return SelfEvidence(
+            matched=True,
+            query_type="foundation",
+            key=foundation_fact.key,
+            known=True,
+            strict_unknown=False,
+            specificity_guard=False,
+            fact=foundation_fact,
+            reason=f"foundation_row_{foundation_hit.nr}",
+        )
 
     # =====================================================
     # FAVORITES
@@ -1809,6 +1686,40 @@ def self_knowledge_violation_reasons(
         ]
 
     reasons = []
+
+    # =====================================================
+    # CHARACTER FOUNDATION CONTRADICTION GUARD
+    # =====================================================
+
+    if (
+        evidence.query_type
+        ==
+        "foundation"
+        and
+        evidence.key
+        and
+        str(evidence.key).startswith("foundation:")
+    ):
+
+        try:
+            foundation_nr = int(
+                str(evidence.key).split(":", 1)[1]
+            )
+        except (TypeError, ValueError, IndexError):
+            foundation_nr = 0
+
+        foundation_hit = (
+            get_foundation_entry(
+                foundation_nr
+            )
+            if foundation_nr
+            else None
+        )
+
+        return foundation_violation_reasons(
+            answer,
+            foundation_hit
+        )
 
     # =====================================================
     # GENERAL GAMING

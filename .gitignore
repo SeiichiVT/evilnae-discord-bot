@@ -15,3 +15,6 @@ evilnae_self_model.json
 *.tmp
 dev_reset_backups/
 discord_export_*.txt
+evilnae_character_learning.json
+evilnae_character_state.json
+character_final_backups/
