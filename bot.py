@@ -176,6 +176,18 @@ from evilnae_emotes import (
     format_evilnae_emote_debug,
 )
 
+from conversation_understanding import (
+    CONVERSATION_UNDERSTANDING_VERSION,
+    upgrade_perception_addressing,
+    format_address_upgrade_debug,
+    build_reference_context,
+    build_episode_focus,
+    build_participation_hint,
+    salvage_question_shape,
+    analyze_garbled_output,
+    format_garbled_debug,
+)
+
 from dotenv import load_dotenv
 
 from openai import (
@@ -191,7 +203,7 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.11.9-evilnae-emotes-v1"
+BOT_VERSION = "2.12.0-context-b3c"
 
 
 # =========================================================
@@ -1744,166 +1756,64 @@ def is_active_conversation_continuation(
     channel_snapshot
 ):
 
-    key = (
-        get_active_conversation_key(
-            channel_id,
-            user_id
-        )
+    key = get_active_conversation_key(
+        channel_id,
+        user_id
     )
 
-    active = (
-        active_conversations.get(
-            key
-        )
+    active = active_conversations.get(
+        key
     )
 
     if not active:
-
         return False
 
-    now = (
-        time.time()
-    )
+    now = time.time()
 
-    if (
-        now
-        > active[
-            "expires_at"
-        ]
-    ):
-
+    if now > active["expires_at"]:
         end_active_conversation(
             channel_id,
             user_id,
             "expired"
         )
-
         return False
 
     # -----------------------------------------------------
-    # Aktuelle User-Nachricht wurde bereits
-    # in den Channel Context geschrieben.
+    # B3C / ACTIVE CONVERSATION v2
     #
-    # Deshalb schauen wir auf alles davor.
+    # Discord ist ein Gruppengespräch.
+    # Eine andere Person, die kurz dazwischen schreibt,
+    # beendet den Strang NICHT automatisch.
+    #
+    # Der Target Guard entscheidet anschließend weiterhin,
+    # ob die aktuelle Nachricht explizit an jemand anderen
+    # gerichtet ist.
     # -----------------------------------------------------
 
-    previous_items = (
-        channel_snapshot[:-1]
-    )
-
+    previous_items = channel_snapshot[:-1]
     checked = 0
 
-    for item in reversed(
-        previous_items
-    ):
-
-        if (
-            checked
-            >= ACTIVE_CONVERSATION_CONTEXT_GAP
-        ):
-
+    for item in reversed(previous_items):
+        if checked >= ACTIVE_CONVERSATION_CONTEXT_GAP:
             break
 
         checked += 1
+        item_type = item.get("type")
 
-        item_type = (
-            item.get(
-                "type"
-            )
+        if item_type != "bot":
+            # Andere User dürfen sich einmischen, ohne den
+            # laufenden Strang zu töten.
+            continue
+
+        reply_to_id = str(
+            item.get("reply_to_id") or ""
         )
 
-        # -------------------------------------------------
-        # EVILNAE WAR ZULETZT IM GESPRÄCH
-        # -------------------------------------------------
+        if reply_to_id == str(user_id):
+            return True
 
-        if (
-            item_type
-            == "bot"
-        ):
-
-            origin = (
-                item.get(
-                    "origin",
-                    "reply"
-                )
-            )
-
-            reply_to_id = str(
-                item.get(
-                    "reply_to_id"
-                )
-                or ""
-            )
-
-            if (
-                reply_to_id
-                == str(
-                    user_id
-                )
-            ):
-
-                return True
-
-            if (
-                origin
-                == "continuation"
-            ):
-
-                return True
-
-            # Participation kann ebenfalls
-            # ein neues aktives Gespräch starten.
-            #
-            # Aber nur wenn anschließend
-            # derselbe User weiterschreibt.
-
-            if (
-                origin
-                == "participation"
-            ):
-
-                return True
-
-            return False
-
-        # -------------------------------------------------
-        # USER SENDET EVENTUELL MEHRERE
-        # NACHRICHTEN HINTEREINANDER
-        # -------------------------------------------------
-
-        if (
-            item_type
-            == "user"
-        ):
-
-            previous_user_id = str(
-                item.get(
-                    "user_id"
-                )
-                or ""
-            )
-
-            if (
-                previous_user_id
-                == str(
-                    user_id
-                )
-            ):
-
-                continue
-
-            # Andere Person ist dazwischen.
-            #
-            # Damit wird nicht blind ein altes
-            # Zwei-Personen-Gespräch fortgesetzt.
-
-            end_active_conversation(
-                channel_id,
-                user_id,
-                "other_participant_intervened"
-            )
-
-            return False
+        # Participation ohne Reply-ID gehört nicht automatisch
+        # zu diesem User. Wir laufen einfach weiter zurück.
 
     return False
 
@@ -3631,6 +3541,39 @@ async def finalize_writer_answer(
                 )
             )
         )
+
+    # -----------------------------------------------------
+    # B3C QUESTION FAIL-SAFE
+    #
+    # A harmless direct reply must not disappear only because
+    # the Writer kept appending an unapproved question.
+    # -----------------------------------------------------
+
+    if (
+        reasons
+        and
+        set(reasons).issubset({"question_not_allowed"})
+    ):
+        salvaged = salvage_question_shape(
+            current_answer,
+            allow_question=bool(decision.ask_question),
+        )
+
+        if salvaged:
+            salvage_reasons = get_writer_violation_reasons(
+                answer=salvaged,
+                decision=decision,
+                autonomous_participation=autonomous_participation,
+            )
+
+            if not salvage_reasons:
+                print(
+                    "[WRITER QUESTION FAILSAFE SUCCESS] "
+                    f"user={username} "
+                    f"before={current_answer!r} "
+                    f"after={salvaged!r}"
+                )
+                return salvaged
 
     print(
         "[WRITER VALIDATION FAILED] "
@@ -7038,45 +6981,28 @@ async def decide_participation(
     )
 
     # -----------------------------------------------------
-    # THIRD-PERSON EVILNAE MENTION
+    # B3C PARTICIPATION CONTEXT
     #
-    # Beispiel:
-    #
-    # "Sicher? Evil sagt da was anderes."
-    #
-    # Das ist KEINE direkte Ansprache.
-    #
-    # Es erhöht aber natürlich die Relevanz,
-    # falls Evilnae sich freiwillig einmischen will.
+    # Third-person mention != direct address,
+    # aber auch NICHT "irrelevant".
+    # Außerdem kann Evilnae mitten in einer gemeinsamen
+    # Gruppenepisode stecken, obwohl gerade jemand anderes
+    # spricht.
     # -----------------------------------------------------
 
-    if (
-        getattr(
+    participation_hint_text = (
+        build_participation_hint(
             perception,
-            "name_mentioned",
-            False
+            channel_snapshot,
+            hanae_user_id=HANAE_USER_ID,
         )
-        and
-        not getattr(
-            perception,
-            "direct_address",
-            False
+    )
+
+    if participation_hint_text:
+        channel_context_text += (
+            "\n\n"
+            + participation_hint_text
         )
-    ):
-
-        channel_context_text += """
-        
-[PERCEPTION HINWEIS]
-Evilnae wurde in der aktuellen Nachricht
-in dritter Person erwähnt.
-
-Das ist KEINE direkte Ansprache.
-
-Es ist nur ein leichtes Relevanzsignal
-für freiwillige Participation.
-
-Nicht allein deshalb antworten.
-""".rstrip()
 
     participant_context_text = (
         format_participant_contexts(
@@ -7578,6 +7504,31 @@ async def on_ready():
     )
 
     print(
+        f"Conversation Understanding v"
+        f"{CONVERSATION_UNDERSTANDING_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Direct Address Resolver v2: ACTIVE"
+    )
+
+    print(
+        "Reference / Ellipsis Resolver: ACTIVE"
+    )
+
+    print(
+        "Group Thread Continuity v2: ACTIVE"
+    )
+
+    print(
+        "Question Guard Fail-Safe: ACTIVE"
+    )
+
+    print(
+        "Garbled Output Guard: ACTIVE"
+    )
+
+    print(
         f"Response Agency v"
         f"{AGENCY_VERSION}: ACTIVE"
     )
@@ -7835,6 +7786,32 @@ async def on_message(
 
         return
 
+    # =====================================================
+    # B3C DIRECT ADDRESS RESOLVER v2
+    #
+    # Perception v2.0.1 ist bewusst konservativ.
+    # Diese zweite Stufe fängt soziale Vocatives ab wie:
+    #
+    # "schönen tag dir noch evil"
+    # "WOW EVIL WOW"
+    #
+    # ohne echte Third-Person-Erwähnungen pauschal direkt
+    # zu machen.
+    # =====================================================
+
+    address_upgrade = (
+        upgrade_perception_addressing(
+            perception
+        )
+    )
+
+    if address_upgrade.changed:
+        print(
+            format_address_upgrade_debug(
+                address_upgrade
+            )
+        )
+
     print(
         format_perception_debug(
             perception
@@ -7891,6 +7868,25 @@ async def on_message(
     channel_snapshot = list(
         get_channel_context(
             channel_id
+        )
+    )
+
+    # =====================================================
+    # B3C REFERENCE / EPISODE CONTEXT
+    # =====================================================
+
+    b3c_reference_context_text = (
+        build_reference_context(
+            perception.text or perception.raw_content or "",
+            channel_snapshot,
+            current_user_id=user_id,
+        )
+    )
+
+    b3c_episode_focus_text = (
+        build_episode_focus(
+            channel_snapshot,
+            limit=10,
         )
     )
 
@@ -8453,12 +8449,13 @@ async def on_message(
 
         group_context_text += (
             "\n\n"
-            +
-            world_brain_text
-            +
-            "\n\n"
-            +
-            self_model_brain_text
+            + world_brain_text
+            + "\n\n"
+            + self_model_brain_text
+            + "\n\n"
+            + b3c_reference_context_text
+            + "\n\n"
+            + b3c_episode_focus_text
         )
 
         reply_context_text = (
@@ -9029,6 +9026,17 @@ Participation-Entscheidung nötig.
                 )
             )
         )
+        # =====================================================
+        # B3C REFERENCE / EPISODE -> WRITER
+        # =====================================================
+
+        writer_context += (
+            "\n\n"
+            + b3c_reference_context_text
+            + "\n\n"
+            + b3c_episode_focus_text
+        )
+
         # =====================================================
         # 2.11B2 WORLD EVIDENCE -> WRITER
         # =====================================================
@@ -9824,15 +9832,7 @@ Participation-Entscheidung nötig.
                 )
 
         # =====================================================
-        # B3B.1A.1 PRE-VOICE QUESTION SHAPE GUARD
-        #
-        # Curiosity entscheidet:
-        #
-        # - keine Frage
-        # ODER
-        # - maximal eine Frage
-        #
-        # Writer darf diese Entscheidung nicht umgehen.
+        # B3C PRE-VOICE QUESTION SHAPE GUARD + FAIL-SAFE
         # =====================================================
 
         pre_voice_question_violations = (
@@ -9843,129 +9843,118 @@ Participation-Entscheidung nötig.
         )
 
         if pre_voice_question_violations:
-
             print(
                 "[QUESTION SHAPE VIOLATION] "
                 f"user={username} "
-                f"violations="
-                f"{pre_voice_question_violations} "
+                f"violations={pre_voice_question_violations} "
                 f"answer={answer!r}"
             )
 
+            source_before_question_repair = answer
+
             question_repair_context = (
                 writer_context
-                +
-                "\n\n"
-                +
-                format_curiosity_for_writer(
+                + "\n\n"
+                + format_curiosity_for_writer(
                     curiosity_result
                 )
             )
 
-            question_repair = (
-                await repair_writer_answer(
-
-                    original_answer=(
-                        answer
-                    ),
-
-                    violation_reasons=(
-                        pre_voice_question_violations
-                    ),
-
-                    writer_context=(
-                        question_repair_context
-                    ),
-
-                    current_mood=(
-                        current_mood
-                    ),
-
-                    username=(
-                        username
-                    ),
-
-                    token_limit=(
-                        writer_token_limit
-                    ),
-
-                    autonomous_participation=(
-                        autonomous_participation
-                    )
-                )
+            question_repair = await repair_writer_answer(
+                original_answer=answer,
+                violation_reasons=pre_voice_question_violations,
+                writer_context=question_repair_context,
+                current_mood=current_mood,
+                username=username,
+                token_limit=writer_token_limit,
+                autonomous_participation=autonomous_participation,
             )
 
-            if not question_repair:
+            repair_ok = False
 
-                print(
-                    "[QUESTION SHAPE ABORT] "
-                    f"user={username} "
-                    "reason=repair_failed"
-                )
-
-                return
-
-            question_repair = (
-                clean_generated_answer(
+            if question_repair:
+                question_repair = clean_generated_answer(
                     question_repair
                 )
-            )
-
-            question_repair = (
-                enforce_permanent_expression_bans(
+                question_repair = enforce_permanent_expression_bans(
                     question_repair
                 )
-            )
 
-            question_repair_hard = (
-                get_writer_violation_reasons(
-
-                    answer=(
-                        question_repair
-                    ),
-
-                    decision=(
-                        decision
-                    ),
-
-                    autonomous_participation=(
-                        autonomous_participation
+                question_repair_hard = get_writer_violation_reasons(
+                    answer=question_repair,
+                    decision=decision,
+                    autonomous_participation=autonomous_participation,
+                )
+                question_repair_violations = (
+                    question_output_violation_reasons(
+                        question_repair,
+                        curiosity_result
                     )
                 )
-            )
 
-            question_repair_violations = (
-                question_output_violation_reasons(
-                    question_repair,
-                    curiosity_result
+                repair_ok = (
+                    not question_repair_hard
+                    and
+                    not question_repair_violations
                 )
-            )
 
-            if (
-                question_repair_hard
-                or
-                question_repair_violations
-            ):
-
+            if repair_ok:
+                answer = question_repair
                 print(
-                    "[QUESTION SHAPE ABORT] "
-                    f"user={username} "
-                    f"hard="
-                    f"{question_repair_hard} "
-                    f"question="
-                    f"{question_repair_violations}"
+                    "[QUESTION SHAPE REPAIR SUCCESS] "
+                    f"user={username}"
                 )
+            else:
+                # Deterministic salvage from the original draft first.
+                # Example:
+                # "pizza? jetzt hast du mich hungrig gemacht. lief's gut?"
+                # -> "jetzt hast du mich hungrig gemacht."
+                salvage_sources = [
+                    source_before_question_repair,
+                    question_repair or "",
+                ]
 
-                return
+                salvaged = ""
 
-            answer = (
-                question_repair
-            )
+                for salvage_source in salvage_sources:
+                    candidate = salvage_question_shape(
+                        salvage_source,
+                        allow_question=bool(curiosity_result.allowed),
+                    )
 
-            print(
-                "[QUESTION SHAPE REPAIR SUCCESS] "
-                f"user={username}"
-            )
+                    if not candidate:
+                        continue
+
+                    candidate_hard = get_writer_violation_reasons(
+                        answer=candidate,
+                        decision=decision,
+                        autonomous_participation=autonomous_participation,
+                    )
+                    candidate_questions = (
+                        question_output_violation_reasons(
+                            candidate,
+                            curiosity_result
+                        )
+                    )
+
+                    if not candidate_hard and not candidate_questions:
+                        salvaged = candidate
+                        break
+
+                if salvaged:
+                    print(
+                        "[QUESTION SHAPE FAILSAFE SUCCESS] "
+                        f"user={username} "
+                        f"answer={salvaged!r}"
+                    )
+                    answer = salvaged
+                else:
+                    print(
+                        "[QUESTION SHAPE ABORT] "
+                        f"user={username} "
+                        "reason=repair_and_failsafe_failed"
+                    )
+                    return
 
         original_writer_answer = (
             answer
@@ -10028,6 +10017,27 @@ Participation-Entscheidung nötig.
                     voice_candidate
                 )
             )
+
+            # ---------------------------------------------
+            # B3C LOCAL VOICE GARBLED GUARD
+            #
+            # Qwen darf einen semantisch guten Writer-Draft
+            # nicht durch Komma-/Fragment-Salat ersetzen.
+            # ---------------------------------------------
+
+            voice_garbled_analysis = analyze_garbled_output(
+                voice_candidate
+            )
+
+            if voice_garbled_analysis.garbled:
+                print(
+                    "[LOCAL VOICE GARBLED REJECT] "
+                    f"user={username} "
+                    f"score={voice_garbled_analysis.score} "
+                    f"matches={voice_garbled_analysis.matches} "
+                    f"candidate={voice_candidate!r}"
+                )
+                voice_candidate = ""
 
             # ---------------------------------------------
             # FINAL EVILNAE HARD GUARD
@@ -10942,6 +10952,125 @@ Participation-Entscheidung nötig.
             )
 
             return
+
+        # =================================================
+        # B3C FINAL GARBLED OUTPUT GUARD
+        # =================================================
+
+        final_garbled_analysis = analyze_garbled_output(
+            answer
+        )
+
+        if final_garbled_analysis.garbled:
+            print(
+                format_garbled_debug(
+                    final_garbled_analysis
+                )
+            )
+
+            fallback_candidate = clean_generated_answer(
+                original_writer_answer
+            )
+
+            fallback_garbled = analyze_garbled_output(
+                fallback_candidate
+            )
+
+            fallback_questions = (
+                question_output_violation_reasons(
+                    fallback_candidate,
+                    curiosity_result
+                )
+            )
+
+            fallback_self = self_knowledge_violation_reasons(
+                fallback_candidate,
+                self_evidence
+            )
+
+            fallback_knowledge = knowledge_violation_reasons(
+                fallback_candidate,
+                knowledge_constraint
+            )
+
+            if (
+                fallback_candidate
+                and
+                not fallback_garbled.garbled
+                and
+                not fallback_questions
+                and
+                not fallback_self
+                and
+                not fallback_knowledge
+            ):
+                print(
+                    "[GARBLED OUTPUT REVERT SUCCESS] "
+                    f"user={username}"
+                )
+                answer = fallback_candidate
+            else:
+                garbled_repair = await repair_writer_answer(
+                    original_answer=answer,
+                    violation_reasons=[
+                        "garbled_or_grammatically_broken_output",
+                        *final_garbled_analysis.matches,
+                    ],
+                    writer_context=writer_context,
+                    current_mood=current_mood,
+                    username=username,
+                    token_limit=writer_token_limit,
+                    autonomous_participation=autonomous_participation,
+                )
+
+                garbled_repair = clean_generated_answer(
+                    garbled_repair
+                )
+
+                repair_garbled = analyze_garbled_output(
+                    garbled_repair
+                )
+
+                repair_questions = (
+                    question_output_violation_reasons(
+                        garbled_repair,
+                        curiosity_result
+                    )
+                )
+
+                repair_self = self_knowledge_violation_reasons(
+                    garbled_repair,
+                    self_evidence
+                )
+
+                repair_knowledge = knowledge_violation_reasons(
+                    garbled_repair,
+                    knowledge_constraint
+                )
+
+                if (
+                    garbled_repair
+                    and
+                    not repair_garbled.garbled
+                    and
+                    not repair_questions
+                    and
+                    not repair_self
+                    and
+                    not repair_knowledge
+                ):
+                    print(
+                        "[GARBLED OUTPUT REPAIR SUCCESS] "
+                        f"user={username}"
+                    )
+                    answer = garbled_repair
+                else:
+                    print(
+                        "[GARBLED OUTPUT ABORT] "
+                        f"user={username} "
+                        "reason=no_safe_fallback"
+                    )
+                    return
 
         # =================================================
         # 11.9 EVILNAE APPLICATION EMOTE LAYER

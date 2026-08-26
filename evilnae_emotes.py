@@ -7,7 +7,7 @@ from typing import Optional
 # VERSION
 # =========================================================
 
-EVILNAE_EMOTE_VERSION = "1.0"
+EVILNAE_EMOTE_VERSION = "1.1"
 
 
 # =========================================================
@@ -354,6 +354,16 @@ GAMING_PATTERNS = [
         r"boss|ranked|elo|"
         r"controller|steam|"
         r"playstation|xbox)\w*\b",
+        re.IGNORECASE
+    ),
+]
+
+
+NEGATIVE_CONTEXT_PATTERNS = [
+    re.compile(
+        r"\b(?:nervt|nervig|nerven|scheiße|scheisse|scheiß|scheiss|"
+        r"kotzen|frust|frustriert|schlimm|ätzend|aetzend|abfuck|"
+        r"unangenehm|nicht gut|kaputt)\w*\b",
         re.IGNORECASE
     ),
 ]
@@ -982,7 +992,18 @@ def choose_emote_semantic(
         )
     )
 
-    if fire_score >= 1:
+    negative_context_score = (
+        _score_patterns(
+            combined,
+            NEGATIVE_CONTEXT_PATTERNS
+        )
+    )
+
+    if (
+        fire_score >= 1
+        and
+        negative_context_score == 0
+    ):
 
         return (
             "fire",

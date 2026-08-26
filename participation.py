@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 # VERSION
 # =========================================================
 
-PARTICIPATION_VERSION = "1.0"
+PARTICIPATION_VERSION = "1.1"
 
 
 # =========================================================
@@ -298,17 +298,17 @@ def normalize_decision(
             action = "stay_silent"
 
         elif (
-            relevance < 0.45
+            relevance < 0.35
             and
-            conversation_involvement < 0.55
+            conversation_involvement < 0.45
         ):
 
             action = "stay_silent"
 
         elif (
-            social_value < 0.35
+            social_value < 0.25
             and
-            conversation_involvement < 0.70
+            conversation_involvement < 0.60
         ):
 
             action = "stay_silent"
@@ -440,6 +440,18 @@ hat Evilnae NICHT direkt angesprochen.
 
 Das bedeutet NICHT automatisch,
 dass Evilnae schweigen muss.
+
+WICHTIG FÜR GRUPPENCHATS:
+
+- "nicht direkt angesprochen" ist NICHT dasselbe wie "irrelevant"
+- wenn über Evilnae gesprochen wird, kann relevance hoch sein
+- "Arme Evil", "Evil mag Hanae" oder Kommentare über ihre Pizza
+  betreffen Evilnae eindeutig, auch in dritter Person
+- wenn Evilnae wenige Nachrichten vorher Teil derselben Situation war,
+  darf conversation_involvement hoch bleiben, obwohl jemand dazwischen schrieb
+- besonders bei laufenden Bits/Ereignissen mit Hanae darf eine Zwischenmeldung
+  den sozialen Zusammenhang nicht automatisch auf null setzen
+- trotzdem muss Evilnae nicht auf jede Erwähnung reagieren
 
 Aber:
 
