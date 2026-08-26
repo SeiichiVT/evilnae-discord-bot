@@ -17,11 +17,12 @@ import sys
 #
 # BLEIBT ERHALTEN:
 #
-# - bot.py / Code
+# - kompletter Source Code
 # - .env
-# - Persönlichkeit / Prompts
+# - Persönlichkeit / SYSTEM_PROMPT
 # - Character-Lore aus dem Code
 # - Hanae als fest definierte Schwester
+# - feste Self-Model Seeds aus self_model.py
 # - Voice-Memory Seed-Beispiele aus voice_memory.py
 # - Git / Repository
 # - Discord Exports / Logs
@@ -36,42 +37,31 @@ import sys
 # - user_impressions
 # - memory_archives
 #
-# STATE:
+# PERSISTENT STATE:
 # - reflection_state.json
 # - evilnae_inner_state.json
 # - initiative_state.json
 # - social_actions_state.json
 # - voice_memory.json
+# - evilnae_self_model.json
 #
 # Vorher wird automatisch ein vollständiges
 # Development-Backup erstellt.
 # =========================================================
 
 
-RESET_VERSION = "1.0"
+RESET_VERSION = "1.1"
 
 
 # =========================================================
-# PROJECT ROOT
+# PROJECT PATHS
 # =========================================================
 
-PROJECT_ROOT = (
-    Path(__file__)
-    .resolve()
-    .parent
-)
+PROJECT_ROOT = Path(__file__).resolve().parent
 
-DB_PATH = (
-    PROJECT_ROOT
-    /
-    "evilnae.db"
-)
+DB_PATH = PROJECT_ROOT / "evilnae.db"
 
-BACKUP_ROOT = (
-    PROJECT_ROOT
-    /
-    "dev_reset_backups"
-)
+BACKUP_ROOT = PROJECT_ROOT / "dev_reset_backups"
 
 
 # =========================================================
@@ -79,17 +69,11 @@ BACKUP_ROOT = (
 # =========================================================
 
 MEMORY_TABLES = [
-
     "relationships",
-
     "summaries",
-
     "user_buffers",
-
     "user_profiles",
-
     "user_impressions",
-
     "memory_archives",
 ]
 
@@ -97,244 +81,199 @@ MEMORY_TABLES = [
 # =========================================================
 # PERSISTENT STATE FILES
 # =========================================================
+#
+# IMPORTANT:
+# evilnae_self_model.json enthält ausschließlich
+# gelernte Self-Facts.
+#
+# Die festen SEED_FACTS leben in self_model.py
+# und bleiben deshalb erhalten.
+# =========================================================
 
 STATE_FILES = [
-
     "reflection_state.json",
-
     "evilnae_inner_state.json",
-
     "initiative_state.json",
-
     "social_actions_state.json",
-
     "voice_memory.json",
+    "evilnae_self_model.json",
 ]
-
-
-# =========================================================
-# TEMP STATE FILES
-# =========================================================
 
 TEMP_STATE_FILES = [
-
-    "reflection_state.json.tmp",
-
-    "evilnae_inner_state.json.tmp",
-
-    "initiative_state.json.tmp",
-
-    "social_actions_state.json.tmp",
-
-    "voice_memory.json.tmp",
+    f"{file_name}.tmp"
+    for file_name in STATE_FILES
 ]
 
 
 # =========================================================
-# OUTPUT
+# OUTPUT HELPERS
 # =========================================================
 
-def header(
-    text
-):
-
+def header(text):
     print("")
-    print(
-        "=" * 56
-    )
-    print(
-        text
-    )
-    print(
-        "=" * 56
-    )
+    print("=" * 60)
+    print(text)
+    print("=" * 60)
 
 
-def ok(
-    text
-):
-
-    print(
-        f"[OK] {text}"
-    )
+def ok(text):
+    print(f"[OK] {text}")
 
 
-def info(
-    text
-):
-
-    print(
-        f"[INFO] {text}"
-    )
+def info(text):
+    print(f"[INFO] {text}")
 
 
-def warn(
-    text
-):
-
-    print(
-        f"[WARN] {text}"
-    )
+def warn(text):
+    print(f"[WARN] {text}")
 
 
-def fail(
-    text
-):
-
+def fail(text):
     print("")
-    print(
-        f"[RESET ERROR] {text}"
-    )
+    print(f"[RESET ERROR] {text}")
     print("")
-
-    sys.exit(
-        1
-    )
+    sys.exit(1)
 
 
 # =========================================================
-# TABLE HELPERS
+# DATABASE HELPERS
 # =========================================================
 
-def table_exists(
-    connection,
-    table_name
-):
-
+def table_exists(connection, table_name):
     row = connection.execute(
         """
         SELECT name
         FROM sqlite_master
         WHERE type = 'table'
-        AND name = ?
+          AND name = ?
         """,
-        (
-            table_name,
-        )
+        (table_name,),
     ).fetchone()
 
-    return (
-        row is not None
-    )
+    return row is not None
 
 
-def get_table_count(
-    connection,
-    table_name
-):
-
-    if not table_exists(
-        connection,
-        table_name
-    ):
-
+def get_table_count(connection, table_name):
+    if not table_exists(connection, table_name):
         return None
 
     row = connection.execute(
-        f"""
-        SELECT COUNT(*)
-        FROM "{table_name}"
-        """
+        f'SELECT COUNT(*) FROM "{table_name}"'
     ).fetchone()
 
     if not row:
-
         return 0
 
-    return int(
-        row[0]
+    return int(row[0])
+
+
+def database_integrity_ok(connection):
+    row = connection.execute(
+        "PRAGMA integrity_check;"
+    ).fetchone()
+
+    return bool(
+        row
+        and str(row[0]).lower() == "ok"
     )
 
 
 # =========================================================
 # SQLITE BACKUP
+# =========================================================
 #
-# Nicht nur shutil.copy(evilnae.db).
-#
-# Wir benutzen SQLite selbst,
-# damit auch eine WAL-Datenbank sauber
-# gesichert wird.
+# Wir benutzen die SQLite Backup API statt shutil.copy.
+# Dadurch wird auch bei WAL sauber ein konsistenter
+# Datenbankstand gesichert.
 # =========================================================
 
-def backup_database(
-    backup_database_path
-):
-
+def backup_database(backup_database_path):
     if not DB_PATH.exists():
-
         warn(
             "evilnae.db existiert nicht. "
             "Database-Backup wird übersprungen."
         )
-
         return False
 
     source = None
     destination = None
 
     try:
-
         source = sqlite3.connect(
-            str(
-                DB_PATH
-            ),
-            timeout=10
+            str(DB_PATH),
+            timeout=10,
         )
 
         source.execute(
             "PRAGMA busy_timeout=10000;"
         )
 
-        # -------------------------------------------------
-        # Versuchen, WAL sauber in die DB zu checkpointen.
-        # -------------------------------------------------
-
         try:
-
             source.execute(
                 "PRAGMA wal_checkpoint(FULL);"
             )
-
         except sqlite3.Error:
-
-            # Backup funktioniert trotzdem über SQLite API.
+            # Die SQLite Backup API funktioniert
+            # trotzdem konsistent.
             pass
 
         destination = sqlite3.connect(
-            str(
-                backup_database_path
-            )
+            str(backup_database_path)
         )
 
-        source.backup(
-            destination
-        )
-
+        source.backup(destination)
         destination.commit()
 
-        ok(
-            "SQLite database backup created"
-        )
-
+        ok("SQLite database backup created")
         return True
 
     except sqlite3.Error as error:
-
         fail(
             "Database backup failed: "
-            f"{type(error).__name__}: "
-            f"{error}"
+            f"{type(error).__name__}: {error}"
         )
 
     finally:
-
         if destination is not None:
-
             destination.close()
 
         if source is not None:
-
             source.close()
+
+
+# =========================================================
+# STATE BACKUP
+# =========================================================
+
+def backup_state_files(backup_directory):
+    backed_up = []
+
+    for file_name in (
+        STATE_FILES
+        + TEMP_STATE_FILES
+    ):
+        source = (
+            PROJECT_ROOT
+            / file_name
+        )
+
+        if not source.exists():
+            continue
+
+        destination = (
+            backup_directory
+            / file_name
+        )
+
+        shutil.copy2(
+            source,
+            destination,
+        )
+
+        backed_up.append(file_name)
+        ok(f"Backed up: {file_name}")
+
+    return backed_up
 
 
 # =========================================================
@@ -342,27 +281,20 @@ def backup_database(
 # =========================================================
 
 def reset_database():
-
     if not DB_PATH.exists():
-
         warn(
             "evilnae.db existiert nicht. "
-            "Database reset übersprungen."
+            "Database reset wird übersprungen."
         )
-
         return {}
 
     connection = None
-
     before_counts = {}
 
     try:
-
         connection = sqlite3.connect(
-            str(
-                DB_PATH
-            ),
-            timeout=10
+            str(DB_PATH),
+            timeout=10,
         )
 
         connection.execute(
@@ -370,178 +302,118 @@ def reset_database():
         )
 
         # -------------------------------------------------
-        # Check integrity BEFORE changing anything.
+        # Integrity BEFORE reset
         # -------------------------------------------------
 
-        integrity_before = (
-            connection.execute(
-                "PRAGMA integrity_check;"
-            )
-            .fetchone()
-        )
-
-        if (
-            not integrity_before
-            or
-            str(
-                integrity_before[0]
-            ).lower()
-            !=
-            "ok"
-        ):
-
+        if not database_integrity_ok(connection):
             fail(
                 "evilnae.db integrity check failed "
-                "BEFORE reset. "
-                "Nothing was deleted."
+                "BEFORE reset. Nothing was deleted."
             )
 
-        ok(
-            "Database integrity before reset: OK"
-        )
+        ok("Database integrity before reset: OK")
 
         # -------------------------------------------------
-        # Count everything first.
+        # Count all persistent memory first
         # -------------------------------------------------
 
-        for table in (
-            MEMORY_TABLES
-        ):
-
-            count = get_table_count(
-                connection,
-                table
+        for table in MEMORY_TABLES:
+            before_counts[table] = (
+                get_table_count(
+                    connection,
+                    table,
+                )
             )
 
-            before_counts[
-                table
-            ] = count
-
         # -------------------------------------------------
-        # One transaction.
-        #
-        # Either everything is cleared,
-        # or nothing is.
+        # One transaction:
+        # either all DB memory gets cleared
+        # or nothing gets committed.
         # -------------------------------------------------
 
         connection.execute(
             "BEGIN IMMEDIATE;"
         )
 
-        for table in (
-            MEMORY_TABLES
-        ):
-
+        for table in MEMORY_TABLES:
             if not table_exists(
                 connection,
-                table
+                table,
             ):
-
                 warn(
                     f"Table not found: {table}"
                 )
-
                 continue
 
             connection.execute(
-                f"""
-                DELETE FROM "{table}"
-                """
+                f'DELETE FROM "{table}"'
             )
 
             ok(
                 f"Cleared table: {table}"
             )
 
-        # -------------------------------------------------
-        # Reset AUTOINCREMENT of user_buffers.
-        # -------------------------------------------------
-
+        # Reset AUTOINCREMENT entries for any
+        # reset table that uses sqlite_sequence.
         if table_exists(
             connection,
-            "sqlite_sequence"
+            "sqlite_sequence",
         ):
-
-            connection.execute(
-                """
-                DELETE FROM sqlite_sequence
-                WHERE name = 'user_buffers'
-                """
-            )
+            for table in MEMORY_TABLES:
+                connection.execute(
+                    """
+                    DELETE FROM sqlite_sequence
+                    WHERE name = ?
+                    """,
+                    (table,),
+                )
 
             ok(
-                "Reset user_buffers AUTOINCREMENT"
+                "Reset matching AUTOINCREMENT sequences"
             )
 
         connection.commit()
 
         # -------------------------------------------------
-        # Verify empty.
+        # Verify tables are empty
         # -------------------------------------------------
 
-        for table in (
-            MEMORY_TABLES
-        ):
-
+        for table in MEMORY_TABLES:
             if not table_exists(
                 connection,
-                table
+                table,
             ):
-
                 continue
 
             remaining = get_table_count(
                 connection,
-                table
+                table,
             )
 
             if remaining != 0:
-
                 fail(
                     f"Table {table} still contains "
                     f"{remaining} rows after reset."
                 )
 
         # -------------------------------------------------
-        # Integrity after reset.
+        # Integrity AFTER reset
         # -------------------------------------------------
 
-        integrity_after = (
-            connection.execute(
-                "PRAGMA integrity_check;"
-            )
-            .fetchone()
-        )
-
-        if (
-            not integrity_after
-            or
-            str(
-                integrity_after[0]
-            ).lower()
-            !=
-            "ok"
-        ):
-
+        if not database_integrity_ok(connection):
             fail(
                 "evilnae.db integrity check failed "
                 "AFTER reset."
             )
 
-        ok(
-            "Database integrity after reset: OK"
-        )
+        ok("Database integrity after reset: OK")
 
         return before_counts
 
     except sqlite3.OperationalError as error:
-
         if connection is not None:
-
             try:
-
                 connection.rollback()
-
             except Exception:
                 pass
 
@@ -552,118 +424,87 @@ def reset_database():
         )
 
     except sqlite3.Error as error:
-
         if connection is not None:
-
             try:
-
                 connection.rollback()
-
             except Exception:
                 pass
 
         fail(
             "SQLite reset failed: "
-            f"{type(error).__name__}: "
-            f"{error}"
+            f"{type(error).__name__}: {error}"
         )
 
     finally:
-
         if connection is not None:
-
             connection.close()
 
 
 # =========================================================
-# COPY STATE FILES TO BACKUP
+# REMOVE LEARNED / RUNTIME STATE
 # =========================================================
-
-def backup_state_files(
-    backup_directory
-):
-
-    backed_up = []
-
-    for file_name in (
-        STATE_FILES
-        +
-        TEMP_STATE_FILES
-    ):
-
-        source = (
-            PROJECT_ROOT
-            /
-            file_name
-        )
-
-        if not source.exists():
-
-            continue
-
-        destination = (
-            backup_directory
-            /
-            file_name
-        )
-
-        shutil.copy2(
-            source,
-            destination
-        )
-
-        backed_up.append(
-            file_name
-        )
-
-        ok(
-            f"Backed up: {file_name}"
-        )
-
-    return backed_up
-
-
-# =========================================================
-# REMOVE STATE FILES
 #
-# Wir schreiben NICHT selbst irgendwelche
-# erfundenen Defaults.
+# Wir schreiben keine eigenen Defaults.
 #
-# Beim nächsten Bot-Start laden die jeweiligen
-# Module ihre eigenen offiziellen Defaults.
+# Beim nächsten Start laden die jeweiligen Module
+# ihre offiziellen Defaults / Seed-Daten aus dem Code.
 # =========================================================
 
 def reset_state_files():
-
     removed = []
 
     for file_name in (
         STATE_FILES
-        +
-        TEMP_STATE_FILES
+        + TEMP_STATE_FILES
     ):
-
         path = (
             PROJECT_ROOT
-            /
-            file_name
+            / file_name
         )
 
         if not path.exists():
-
             continue
 
-        path.unlink()
+        try:
+            path.unlink()
+        except OSError as error:
+            fail(
+                f"Could not remove {file_name}: "
+                f"{type(error).__name__}: {error}"
+            )
 
-        removed.append(
-            file_name
-        )
-
-        ok(
-            f"Reset state: {file_name}"
-        )
+        removed.append(file_name)
+        ok(f"Reset state: {file_name}")
 
     return removed
+
+
+# =========================================================
+# VERIFY STATE RESET
+# =========================================================
+
+def verify_state_reset():
+    leftovers = []
+
+    for file_name in (
+        STATE_FILES
+        + TEMP_STATE_FILES
+    ):
+        path = (
+            PROJECT_ROOT
+            / file_name
+        )
+
+        if path.exists():
+            leftovers.append(file_name)
+
+    if leftovers:
+        fail(
+            "Some state files still exist after reset: "
+            + ", ".join(leftovers)
+        )
+
+    ok("Persistent learning/runtime state files cleared")
 
 
 # =========================================================
@@ -675,124 +516,78 @@ def write_manifest(
     *,
     database_counts,
     backed_up_files,
-    removed_files
+    removed_files,
 ):
-
     manifest = {
-
-        "reset_version":
-            RESET_VERSION,
-
-        "created_at":
+        "reset_version": RESET_VERSION,
+        "created_at": (
             datetime.now()
             .astimezone()
-            .isoformat(),
-
-        "project_root":
-            str(
-                PROJECT_ROOT
+            .isoformat()
+        ),
+        "project_root": str(PROJECT_ROOT),
+        "database": {
+            "path": str(DB_PATH),
+            "cleared_tables": database_counts,
+        },
+        "state_files_backed_up": backed_up_files,
+        "state_files_reset": removed_files,
+        "preserved": [
+            "source code",
+            ".env",
+            "Discord exports",
+            "Git repository",
+            "character prompts/lore in code",
+            (
+                "Hanae fixed sister relationship "
+                "defined by code"
             ),
-
-        "database":
-            {
-
-                "path":
-                    str(
-                        DB_PATH
-                    ),
-
-                "cleared_tables":
-                    database_counts,
-            },
-
-        "state_files_backed_up":
-            backed_up_files,
-
-        "state_files_reset":
-            removed_files,
-
-        "preserved":
-            [
-
-                "source code",
-
-                ".env",
-
-                "Discord exports",
-
-                "Git repository",
-
-                "character prompts/lore in code",
-
-                (
-                    "Hanae fixed sister relationship "
-                    "defined by code"
-                ),
-
-                (
-                    "Voice Memory seed examples "
-                    "defined in voice_memory.py"
-                ),
-            ]
+            (
+                "Self Model fixed/core seeds "
+                "defined in self_model.py"
+            ),
+            (
+                "Voice Memory seed examples "
+                "defined in voice_memory.py"
+            ),
+        ],
     }
 
     manifest_path = (
         backup_directory
-        /
-        "reset_manifest.json"
+        / "reset_manifest.json"
     )
 
     with open(
         manifest_path,
         "w",
-        encoding="utf-8"
+        encoding="utf-8",
     ) as file:
-
         json.dump(
             manifest,
             file,
             ensure_ascii=False,
-            indent=2
+            indent=2,
         )
 
-    ok(
-        "Reset manifest created"
-    )
+    ok("Reset manifest created")
 
 
 # =========================================================
 # PRINT DATABASE COUNTS
 # =========================================================
 
-def print_database_counts(
-    counts
-):
-
+def print_database_counts(counts):
     print("")
+    print("Persistent DB rows before reset:")
 
-    print(
-        "Persistent DB rows before reset:"
-    )
-
-    for table in (
-        MEMORY_TABLES
-    ):
-
-        value = counts.get(
-            table
-        )
+    for table in MEMORY_TABLES:
+        value = counts.get(table)
 
         if value is None:
-
-            display = (
-                "table missing"
-            )
-
+            display = "table missing"
         else:
-
-            display = str(
-                value
-            )
+            display = str(value)
 
         print(
             f"  {table:<20} {display}"
@@ -804,83 +599,60 @@ def print_database_counts(
 # =========================================================
 
 def main():
-
     header(
         "EVILNAE DEVELOPMENT MEMORY RESET"
     )
 
-    print(
-        f"Reset Version: {RESET_VERSION}"
-    )
-
-    print(
-        f"Project: {PROJECT_ROOT}"
-    )
-
+    print(f"Reset Version: {RESET_VERSION}")
+    print(f"Project: {PROJECT_ROOT}")
     print("")
 
     print(
         "Dieser Reset entfernt Evilnaes "
-        "gespeicherte Test-Erfahrungen."
+        "gespeicherte Development-/Test-Erfahrungen."
     )
 
     print("")
+    print("WIRD ZURÜCKGESETZT:")
 
-    print(
-        "Er entfernt NICHT:"
-    )
+    for table in MEMORY_TABLES:
+        print(
+            f"  [DB] {table}"
+        )
 
-    print(
-        "  - Code"
-    )
-
-    print(
-        "  - Persönlichkeit / Prompts"
-    )
-
-    print(
-        "  - .env"
-    )
-
-    print(
-        "  - Git"
-    )
-
-    print(
-        "  - Discord Exports"
-    )
-
-    print(
-        "  - fest programmierte Hanae-Lore"
-    )
-
-    print(
-        "  - Voice Seed Examples"
-    )
+    for file_name in STATE_FILES:
+        print(
+            f"  [STATE] {file_name}"
+        )
 
     print("")
+    print("BLEIBT ERHALTEN:")
+    print("  [KEEP] Source Code")
+    print("  [KEEP] .env")
+    print("  [KEEP] Character / SYSTEM_PROMPT")
+    print("  [KEEP] feste Character-Lore")
+    print("  [KEEP] Hanae Sister Relationship aus Code")
+    print("  [KEEP] Self-Model Core Seeds aus self_model.py")
+    print("  [KEEP] Voice-Memory Seeds aus voice_memory.py")
+    print("  [KEEP] Git / Repository")
+    print("  [KEEP] Discord Exports / Logs")
 
+    print("")
     print(
-        "WICHTIG: bot.py muss AUS sein."
+        "WICHTIG: bot.py muss vollständig AUS sein."
     )
-
     print("")
 
     confirmation = input(
         "Zum Reset exakt RESET EVILNAE eingeben: "
     ).strip()
 
-    if confirmation != (
-        "RESET EVILNAE"
-    ):
-
+    if confirmation != "RESET EVILNAE":
         print("")
-
         print(
             "Reset abgebrochen. "
             "Es wurde nichts verändert."
         )
-
         return
 
     # -----------------------------------------------------
@@ -890,27 +662,22 @@ def main():
     timestamp = (
         datetime.now()
         .astimezone()
-        .strftime(
-            "%Y%m%d-%H%M%S"
-        )
+        .strftime("%Y%m%d-%H%M%S")
     )
 
     backup_directory = (
         BACKUP_ROOT
-        /
-        timestamp
+        / timestamp
     )
 
     backup_directory.mkdir(
         parents=True,
-        exist_ok=False
+        exist_ok=False,
     )
 
     print("")
-
     info(
-        f"Backup directory: "
-        f"{backup_directory}"
+        f"Backup directory: {backup_directory}"
     )
 
     # -----------------------------------------------------
@@ -919,8 +686,7 @@ def main():
 
     database_backup_path = (
         backup_directory
-        /
-        "evilnae.db"
+        / "evilnae.db"
     )
 
     backup_database(
@@ -928,7 +694,7 @@ def main():
     )
 
     # -----------------------------------------------------
-    # BACKUP JSON STATES
+    # BACKUP JSON / STATE FILES
     # -----------------------------------------------------
 
     backed_up_files = (
@@ -940,8 +706,6 @@ def main():
     # -----------------------------------------------------
     # RESET DATABASE
     # -----------------------------------------------------
-
-    print("")
 
     header(
         "RESETTING DATABASE MEMORY"
@@ -956,38 +720,28 @@ def main():
     )
 
     # -----------------------------------------------------
-    # RESET STATE
+    # RESET LEARNING / RUNTIME STATE
     # -----------------------------------------------------
 
-    print("")
-
     header(
-        "RESETTING RUNTIME / LEARNING STATE"
+        "RESETTING LEARNING / RUNTIME STATE"
     )
 
     removed_files = (
         reset_state_files()
     )
 
+    verify_state_reset()
+
     # -----------------------------------------------------
     # MANIFEST
     # -----------------------------------------------------
 
     write_manifest(
-
         backup_directory,
-
-        database_counts=(
-            database_counts
-        ),
-
-        backed_up_files=(
-            backed_up_files
-        ),
-
-        removed_files=(
-            removed_files
-        )
+        database_counts=database_counts,
+        backed_up_files=backed_up_files,
+        removed_files=removed_files,
     )
 
     # -----------------------------------------------------
@@ -1004,77 +758,35 @@ def main():
     )
 
     print("")
-
     print(
-        "Beim nächsten Start werden geladen:"
+        "Beim nächsten Start bekommt Evilnae:"
     )
-
-    print(
-        "  [✓] frischer Inner State"
-    )
-
-    print(
-        "  [✓] Reflection Defaults"
-    )
-
-    print(
-        "  [✓] Voice Memory Seeds"
-    )
-
-    print(
-        "  [✓] frische Initiative"
-    )
-
-    print(
-        "  [✓] frische Social Actions"
-    )
-
-    print(
-        "  [✓] leere User Memories"
-    )
-
-    print(
-        "  [✓] leere User Impressions"
-    )
-
-    print(
-        "  [✓] leere Conversation Buffers"
-    )
+    print("  [✓] frischen Inner State")
+    print("  [✓] Reflection Defaults")
+    print("  [✓] Voice Memory Seeds")
+    print("  [✓] frische Initiative")
+    print("  [✓] frische Social Actions")
+    print("  [✓] frisches Self Model")
+    print("  [✓] feste Self-Model Core Seeds")
+    print("  [✓] leere User Memories")
+    print("  [✓] leere User Impressions")
+    print("  [✓] leere Conversation Buffers")
+    print("  [✓] leere Relationship-Werte")
 
     print("")
-
-    print(
-        "Nicht verändert:"
-    )
-
-    print(
-        "  [✓] Evilnae Character / Code"
-    )
-
-    print(
-        "  [✓] Hanae Sister Relationship aus Code"
-    )
+    print("Nicht verändert:")
+    print("  [✓] Evilnae Character / Code")
+    print("  [✓] SYSTEM_PROMPT")
+    print("  [✓] feste Character-Lore")
+    print("  [✓] Hanae Sister Relationship aus Code")
 
     print("")
-
-    print(
-        "Backup:"
-    )
-
-    print(
-        f"  {backup_directory}"
-    )
+    print("Backup:")
+    print(f"  {backup_directory}")
 
     print("")
-
-    print(
-        "NEXT:"
-    )
-
-    print(
-        "  python bot.py"
-    )
-
+    print("NEXT:")
+    print("  python bot.py")
     print("")
 
 
@@ -1083,5 +795,4 @@ def main():
 # =========================================================
 
 if __name__ == "__main__":
-
     main()
