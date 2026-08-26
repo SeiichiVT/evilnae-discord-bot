@@ -243,7 +243,8 @@ from openai import (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "2.16.0-performance-b3h"
+BOT_VERSION = "2.17.0-pipeline-b3i"
+PIPELINE_CONSOLIDATION_VERSION = "1.0"
 
 
 # =========================================================
@@ -3890,6 +3891,287 @@ def choose_reliability_fallback(
         return candidate
 
     return ""
+
+
+
+# =========================================================
+# B3I CONSOLIDATED PIPELINE CANDIDATE CHOOSER
+#
+# Uses B3D as the critical deterministic validator.
+# No API call is made here.
+#
+# A candidate must pass:
+#
+# - question policy
+# - self knowledge
+# - source / knowledge authority
+# - garbled output
+# - Writer hard rules
+#
+# Safe candidates are then ranked by:
+#
+# - Output Quality
+# - Natural Response score
+# - grammar
+# - repetition
+# =========================================================
+
+def choose_pipeline_candidate(
+    *,
+    candidates,
+    decision,
+    curiosity_result,
+    self_evidence,
+    knowledge_constraint,
+    user_text,
+    recent_evilnae_messages,
+    username,
+    stage,
+    autonomous_participation=False,
+):
+
+    safe_results = []
+
+    for (
+        index,
+        (
+            source,
+            candidate
+        )
+    ) in enumerate(
+        candidates
+    ):
+
+        candidate = (
+            choose_reliability_fallback(
+
+                candidates=[
+                    (
+                        source,
+                        candidate
+                    ),
+                ],
+
+                curiosity_result=(
+                    curiosity_result
+                ),
+
+                self_evidence=(
+                    self_evidence
+                ),
+
+                knowledge_constraint=(
+                    knowledge_constraint
+                ),
+
+                username=(
+                    username
+                ),
+
+                stage=(
+                    f"{stage}/{source}"
+                )
+            )
+        )
+
+        if not candidate:
+
+            print(
+                "[PIPELINE CANDIDATE REJECTED] "
+                f"user={username} "
+                f"stage={stage} "
+                f"source={source} "
+                "reason=critical_guard"
+            )
+
+            continue
+
+        hard_violations = (
+            get_writer_violation_reasons(
+
+                answer=(
+                    candidate
+                ),
+
+                decision=(
+                    decision
+                ),
+
+                autonomous_participation=(
+                    autonomous_participation
+                )
+            )
+        )
+
+        if hard_violations:
+
+            print(
+                "[PIPELINE CANDIDATE REJECTED] "
+                f"user={username} "
+                f"stage={stage} "
+                f"source={source} "
+                f"reason=writer_hard "
+                f"violations={hard_violations}"
+            )
+
+            continue
+
+        quality_analysis = (
+            analyze_response_quality(
+
+                candidate,
+
+                user_text=(
+                    user_text
+                ),
+
+                recent_evilnae_messages=(
+                    recent_evilnae_messages
+                )
+            )
+        )
+
+        natural_analysis = (
+            analyze_natural_response(
+
+                candidate,
+
+                user_text=(
+                    user_text
+                ),
+
+                curiosity_allowed=bool(
+                    getattr(
+                        curiosity_result,
+                        "allowed",
+                        False
+                    )
+                ),
+
+                self_unknown=bool(
+                    getattr(
+                        self_evidence,
+                        "strict_unknown",
+                        False
+                    )
+                )
+                if self_evidence is not None
+                else False
+            )
+        )
+
+        quality_penalty = int(
+            getattr(
+                quality_analysis,
+                "total_penalty",
+                0
+            )
+            or
+            0
+        )
+
+        natural_penalty = int(
+            getattr(
+                natural_analysis,
+                "score",
+                0
+            )
+            or
+            0
+        )
+
+        grammar_penalty = int(
+            getattr(
+                quality_analysis,
+                "grammar_score",
+                0
+            )
+            or
+            0
+        )
+
+        repetition_penalty = int(
+            getattr(
+                quality_analysis,
+                "repetition_score",
+                0
+            )
+            or
+            0
+        )
+
+        combined_penalty = (
+            quality_penalty
+            +
+            min(
+                5,
+                natural_penalty
+            )
+        )
+
+        print(
+            "[PIPELINE CANDIDATE SAFE] "
+            f"user={username} "
+            f"stage={stage} "
+            f"source={source} "
+            f"combined={combined_penalty} "
+            f"quality={quality_penalty} "
+            f"natural={natural_penalty} "
+            f"grammar={grammar_penalty} "
+            f"repeat={repetition_penalty}"
+        )
+
+        safe_results.append(
+            (
+                (
+                    combined_penalty,
+                    grammar_penalty,
+                    repetition_penalty,
+                    index,
+                ),
+                source,
+                candidate
+            )
+        )
+
+    if not safe_results:
+
+        print(
+            "[PIPELINE NO SAFE CANDIDATE] "
+            f"user={username} "
+            f"stage={stage}"
+        )
+
+        return (
+            "",
+            "none"
+        )
+
+    safe_results.sort(
+        key=lambda item:
+            item[0]
+    )
+
+    (
+        _,
+        source,
+        candidate
+    ) = safe_results[
+        0
+    ]
+
+    print(
+        "[PIPELINE CHOICE] "
+        f"user={username} "
+        f"stage={stage} "
+        f"source={source} "
+        f"answer={candidate!r}"
+    )
+
+    return (
+        candidate,
+        source
+    )
 
 
 # =========================================================
@@ -7929,6 +8211,31 @@ async def on_ready():
     )
 
     print(
+        f"Pipeline Consolidation v"
+        f"{PIPELINE_CONSOLIDATION_VERSION}: ACTIVE"
+    )
+
+    print(
+        "Legacy Mid-Pipeline API Repairs: DISABLED"
+    )
+
+    print(
+        "Pre-Voice Critical Gate: CONSOLIDATED"
+    )
+
+    print(
+        "Post-Voice Critical Gate: CONSOLIDATED"
+    )
+
+    print(
+        "Pre-Quality Critical Gate: CONSOLIDATED"
+    )
+
+    print(
+        "Final Send Critical Gate: CONSOLIDATED"
+    )
+
+    print(
         f"Routing Hardening v{ROUTING_HARDENING_VERSION}: ACTIVE"
     )
 
@@ -10560,21 +10867,16 @@ Participation-Entscheidung nötig.
         )
 
         # =====================================================
-        # B3B.1B NATURAL RESPONSE GUARD
+        # B3I CONSOLIDATED PRE-VOICE GATE
         #
-        # Ziel:
+        # Critical Writer/Self/Knowledge checks already ran.
         #
-        # - reagieren statt User paraphrasieren
-        # - kein Support-/Coach-Wrapper
-        # - kein künstlicher Empathie-Füllsatz
-        # - Unknown nicht wie Datenbankfehler formulieren
-        # - lieber kurz aufhören als Antwort abrunden
-        #
-        # Kein zusätzlicher API-Call,
-        # wenn die Antwort sauber ist.
+        # Soft Natural Response problems are logged and
+        # delegated to Local Voice / Output Quality instead
+        # of spending another OpenAI repair call here.
         # =====================================================
 
-        natural_response_analysis = (
+        prevoice_natural_analysis = (
             analyze_natural_response(
 
                 answer,
@@ -10587,13 +10889,11 @@ Participation-Entscheidung nötig.
                     curiosity_result.allowed
                 ),
 
-                self_unknown=(
-                    bool(
-                        getattr(
-                            self_evidence,
-                            "strict_unknown",
-                            False
-                        )
+                self_unknown=bool(
+                    getattr(
+                        self_evidence,
+                        "strict_unknown",
+                        False
                     )
                 )
             )
@@ -10601,358 +10901,96 @@ Participation-Entscheidung nötig.
 
         print(
             format_natural_response_debug(
-                natural_response_analysis
+                prevoice_natural_analysis
             )
         )
 
-        if natural_response_analysis.rewrite_required:
+        if (
+            prevoice_natural_analysis
+            .rewrite_required
+        ):
 
-            natural_response_context = (
-                writer_context
-                +
-                "\n\n"
-                +
-                format_natural_response_for_writer(
-
-                    natural_response_analysis,
-
-                    user_text=(
-                        user_text
-                    ),
-
-                    curiosity_allowed=(
-                        curiosity_result.allowed
-                    ),
-
-                    question_goal=(
-                        curiosity_result.question_goal
-                    ),
-
-                    self_unknown=(
-                        bool(
-                            getattr(
-                                self_evidence,
-                                "strict_unknown",
-                                False
-                            )
-                        )
-                    )
-                )
-            )
-
-            natural_response_repair = (
-                await repair_writer_answer(
-
-                    original_answer=(
-                        answer
-                    ),
-
-                    violation_reasons=(
-                        natural_response_analysis.matches
-                    ),
-
-                    writer_context=(
-                        natural_response_context
-                    ),
-
-                    current_mood=(
-                        current_mood
-                    ),
-
-                    username=(
-                        username
-                    ),
-
-                    token_limit=(
-                        writer_token_limit
-                    ),
-
-                    autonomous_participation=(
-                        autonomous_participation
-                    )
-                )
-            )
-
-            if natural_response_repair:
-
-                natural_response_repair = (
-                    clean_generated_answer(
-                        natural_response_repair
-                    )
-                )
-
-                natural_response_repair = (
-                    enforce_permanent_expression_bans(
-                        natural_response_repair
-                    )
-                )
-
-                repair_hard_violations = (
-                    get_writer_violation_reasons(
-
-                        answer=(
-                            natural_response_repair
-                        ),
-
-                        decision=(
-                            decision
-                        ),
-
-                        autonomous_participation=(
-                            autonomous_participation
-                        )
-                    )
-                )
-
-                repair_question_violations = (
-                    question_output_violation_reasons(
-                        natural_response_repair,
-                        curiosity_result
-                    )
-                )
-
-                repair_self_violations = (
-                    self_knowledge_violation_reasons(
-                        natural_response_repair,
-                        self_evidence
-                    )
-                )
-
-                repair_is_better = (
-                    natural_response_better_than(
-
-                        natural_response_repair,
-                        answer,
-
-                        user_text=(
-                            user_text
-                        ),
-
-                        curiosity_allowed=(
-                            curiosity_result.allowed
-                        ),
-
-                        self_unknown=(
-                            bool(
-                                getattr(
-                                    self_evidence,
-                                    "strict_unknown",
-                                    False
-                                )
-                            )
-                        )
-                    )
-                )
-
-                if (
-                    not repair_hard_violations
-                    and
-                    not repair_question_violations
-                    and
-                    not repair_self_violations
-                    and
-                    repair_is_better
-                ):
-
-                    print(
-                        "[NATURAL RESPONSE REPAIR SUCCESS] "
-                        f"user={username} "
-                        f"before_score="
-                        f"{natural_response_analysis.score}"
-                    )
-
-                    answer = (
-                        natural_response_repair
-                    )
-
-                else:
-
-                    print(
-                        "[NATURAL RESPONSE REPAIR REJECTED] "
-                        f"user={username} "
-                        f"hard={repair_hard_violations} "
-                        f"question="
-                        f"{repair_question_violations} "
-                        f"self={repair_self_violations} "
-                        f"better={repair_is_better}"
-                    )
-
-            else:
-
-                print(
-                    "[NATURAL RESPONSE REPAIR FAILED] "
-                    f"user={username}"
-                )
-
-        # =====================================================
-        # B3C PRE-VOICE QUESTION SHAPE GUARD + FAIL-SAFE
-        # =====================================================
-
-        pre_voice_question_violations = (
-            question_output_violation_reasons(
-                answer,
-                curiosity_result
-            )
-        )
-
-        if pre_voice_question_violations:
             print(
-                "[QUESTION SHAPE VIOLATION] "
+                "[PIPELINE SOFT DEFERRED] "
                 f"user={username} "
-                f"violations={pre_voice_question_violations} "
-                f"answer={answer!r}"
+                "stage=pre_voice "
+                f"matches="
+                f"{prevoice_natural_analysis.matches}"
             )
 
-            source_before_question_repair = answer
+        (
+            prevoice_answer,
+            prevoice_source
+        ) = choose_pipeline_candidate(
 
-            question_repair_context = (
-                writer_context
-                + "\n\n"
-                + format_curiosity_for_writer(
-                    curiosity_result
-                )
+            candidates=[
+                (
+                    "writer_after_critical",
+                    answer
+                ),
+                (
+                    "reliability_baseline",
+                    reliability_baseline_answer
+                ),
+            ],
+
+            decision=(
+                decision
+            ),
+
+            curiosity_result=(
+                curiosity_result
+            ),
+
+            self_evidence=(
+                self_evidence
+            ),
+
+            knowledge_constraint=(
+                knowledge_constraint
+            ),
+
+            user_text=(
+                user_text
+            ),
+
+            recent_evilnae_messages=(
+                voice_channel_evilnae_messages
+            ),
+
+            username=(
+                username
+            ),
+
+            stage=(
+                "pre_voice"
+            ),
+
+            autonomous_participation=(
+                autonomous_participation
+            )
+        )
+
+        if not prevoice_answer:
+
+            print(
+                "[SILENT FINAL] "
+                f"user={username} "
+                "stage=pre_voice "
+                "reason=no_safe_candidate"
             )
 
-            question_repair = await repair_writer_answer(
-                original_answer=answer,
-                violation_reasons=pre_voice_question_violations,
-                writer_context=question_repair_context,
-                current_mood=current_mood,
-                username=username,
-                token_limit=writer_token_limit,
-                autonomous_participation=autonomous_participation,
-            )
+            return
 
-            repair_ok = False
+        answer = (
+            prevoice_answer
+        )
 
-            if question_repair:
-                question_repair = clean_generated_answer(
-                    question_repair
-                )
-                question_repair = enforce_permanent_expression_bans(
-                    question_repair
-                )
-
-                question_repair_hard = get_writer_violation_reasons(
-                    answer=question_repair,
-                    decision=decision,
-                    autonomous_participation=autonomous_participation,
-                )
-                question_repair_violations = (
-                    question_output_violation_reasons(
-                        question_repair,
-                        curiosity_result
-                    )
-                )
-
-                repair_ok = (
-                    not question_repair_hard
-                    and
-                    not question_repair_violations
-                )
-
-            if repair_ok:
-                answer = question_repair
-                print(
-                    "[QUESTION SHAPE REPAIR SUCCESS] "
-                    f"user={username}"
-                )
-            else:
-                # Deterministic salvage from the original draft first.
-                # Example:
-                # "pizza? jetzt hast du mich hungrig gemacht. lief's gut?"
-                # -> "jetzt hast du mich hungrig gemacht."
-                salvage_sources = [
-                    source_before_question_repair,
-                    question_repair or "",
-                ]
-
-                salvaged = ""
-
-                for salvage_source in salvage_sources:
-                    candidate = salvage_question_shape(
-                        salvage_source,
-                        allow_question=bool(curiosity_result.allowed),
-                    )
-
-                    if not candidate:
-                        continue
-
-                    candidate_hard = get_writer_violation_reasons(
-                        answer=candidate,
-                        decision=decision,
-                        autonomous_participation=autonomous_participation,
-                    )
-                    candidate_questions = (
-                        question_output_violation_reasons(
-                            candidate,
-                            curiosity_result
-                        )
-                    )
-
-                    if not candidate_hard and not candidate_questions:
-                        salvaged = candidate
-                        break
-
-                if salvaged:
-                    print(
-                        "[QUESTION SHAPE FAILSAFE SUCCESS] "
-                        f"user={username} "
-                        f"answer={salvaged!r}"
-                    )
-                    answer = salvaged
-                else:
-
-                    safe_question_fallback = (
-                        choose_reliability_fallback(
-
-                            candidates=[
-                                (
-                                    "pre_question_source",
-                                    source_before_question_repair
-                                ),
-                                (
-                                    "safe_baseline",
-                                    reliability_baseline_answer
-                                ),
-                            ],
-
-                            curiosity_result=(
-                                curiosity_result
-                            ),
-
-                            self_evidence=(
-                                self_evidence
-                            ),
-
-                            knowledge_constraint=(
-                                knowledge_constraint
-                            ),
-
-                            username=(
-                                username
-                            ),
-
-                            stage=(
-                                "pre_voice_question"
-                            )
-                        )
-                    )
-
-                    if not safe_question_fallback:
-
-                        print(
-                            "[SILENT FINAL] "
-                            f"user={username} "
-                            "stage=pre_voice_question "
-                            "reason=no_safe_fallback"
-                        )
-
-                        return
-
-                    answer = (
-                        safe_question_fallback
-                    )
+        print(
+            "[PIPELINE PRE-VOICE READY] "
+            f"user={username} "
+            f"source={prevoice_source}"
+        )
 
         original_writer_answer = (
             answer
@@ -11195,662 +11233,98 @@ Participation-Entscheidung nötig.
             )
 
         # =====================================================
-        # B3B.1B POST-VOICE NATURAL RESPONSE GUARD
+        # B3I CONSOLIDATED POST-VOICE GATE
         #
-        # Qwen darf eine vorher saubere
-        # Writer-Antwort nicht wieder in
-        # Assistant-/Coach-Sprache verwandeln.
+        # Replaces the old chain of:
+        #
+        # Natural Response revert
+        # Question revert
+        # Self revert
+        # Knowledge revert
+        # Question Guard 2.1
+        # Naturalness repair
+        #
+        # One deterministic candidate choice.
+        # No API repair here.
         # =====================================================
 
-        post_voice_natural_analysis = (
-            analyze_natural_response(
+        (
+            post_voice_answer,
+            post_voice_source
+        ) = choose_pipeline_candidate(
 
-                answer,
-
-                user_text=(
-                    user_text
+            candidates=[
+                (
+                    "voice_or_writer",
+                    answer
                 ),
-
-                curiosity_allowed=(
-                    curiosity_result.allowed
+                (
+                    "reliability_baseline",
+                    reliability_baseline_answer
                 ),
-
-                self_unknown=(
-                    bool(
-                        getattr(
-                            self_evidence,
-                            "strict_unknown",
-                            False
-                        )
-                    )
-                )
-            )
-        )
-
-        if post_voice_natural_analysis.rewrite_required:
-
-            original_natural_analysis = (
-                analyze_natural_response(
-
-                    original_writer_answer,
-
-                    user_text=(
-                        user_text
-                    ),
-
-                    curiosity_allowed=(
-                        curiosity_result.allowed
-                    ),
-
-                    self_unknown=(
-                        bool(
-                            getattr(
-                                self_evidence,
-                                "strict_unknown",
-                                False
-                            )
-                        )
-                    )
-                )
-            )
-
-            if (
-                original_natural_analysis.score
-                <
-                post_voice_natural_analysis.score
-            ):
-
-                print(
-                    "[LOCAL VOICE NATURAL REVERT] "
-                    f"user={username} "
-                    f"qwen_score="
-                    f"{post_voice_natural_analysis.score} "
-                    f"writer_score="
-                    f"{original_natural_analysis.score} "
-                    f"matches="
-                    f"{post_voice_natural_analysis.matches}"
-                )
-
-                answer = (
+                (
+                    "writer_before_voice",
                     original_writer_answer
-                )
+                ),
+            ],
 
-        # =====================================================
-        # B3B.1A.1 POST-VOICE QUESTION GUARD
-        # =====================================================
+            decision=(
+                decision
+            ),
 
-        post_voice_question_violations = (
-            question_output_violation_reasons(
-                answer,
+            curiosity_result=(
                 curiosity_result
-            )
-        )
+            ),
 
-        if post_voice_question_violations:
-
-            print(
-                "[LOCAL VOICE QUESTION REVERT] "
-                f"user={username} "
-                f"violations="
-                f"{post_voice_question_violations} "
-                f"answer={answer!r}"
-            )
-
-            # Original Writer Draft wurde bereits
-            # vor Qwen validiert.
-            #
-            # Deshalb zuerst sauber zurückfallen.
-            answer = (
-                original_writer_answer
-            )
-
-            reverted_question_violations = (
-                question_output_violation_reasons(
-                    answer,
-                    curiosity_result
-                )
-            )
-
-            if reverted_question_violations:
-
-                safe_voice_question_fallback = (
-                    choose_reliability_fallback(
-
-                        candidates=[
-                            (
-                                "safe_baseline",
-                                reliability_baseline_answer
-                            ),
-                            (
-                                "writer_before_voice",
-                                original_writer_answer
-                            ),
-                        ],
-
-                        curiosity_result=(
-                            curiosity_result
-                        ),
-
-                        self_evidence=(
-                            self_evidence
-                        ),
-
-                        knowledge_constraint=(
-                            knowledge_constraint
-                        ),
-
-                        username=(
-                            username
-                        ),
-
-                        stage=(
-                            "post_voice_question"
-                        )
-                    )
-                )
-
-                if not safe_voice_question_fallback:
-
-                    print(
-                        "[SILENT FINAL] "
-                        f"user={username} "
-                        "stage=post_voice_question "
-                        "reason=no_safe_fallback"
-                    )
-
-                    return
-
-                answer = (
-                    safe_voice_question_fallback
-                )
-
-            print(
-                "[LOCAL VOICE QUESTION REVERT SUCCESS] "
-                f"user={username}"
-            )
-
-        # =====================================================
-        # POST-VOICE SELF KNOWLEDGE GUARD
-        # =====================================================
-
-        post_voice_self_violations = (
-            self_knowledge_violation_reasons(
-                answer,
+            self_evidence=(
                 self_evidence
-            )
-        )
+            ),
 
-        if post_voice_self_violations:
-
-            print(
-                "[LOCAL VOICE SELF REVERT] "
-                f"user={username} "
-                f"violations="
-                f"{post_voice_self_violations}"
-            )
-
-            answer = (
-                original_writer_answer
-            )
-
-            reverted_self_violations = (
-                self_knowledge_violation_reasons(
-                    answer,
-                    self_evidence
-                )
-            )
-
-            if reverted_self_violations:
-
-                safe_voice_self_fallback = (
-                    choose_reliability_fallback(
-
-                        candidates=[
-                            (
-                                "safe_baseline",
-                                reliability_baseline_answer
-                            ),
-                            (
-                                "writer_before_voice",
-                                original_writer_answer
-                            ),
-                        ],
-
-                        curiosity_result=(
-                            curiosity_result
-                        ),
-
-                        self_evidence=(
-                            self_evidence
-                        ),
-
-                        knowledge_constraint=(
-                            knowledge_constraint
-                        ),
-
-                        username=(
-                            username
-                        ),
-
-                        stage=(
-                            "post_voice_self"
-                        )
-                    )
-                )
-
-                if not safe_voice_self_fallback:
-
-                    print(
-                        "[SILENT FINAL] "
-                        f"user={username} "
-                        "stage=post_voice_self "
-                        "reason=no_safe_fallback"
-                    )
-
-                    return
-
-                answer = (
-                    safe_voice_self_fallback
-                )
-
-        # =====================================================
-        # POST-VOICE UNDERSTANDING GUARDS
-        #
-        # Qwen darf einen bereits sicheren Writer-Draft
-        # nicht wieder semantisch kaputtmachen.
-        # =====================================================
-
-        post_voice_knowledge_violations = (
-            knowledge_violation_reasons(
-                answer,
+            knowledge_constraint=(
                 knowledge_constraint
+            ),
+
+            user_text=(
+                user_text
+            ),
+
+            recent_evilnae_messages=(
+                voice_channel_evilnae_messages
+            ),
+
+            username=(
+                username
+            ),
+
+            stage=(
+                "post_voice"
+            ),
+
+            autonomous_participation=(
+                autonomous_participation
             )
         )
 
-        if post_voice_knowledge_violations:
+        if not post_voice_answer:
 
             print(
-                "[LOCAL VOICE KNOWLEDGE REVERT] "
+                "[SILENT FINAL] "
                 f"user={username} "
-                f"violations="
-                f"{post_voice_knowledge_violations}"
+                "stage=post_voice "
+                "reason=no_safe_candidate"
             )
 
-            answer = (
-                original_writer_answer
-            )
+            return
 
-
-        # =====================================================
-        # QUESTION GUARD 2.1
-        #
-        # Beispiel aus dem Test:
-        #
-        # "ich bin kein Fan. was ist der Reiz daran?"
-        #
-        # wird jetzt als echte Gegenfrage erkannt.
-        # =====================================================
-
-        if (
-            not decision.ask_question
-            and
-            count_genuine_questions(
-                answer
-            )
-            > 0
-        ):
-
-            print(
-                "[QUESTION GUARD 2.1] "
-                f"user={username} "
-                f"answer={answer!r}"
-            )
-
-            if (
-                count_genuine_questions(
-                    original_writer_answer
-                )
-                ==
-                0
-            ):
-
-                answer = (
-                    original_writer_answer
-                )
-
-            else:
-
-                question_repair = (
-                    await repair_writer_answer(
-
-                        original_answer=(
-                            answer
-                        ),
-
-                        violation_reasons=[
-                            "question_not_allowed"
-                        ],
-
-                        writer_context=(
-                            writer_context
-                        ),
-
-                        current_mood=(
-                            current_mood
-                        ),
-
-                        username=(
-                            username
-                        ),
-
-                        token_limit=(
-                            writer_token_limit
-                        ),
-
-                        autonomous_participation=(
-                            autonomous_participation
-                        )
-                    )
-                )
-
-                if not question_repair:
-
-                    question_repair = (
-                        choose_reliability_fallback(
-
-                            candidates=[
-                                (
-                                    "safe_baseline",
-                                    reliability_baseline_answer
-                                ),
-                                (
-                                    "writer_before_voice",
-                                    original_writer_answer
-                                ),
-                                (
-                                    "current_answer",
-                                    answer
-                                ),
-                            ],
-
-                            curiosity_result=(
-                                curiosity_result
-                            ),
-
-                            self_evidence=(
-                                self_evidence
-                            ),
-
-                            knowledge_constraint=(
-                                knowledge_constraint
-                            ),
-
-                            username=(
-                                username
-                            ),
-
-                            stage=(
-                                "question_guard_repair_failed"
-                            )
-                        )
-                    )
-
-                    if not question_repair:
-
-                        print(
-                            "[SILENT FINAL] "
-                            f"user={username} "
-                            "stage=question_guard "
-                            "reason=no_safe_fallback"
-                        )
-
-                        return
-
-                question_repair = (
-                    clean_generated_answer(
-                        question_repair
-                    )
-                )
-
-                if (
-                    count_genuine_questions(
-                        question_repair
-                    )
-                    > 0
-                ):
-
-                    safe_question_guard_fallback = (
-                        choose_reliability_fallback(
-
-                            candidates=[
-                                (
-                                    "safe_baseline",
-                                    reliability_baseline_answer
-                                ),
-                                (
-                                    "writer_before_voice",
-                                    original_writer_answer
-                                ),
-                                (
-                                    "question_repair",
-                                    question_repair
-                                ),
-                            ],
-
-                            curiosity_result=(
-                                curiosity_result
-                            ),
-
-                            self_evidence=(
-                                self_evidence
-                            ),
-
-                            knowledge_constraint=(
-                                knowledge_constraint
-                            ),
-
-                            username=(
-                                username
-                            ),
-
-                            stage=(
-                                "question_guard_still_question"
-                            )
-                        )
-                    )
-
-                    if not safe_question_guard_fallback:
-
-                        print(
-                            "[SILENT FINAL] "
-                            f"user={username} "
-                            "stage=question_guard "
-                            "reason=no_safe_fallback"
-                        )
-
-                        return
-
-                    question_repair = (
-                        safe_question_guard_fallback
-                    )
-
-                answer = (
-                    question_repair
-                )
-
-
-        # =====================================================
-        # NATURALNESS GUARD
-        #
-        # Erkennt nicht nur harte:
-        #
-        # "Das klingt spannend!"
-        #
-        # sondern Cluster wie:
-        #
-        # "aber hey"
-        # +
-        # "Geschmack ist subjektiv"
-        # +
-        # "ich persönlich..."
-        # =====================================================
-
-        naturalness_analysis = (
-            analyze_naturalness(
-                answer
-            )
+        answer = (
+            post_voice_answer
         )
 
         print(
-            format_naturalness_debug(
-                naturalness_analysis
-            )
+            "[PIPELINE POST-VOICE READY] "
+            f"user={username} "
+            f"source={post_voice_source}"
         )
-
-        if (
-            naturalness_analysis
-            .rewrite_required
-        ):
-
-            naturalness_repair_context = (
-                writer_context
-                +
-                "\n\n"
-                +
-                format_naturalness_for_writer(
-                    naturalness_analysis
-                )
-            )
-
-            naturalness_repair = (
-                await repair_writer_answer(
-
-                    original_answer=(
-                        answer
-                    ),
-
-                    violation_reasons=[
-                        "soft_bot_pattern_cluster",
-                        *naturalness_analysis.matches
-                    ],
-
-                    writer_context=(
-                        naturalness_repair_context
-                    ),
-
-                    current_mood=(
-                        current_mood
-                    ),
-
-                    username=(
-                        username
-                    ),
-
-                    token_limit=(
-                        writer_token_limit
-                    ),
-
-                    autonomous_participation=(
-                        autonomous_participation
-                    )
-                )
-            )
-
-            if naturalness_repair:
-
-                naturalness_repair = (
-                    clean_generated_answer(
-                        naturalness_repair
-                    )
-                )
-
-                naturalness_repair = (
-                    enforce_permanent_expression_bans(
-                        naturalness_repair
-                    )
-                )
-
-                repaired_naturalness = (
-                    analyze_naturalness(
-                        naturalness_repair
-                    )
-                )
-
-                repaired_knowledge = (
-                    knowledge_violation_reasons(
-                        naturalness_repair,
-                        knowledge_constraint
-                    )
-                )
-
-                repaired_questions = (
-                    count_genuine_questions(
-                        naturalness_repair
-                    )
-                )
-
-                repaired_hard = (
-                    get_writer_violation_reasons(
-
-                        answer=(
-                            naturalness_repair
-                        ),
-
-                        decision=(
-                            decision
-                        ),
-
-                        autonomous_participation=(
-                            autonomous_participation
-                        )
-                    )
-                )
-
-                if (
-                    not repaired_knowledge
-                    and
-                    (
-                        decision.ask_question
-                        or
-                        repaired_questions == 0
-                    )
-                    and
-                    not repaired_hard
-                    and
-                    repaired_naturalness.score
-                    <
-                    naturalness_analysis.score
-                ):
-
-                    print(
-                        "[NATURALNESS REPAIR ACCEPTED] "
-                        f"user={username} "
-                        f"before="
-                        f"{naturalness_analysis.score} "
-                        f"after="
-                        f"{repaired_naturalness.score}"
-                    )
-
-                    answer = (
-                        naturalness_repair
-                    )
-
-                else:
-
-                    print(
-                        "[NATURALNESS REPAIR REJECTED] "
-                        f"user={username} "
-                        f"old_score="
-                        f"{naturalness_analysis.score} "
-                        f"new_score="
-                        f"{repaired_naturalness.score} "
-                        f"knowledge="
-                        f"{repaired_knowledge} "
-                        f"questions="
-                        f"{repaired_questions} "
-                        f"hard="
-                        f"{repaired_hard}"
-                    )
 
         # =================================================
         # 11.6 EXPRESSION FINAL GUARD
@@ -12250,352 +11724,92 @@ Participation-Entscheidung nötig.
                 )
 
         # =================================================
-        # B3B.1B FINAL NATURAL RESPONSE CHECK
+        # B3I CONSOLIDATED PRE-QUALITY CRITICAL GATE
         #
-        # Für den Community-Test bewusst KEIN Hard Abort.
+        # Expression may have changed the surface.
+        # Revalidate once, deterministically.
         #
-        # Wenn nach allen Layern noch ein Bot-Muster
-        # übrig ist, sehen wir es im Log und können
-        # es gezielt auswerten.
+        # This replaces the old Final Question,
+        # Final Self and Final Garbled repair chain.
         # =================================================
 
-        final_natural_response_analysis = (
-            analyze_natural_response(
+        (
+            pre_quality_answer,
+            pre_quality_source
+        ) = choose_pipeline_candidate(
 
-                answer,
-
-                user_text=(
-                    user_text
+            candidates=[
+                (
+                    "post_expression",
+                    answer
                 ),
-
-                curiosity_allowed=(
-                    curiosity_result.allowed
+                (
+                    "reliability_baseline",
+                    reliability_baseline_answer
                 ),
+                (
+                    "writer_before_voice",
+                    original_writer_answer
+                ),
+            ],
 
-                self_unknown=(
-                    bool(
-                        getattr(
-                            self_evidence,
-                            "strict_unknown",
-                            False
-                        )
-                    )
-                )
-            )
-        )
+            decision=(
+                decision
+            ),
 
-        if final_natural_response_analysis.rewrite_required:
-
-            print(
-                "[NATURAL RESPONSE FINAL WARNING] "
-                f"user={username} "
-                f"score="
-                f"{final_natural_response_analysis.score} "
-                f"matches="
-                f"{final_natural_response_analysis.matches} "
-                f"answer={answer!r}"
-            )
-
-        # =================================================
-        # B3B.1A.1 FINAL QUESTION GUARD
-        # =================================================
-
-        final_question_violations = (
-            question_output_violation_reasons(
-                answer,
+            curiosity_result=(
                 curiosity_result
-            )
-        )
+            ),
 
-        if final_question_violations:
-
-            safe_final_question = (
-                choose_reliability_fallback(
-
-                    candidates=[
-                        (
-                            "current_answer",
-                            answer
-                        ),
-                        (
-                            "safe_baseline",
-                            reliability_baseline_answer
-                        ),
-                        (
-                            "writer_before_voice",
-                            original_writer_answer
-                        ),
-                    ],
-
-                    curiosity_result=(
-                        curiosity_result
-                    ),
-
-                    self_evidence=(
-                        self_evidence
-                    ),
-
-                    knowledge_constraint=(
-                        knowledge_constraint
-                    ),
-
-                    username=(
-                        username
-                    ),
-
-                    stage=(
-                        "final_question"
-                    )
-                )
-            )
-
-            if not safe_final_question:
-
-                print(
-                    "[SILENT FINAL] "
-                    f"user={username} "
-                    "stage=final_question "
-                    "reason=no_safe_fallback"
-                )
-
-                return
-
-            answer = (
-                safe_final_question
-            )
-
-        # =================================================
-        # FINAL SELF KNOWLEDGE GUARD
-        # =================================================
-
-        final_self_violations = (
-            self_knowledge_violation_reasons(
-                answer,
+            self_evidence=(
                 self_evidence
-            )
-        )
+            ),
 
-        if final_self_violations:
-
-            safe_final_self = (
-                choose_reliability_fallback(
-
-                    candidates=[
-                        (
-                            "safe_baseline",
-                            reliability_baseline_answer
-                        ),
-                        (
-                            "writer_before_voice",
-                            original_writer_answer
-                        ),
-                        (
-                            "epistemic_unknown",
-                            "weiß ich grad nicht sicher."
-                        ),
-                    ],
-
-                    curiosity_result=(
-                        curiosity_result
-                    ),
-
-                    self_evidence=(
-                        self_evidence
-                    ),
-
-                    knowledge_constraint=(
-                        knowledge_constraint
-                    ),
-
-                    username=(
-                        username
-                    ),
-
-                    stage=(
-                        "final_self"
-                    )
-                )
-            )
-
-            if not safe_final_self:
-
-                print(
-                    "[SILENT FINAL] "
-                    f"user={username} "
-                    "stage=final_self "
-                    "reason=no_safe_fallback"
-                )
-
-                return
-
-            answer = (
-                safe_final_self
-            )
-
-        # =================================================
-        # B3C FINAL GARBLED OUTPUT GUARD
-        # =================================================
-
-        final_garbled_analysis = analyze_garbled_output(
-            answer
-        )
-
-        if final_garbled_analysis.garbled:
-            print(
-                format_garbled_debug(
-                    final_garbled_analysis
-                )
-            )
-
-            fallback_candidate = clean_generated_answer(
-                reliability_baseline_answer
-                or
-                original_writer_answer
-            )
-
-            fallback_garbled = analyze_garbled_output(
-                fallback_candidate
-            )
-
-            fallback_questions = (
-                question_output_violation_reasons(
-                    fallback_candidate,
-                    curiosity_result
-                )
-            )
-
-            fallback_self = self_knowledge_violation_reasons(
-                fallback_candidate,
-                self_evidence
-            )
-
-            fallback_knowledge = knowledge_violation_reasons(
-                fallback_candidate,
+            knowledge_constraint=(
                 knowledge_constraint
+            ),
+
+            user_text=(
+                user_text
+            ),
+
+            recent_evilnae_messages=(
+                final_channel_evilnae_messages
+            ),
+
+            username=(
+                username
+            ),
+
+            stage=(
+                "pre_quality"
+            ),
+
+            autonomous_participation=(
+                autonomous_participation
+            )
+        )
+
+        if not pre_quality_answer:
+
+            print(
+                "[SILENT FINAL] "
+                f"user={username} "
+                "stage=pre_quality "
+                "reason=no_safe_candidate"
             )
 
-            if (
-                fallback_candidate
-                and
-                not fallback_garbled.garbled
-                and
-                not fallback_questions
-                and
-                not fallback_self
-                and
-                not fallback_knowledge
-            ):
-                print(
-                    "[GARBLED OUTPUT REVERT SUCCESS] "
-                    f"user={username}"
-                )
-                answer = fallback_candidate
-            else:
-                garbled_repair = await repair_writer_answer(
-                    original_answer=answer,
-                    violation_reasons=[
-                        "garbled_or_grammatically_broken_output",
-                        *final_garbled_analysis.matches,
-                    ],
-                    writer_context=writer_context,
-                    current_mood=current_mood,
-                    username=username,
-                    token_limit=writer_token_limit,
-                    autonomous_participation=autonomous_participation,
-                )
+            return
 
-                garbled_repair = clean_generated_answer(
-                    garbled_repair
-                )
+        answer = (
+            pre_quality_answer
+        )
 
-                repair_garbled = analyze_garbled_output(
-                    garbled_repair
-                )
-
-                repair_questions = (
-                    question_output_violation_reasons(
-                        garbled_repair,
-                        curiosity_result
-                    )
-                )
-
-                repair_self = self_knowledge_violation_reasons(
-                    garbled_repair,
-                    self_evidence
-                )
-
-                repair_knowledge = knowledge_violation_reasons(
-                    garbled_repair,
-                    knowledge_constraint
-                )
-
-                if (
-                    garbled_repair
-                    and
-                    not repair_garbled.garbled
-                    and
-                    not repair_questions
-                    and
-                    not repair_self
-                    and
-                    not repair_knowledge
-                ):
-                    print(
-                        "[GARBLED OUTPUT REPAIR SUCCESS] "
-                        f"user={username}"
-                    )
-                    answer = garbled_repair
-                else:
-                    emergency_garbled_fallback = (
-                        choose_reliability_fallback(
-
-                            candidates=[
-                                (
-                                    "safe_baseline",
-                                    reliability_baseline_answer
-                                ),
-                                (
-                                    "writer_before_voice",
-                                    original_writer_answer
-                                ),
-                            ],
-
-                            curiosity_result=(
-                                curiosity_result
-                            ),
-
-                            self_evidence=(
-                                self_evidence
-                            ),
-
-                            knowledge_constraint=(
-                                knowledge_constraint
-                            ),
-
-                            username=(
-                                username
-                            ),
-
-                            stage=(
-                                "final_garbled"
-                            )
-                        )
-                    )
-
-                    if not emergency_garbled_fallback:
-
-                        print(
-                            "[SILENT FINAL] "
-                            f"user={username} "
-                            "stage=garbled "
-                            "reason=no_safe_fallback"
-                        )
-
-                        return
-
-                    answer = (
-                        emergency_garbled_fallback
-                    )
+        print(
+            "[PIPELINE PRE-QUALITY READY] "
+            f"user={username} "
+            f"source={pre_quality_source}"
+        )
 
         # =================================================
         # B3E FINAL OUTPUT QUALITY v2
@@ -12941,6 +12155,93 @@ Participation-Entscheidung nötig.
                 final_quality_analysis,
                 label="OUTPUT QUALITY FINAL"
             )
+        )
+
+        # =================================================
+        # B3I FINAL SEND CANDIDATE GATE
+        #
+        # Output Quality can repair or reselect a draft.
+        # Before emotes + Discord send, do exactly one
+        # last deterministic critical candidate choice.
+        # =================================================
+
+        (
+            final_send_answer,
+            final_send_source
+        ) = choose_pipeline_candidate(
+
+            candidates=[
+                (
+                    "quality_final",
+                    answer
+                ),
+                (
+                    "reliability_baseline",
+                    reliability_baseline_answer
+                ),
+                (
+                    "writer_before_voice",
+                    original_writer_answer
+                ),
+            ],
+
+            decision=(
+                decision
+            ),
+
+            curiosity_result=(
+                curiosity_result
+            ),
+
+            self_evidence=(
+                self_evidence
+            ),
+
+            knowledge_constraint=(
+                knowledge_constraint
+            ),
+
+            user_text=(
+                user_text
+            ),
+
+            recent_evilnae_messages=(
+                final_channel_evilnae_messages
+            ),
+
+            username=(
+                username
+            ),
+
+            stage=(
+                "final_send"
+            ),
+
+            autonomous_participation=(
+                autonomous_participation
+            )
+        )
+
+        if not final_send_answer:
+
+            print(
+                "[SILENT FINAL] "
+                f"user={username} "
+                "stage=final_send "
+                "reason=no_safe_candidate"
+            )
+
+            return
+
+        answer = (
+            final_send_answer
+        )
+
+        print(
+            "[PIPELINE FINAL READY] "
+            f"user={username} "
+            f"source={final_send_source} "
+            f"repairs={get_response_repair_count()}"
         )
 
         # =================================================
