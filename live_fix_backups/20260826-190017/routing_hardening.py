@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-ROUTING_HARDENING_VERSION = "1.1"
+ROUTING_HARDENING_VERSION = "1.0"
 
 EVIL_VARIANT_PATTERN = re.compile(
     r"(?<![A-Za-zÄÖÜäöüß0-9_])e+v+i+l+(?:\s*n+a+e+)?(?![A-Za-zÄÖÜäöüß0-9_])",
@@ -26,15 +26,6 @@ QUESTIONISH_PATTERN = re.compile(
     r"\b(?:was|wer|wie|warum|wieso|wann|wo|welche|welcher|welches|"
     r"kannst|willst|würdest|wuerdest|magst|findest|meinst|denkst|"
     r"weißt|weisst|hast|bist)\b",
-    re.IGNORECASE,
-)
-
-# Third-person statements can still be direct social relevance when
-# Evilnae herself is the grammatical subject of a question, e.g.
-# "ist evil wieder eingeschlafen" or "was macht evil eigentlich".
-EVILNAE_SELF_QUERY_LEAD_PATTERN = re.compile(
-    r"^\s*(?:ist|war|hat|wird|macht|mag|findet|kann|will|kommt|"
-    r"schläft|schlaeft|was|wie|warum|wieso|wann|wo)\b",
     re.IGNORECASE,
 )
 
@@ -87,11 +78,6 @@ NOT_DIRECT_REASON_PATTERNS = (
     "third person",
     "dritte person",
     "nicht angesprochen",
-    "keinen direkten",
-    "kein direkter",
-    "no direct need",
-    "bezieht sich auf evilnae",
-    "refers to evilnae",
 )
 
 
@@ -982,20 +968,6 @@ def apply_participation_routing_boost(
         )
     )
 
-    evilnae_self_query = (
-        subject_is_evilnae
-        and
-        (
-            "?" in text
-            or
-            bool(
-                EVILNAE_SELF_QUERY_LEAD_PATTERN.search(
-                    text
-                )
-            )
-        )
-    )
-
     recent_thread = (
         has_recent_thread_with_user(
             channel_snapshot,
@@ -1042,64 +1014,6 @@ def apply_participation_routing_boost(
 
         reasons.append(
             "evilnae_is_subject"
-        )
-
-    if evilnae_self_query:
-
-        relevance = float(
-            getattr(
-                decision,
-                "relevance",
-                0.0,
-            )
-            or
-            0.0
-        )
-
-        social_value = float(
-            getattr(
-                decision,
-                "social_value",
-                0.0,
-            )
-            or
-            0.0
-        )
-
-        involvement = float(
-            getattr(
-                decision,
-                "conversation_involvement",
-                0.0,
-            )
-            or
-            0.0
-        )
-
-        decision.relevance = max(
-            relevance,
-            0.90,
-        )
-
-        decision.social_value = max(
-            social_value,
-            0.60,
-        )
-
-        decision.conversation_involvement = max(
-            involvement,
-            0.65,
-        )
-
-        if (
-            decision.relevance != relevance
-            or decision.social_value != social_value
-            or decision.conversation_involvement != involvement
-        ):
-            changed = True
-
-        reasons.append(
-            "evilnae_self_query"
         )
 
     if recent_thread:

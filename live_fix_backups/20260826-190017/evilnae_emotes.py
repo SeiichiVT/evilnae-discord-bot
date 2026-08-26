@@ -7,7 +7,7 @@ from typing import Optional
 # VERSION
 # =========================================================
 
-EVILNAE_EMOTE_VERSION = "1.2"
+EVILNAE_EMOTE_VERSION = "1.1"
 
 
 # =========================================================
@@ -528,16 +528,6 @@ def strip_non_evilnae_emojis(
         r"\1",
         text
     )
-
-    # If a stripped Unicode/custom emoji was the final element, remove
-    # punctuation that only acted as a separator before that emoji.
-    # Example: "hab okay geschlafen, 😊" -> "hab okay geschlafen"
-    if unicode_matches or custom_matches:
-        text = re.sub(
-            r"[ \t]*[,;:]+[ \t]*$",
-            "",
-            text
-        )
 
     # Zu viele Leerzeilen.
     text = re.sub(

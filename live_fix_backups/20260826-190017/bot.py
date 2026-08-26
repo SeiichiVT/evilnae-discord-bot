@@ -294,7 +294,7 @@ for stream_name in (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "3.0.1-live-reliability"
+BOT_VERSION = "3.0.0-character-final"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -429,11 +429,6 @@ PARTICIPANT_MESSAGES_IN_PROMPT = 3
 ACTIVE_CONVERSATION_WINDOW = (
     8 * 60
 )
-
-# If a DIRECT reply started but the response pipeline failed before send,
-# keep a short continuity bridge so the user's immediate follow-up is not
-# mistaken for an unrelated open-channel message.
-FAILED_DIRECT_CONTINUATION_WINDOW = 90
 
 ACTIVE_CONVERSATION_CONTEXT_GAP = 8
 
@@ -1323,43 +1318,6 @@ def is_active_conversation_continuation(
             channel_id,
             user_id,
             "expired"
-        )
-        return False
-
-    # -----------------------------------------------------
-    # 3.0.1 FAILED DIRECT ATTEMPT RECOVERY
-    #
-    # A direct user message can legitimately start a conversation even if
-    # Writer/Qwen/guards fail before Discord receives Evilnae's reply.
-    # Without this bridge the immediate complaint/follow-up was previously
-    # routed as an unrelated participation message.
-    # -----------------------------------------------------
-
-    if active.get("source") == "direct_attempt":
-        attempt_age = max(
-            0.0,
-            now - float(
-                active.get(
-                    "last_activity_at",
-                    now
-                )
-            )
-        )
-
-        if attempt_age <= FAILED_DIRECT_CONTINUATION_WINDOW:
-            print(
-                "[ACTIVE CONVERSATION RECOVERY] "
-                f"user_id={user_id} "
-                f"channel={channel_id} "
-                f"age={attempt_age:.1f}s "
-                "source=failed_direct_attempt"
-            )
-            return True
-
-        end_active_conversation(
-            channel_id,
-            user_id,
-            "direct_attempt_expired"
         )
         return False
 
@@ -8788,21 +8746,6 @@ async def on_message(
             return
 
         # =================================================
-        # 3.0.1 DIRECT ATTEMPT CONTINUITY BRIDGE
-        #
-        # This is intentionally recorded AFTER the safety exits above.
-        # A successful send later replaces source=direct_attempt with
-        # source=direct/continuation as usual.
-        # =================================================
-
-        if directly_addressed:
-            mark_active_conversation(
-                channel_id=channel_id,
-                user_id=user_id,
-                source="direct_attempt"
-            )
-
-        # =================================================
         # MEMORY BUFFER
         #
         # Ab hier war Evilnae tatsächlich
@@ -10514,82 +10457,6 @@ Participation-Entscheidung nötig.
                 f"user={username} "
                 "reason=no_clean_baseline"
             )
-
-            # -------------------------------------------------
-            # 3.0.1 DIRECT/CONTINUATION BASELINE RESCUE
-            #
-            # Exact failure seen live:
-            # question policy -> salvage_question_shape -> empty
-            # -> no safe baseline -> pre_voice SILENT FINAL.
-            #
-            # For an actual conversation turn, spend one targeted repair
-            # slot to create a substantive statement instead of silently
-            # dropping a harmless reply. Participation stays conservative.
-            # -------------------------------------------------
-
-            if not autonomous_participation:
-
-                direct_rescue_context = (
-                    writer_context
-                    + "\n\n"
-                    + """
-[DIRECT REPLY RELIABILITY RESCUE]
-
-Die aktuelle Nachricht erwartet eine echte Antwort von Evilnae.
-Der vorherige Entwurf konnte wegen der Question-Policy nicht sicher gesendet werden.
-
-Formuliere eine kurze, inhaltliche Antwort auf die User-Nachricht.
-Beantworte den Inhalt DIREKT.
-Wenn das Brain keine Frage erlaubt, stelle KEINE Gegenfrage.
-Die Nachricht darf nicht nur aus einer Frage bestehen.
-Kein generischer Ersatz-Füllsatz.
-""".strip()
-                )
-
-                direct_rescue = (
-                    await repair_writer_answer(
-                        original_answer=answer,
-                        violation_reasons=[
-                            "no_safe_reliability_baseline",
-                            "answer_user_directly_without_counterquestion",
-                        ],
-                        writer_context=direct_rescue_context,
-                        current_mood=current_mood,
-                        username=username,
-                        token_limit=writer_token_limit,
-                        autonomous_participation=False,
-                    )
-                )
-
-                if direct_rescue:
-                    reliability_baseline_answer = (
-                        choose_reliability_fallback(
-                            candidates=[
-                                (
-                                    "direct_baseline_rescue",
-                                    direct_rescue
-                                ),
-                            ],
-                            curiosity_result=curiosity_result,
-                            self_evidence=self_evidence,
-                            knowledge_constraint=knowledge_constraint,
-                            username=username,
-                            stage="baseline_direct_rescue",
-                        )
-                    )
-
-                if reliability_baseline_answer:
-                    answer = reliability_baseline_answer
-                    print(
-                        "[RELIABILITY DIRECT RESCUE SUCCESS] "
-                        f"user={username} "
-                        f"answer={answer!r}"
-                    )
-                else:
-                    print(
-                        "[RELIABILITY DIRECT RESCUE FAILED] "
-                        f"user={username}"
-                    )
 
         # -------------------------------------------------
         # FRESH CHANNEL HISTORY FOR LOCAL VOICE
