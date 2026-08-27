@@ -4,9 +4,7 @@ import threading
 import time
 from pathlib import Path
 
-from character_foundation import get_foundation_entry
-
-CHARACTER_STATE_VERSION = "1.1-current-activity"
+CHARACTER_STATE_VERSION = "1.0"
 CHARACTER_STATE_PATH = Path("evilnae_character_state.json")
 
 _LOCK = threading.RLock()
@@ -67,34 +65,6 @@ PATTERNS = [
     ),
 ]
 
-
-
-# Additional natural phrasings emitted by the Writer.
-PATTERNS.extend(
-    [
-        (
-            "activity",
-            re.compile(
-                r"\b(?:ich\s+)?(?:schaue|schau|gucke|guck)\s+(?:gerade\s+)?(?P<value>[^.!?\n]{2,90})",
-                re.IGNORECASE,
-            ),
-        ),
-        (
-            "activity",
-            re.compile(
-                r"\b(?:ich\s+)?(?:scrolle|scroll|hänge|haenge|häng)\s+(?:gerade\s+)?(?:auf|durch)\s+(?P<value>[^.!?\n]{2,90})",
-                re.IGNORECASE,
-            ),
-        ),
-        (
-            "activity",
-            re.compile(
-                r"\bich\s+bin\s+(?:gerade\s+)?auf\s+(?P<value>(?:tiktok|twitter|x|youtube|discord)[^.!?\n]{0,70})",
-                re.IGNORECASE,
-            ),
-        ),
-    ]
-)
 
 def _load() -> dict:
     if not CHARACTER_STATE_PATH.exists():
@@ -192,93 +162,22 @@ def _active_states() -> dict:
         return dict(states)
 
 
-def _asks_current_activity(user_text: str) -> bool:
-    normalized = re.sub(r"\s+", " ", str(user_text or "").lower()).strip()
-    return bool(
-        re.search(
-            r"\b(?:was machst du(?: gerade| grad| aktuell| jetzt)?|"
-            r"was treibst du(?: gerade| grad| aktuell| jetzt)?|"
-            r"was bist du(?: gerade| grad)? am machen|"
-            r"was zockst du(?: gerade| grad| aktuell)?|"
-            r"was schaust du(?: gerade| grad| aktuell)?|"
-            r"was guckst du(?: gerade| grad| aktuell)?)\b",
-            normalized,
-            flags=re.IGNORECASE,
-        )
-    )
-
-
-def _foundation_answer(nr: int) -> str:
-    try:
-        hit = get_foundation_entry(nr)
-    except Exception:
-        hit = None
-    return hit.answer if hit is not None else ""
-
-
-def format_character_state_for_prompt(user_text: str = "") -> str:
+def format_character_state_for_prompt() -> str:
     states = _active_states()
-    asks_activity = _asks_current_activity(user_text)
-
-    lines = ["[CURRENT CHARACTER STATE]"]
-
-    if states:
-        lines.append(
-            "Diese Zustände stammen aus Evilnaes eigenen tatsächlich gesendeten "
-            "Nachrichten und gelten nur temporär."
-        )
-        for category, state in states.items():
-            lines.append(f"- {category}: {state.get('value')}")
-        lines.append(
-            "Wenn neuer Gesprächskontext einen Zustand ausdrücklich ändert, darf er aktualisiert werden."
-        )
-    else:
-        lines.append("Kein persistenter aktueller Alltagszustand gesetzt.")
-
-    if asks_activity:
-        has_activity = bool(states.get("activity") or states.get("game"))
-
-        if has_activity:
-            lines.extend(
-                [
-                    "Die aktuelle User-Frage fragt DIREKT, was Evilnae gerade macht.",
-                    "Antworte deshalb konkret mit dem vorhandenen game/activity-State statt nur 'chillen' zu sagen.",
-                    "Ein kleiner natürlicher Zusatz ist okay, aber der konkrete State muss vorkommen.",
-                ]
-            )
-        else:
-            games = _foundation_answer(341)
-            anime = _foundation_answer(366)
-            films = _foundation_answer(377)
-            social = _foundation_answer(395)
-
-            lines.extend(
-                [
-                    "Die aktuelle User-Frage fragt DIREKT, was Evilnae gerade macht.",
-                    "FOUNDATION #567/#569 erlaubt ausdrücklich, für normalen Alltag eine konkrete harmlose Aktivität zu setzen.",
-                    "Die allgemeine No-Invention-Regel gilt hier NICHT gegen solche erlaubten Alltagsaktivitäten.",
-                    "Wähle GENAU EINE konkrete Sache, die sie gerade macht, statt vage 'chillen', 'nichts' oder 'rumhängen' zu antworten.",
-                    "Geeignet sind z.B. ein konkretes festes Lieblingsgame, ein konkreter Canon-Anime/Film, TikTok/Twitter/YouTube, Musik oder Coding/PC-Kram.",
-                    "Formuliere natürlich in erster Person, z.B. 'ich zocke gerade X' / 'ich schau gerade X' / 'häng gerade auf TikTok fest'.",
-                    "Keine großen Ereignisse, neuen Personen, Reisen, Streit, Verletzungen oder neue Lore erfinden.",
-                ]
-            )
-
-            if games:
-                lines.append(f"Canon games: {games}")
-            if anime:
-                lines.append(f"Canon anime: {anime}")
-            if films:
-                lines.append(f"Canon films: {films}")
-            if social:
-                lines.append(f"Canon social platforms: {social}")
-
-    elif not states:
-        lines.append(
-            "Erfinde keinen konkreten Ort, Essen, Drink, Game, Outfit oder Aktivität nur um irgendeine andere Antwort lebendiger zu machen. "
-            "Die besondere Alltags-Erlaubnis greift nur, wenn tatsächlich nach ihrem aktuellen Alltag/Tag gefragt wird."
+    if not states:
+        return (
+            "[CURRENT CHARACTER STATE]\n"
+            "Kein persistenter aktueller Alltagszustand gesetzt. "
+            "Erfinde keinen konkreten Ort, Essen, Drink, Game, Outfit oder Aktivität nur um eine Antwort lebendiger zu machen."
         )
 
+    lines = [
+        "[CURRENT CHARACTER STATE]",
+        "Diese Zustände stammen aus Evilnaes eigenen tatsächlich gesendeten Nachrichten und gelten nur temporär.",
+    ]
+    for category, state in states.items():
+        lines.append(f"- {category}: {state.get('value')}")
+    lines.append("Wenn neuer Gesprächskontext einen Zustand ausdrücklich ändert, darf er aktualisiert werden.")
     return "\n".join(lines)
 
 

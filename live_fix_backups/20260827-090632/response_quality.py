@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Iterable, Optional
 
-OUTPUT_QUALITY_VERSION = "2.3"
+OUTPUT_QUALITY_VERSION = "2.2"
 
 STOPWORDS = {
     "aber","als","am","an","auch","auf","aus","bei","bin","bist","bis","da","das","dass",
@@ -16,25 +16,6 @@ STOPWORDS = {
 }
 
 GENERIC_PATTERNS = {
-    "evilnae_polite_praise": (
-        re.compile(
-            r"^\s*(?:vielen\s+)?danke\b.{0,45}\b(?:witzig|lustig|cool|süß|suess|nett|kompliment|mühe|muehe)\b"
-            r"|\bich\s+geb(?:e)?\s+mir\s+mühe\b",
-            re.I
-        ), 4
-    ),
-    "automatic_plan_agreement": (
-        re.compile(
-            r"\bklingt\s+nach\s+einem\s+plan\b|\bdas\s+ist\s+(?:ja\s+)?(?:ein\s+)?guter\s+plan\b",
-            re.I
-        ), 3
-    ),
-    "overpolite_smalltalk": (
-        re.compile(
-            r"\b(?:danke\s+der\s+nachfrage|das\s+freut\s+mich\s+zu\s+hören|das\s+freut\s+mich\s+zu\s+hoeren)\b",
-            re.I
-        ), 3
-    ),
     "sounds_like_wrapper": (
         re.compile(
             r"\b(?:das\s+)?klingt\s+(?:ja\s+|echt\s+|wirklich\s+|ziemlich\s+|total\s+)?"

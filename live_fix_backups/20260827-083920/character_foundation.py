@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-CHARACTER_FOUNDATION_VERSION = "1.1-live-retrieval"
+CHARACTER_FOUNDATION_VERSION = "1.0"
 FOUNDATION_PATH = Path("character_foundation.json")
 
 _LOCK = threading.RLock()
@@ -71,32 +71,10 @@ def _normalize(text: str) -> str:
 
 
 def _tokens(text: str) -> set[str]:
-    raw_tokens = [
-        token
-        for token in _normalize(text).split()
-        if len(token) >= 2 and token not in STOPWORDS
-    ]
-
-    tokens = set(raw_tokens)
-
-    # German compounds such as Lieblingssong / Lieblingsanime / Lieblingsspiel
-    # need a shared intent token plus the concrete category suffix.
-    for token in list(raw_tokens):
-        if token.startswith("lieblings") and len(token) > len("lieblings"):
-            suffix = token[len("lieblings"):].strip()
-            tokens.add("lieblings")
-            if suffix:
-                tokens.add(suffix)
-                if suffix.endswith("s") and len(suffix) > 3:
-                    tokens.add(suffix[:-1])
-
-        if token.endswith("s") and len(token) > 4:
-            tokens.add(token[:-1])
-
+    tokens = {t for t in _normalize(text).split() if len(t) >= 2 and t not in STOPWORDS}
     expanded = set(tokens)
     for token in list(tokens):
         expanded.update(QUERY_EXPANSIONS.get(token, set()))
-
     return expanded
 
 
@@ -159,83 +137,10 @@ def get_foundation_entry(nr: int) -> Optional[FoundationHit]:
     return None
 
 
-def _intent_area_boost(entry: dict, query: str, query_tokens: set[str]) -> float:
-    query_norm = _normalize(query)
-    question_norm = _normalize(entry.get("question") or "")
-    area_norm = _normalize(entry.get("area") or "")
-    nr = int(entry.get("nr") or 0)
-
-    boost = 0.0
-
-    def has_any(values):
-        return any(value in query_tokens or value in query_norm for value in values)
-
-    if has_any({"musik", "song", "songs", "artist", "band", "metal", "rock"}):
-        if area_norm.startswith("26 musik"):
-            boost += 10.0
-
-    if has_any({"game", "games", "gaming", "spiel", "spiele", "zocken", "valorant"}):
-        if area_norm.startswith("23 gaming"):
-            boost += 10.0
-
-    if has_any({"anime", "manga"}):
-        if area_norm.startswith("24 anime manga"):
-            boost += 10.0
-
-    if has_any({"film", "filme", "serie", "serien", "horror"}):
-        if area_norm.startswith("25 filme serien horror"):
-            boost += 9.0
-
-    if has_any({"tiktok", "twitter", "youtube", "social", "socialmedia", "discord"}):
-        if area_norm.startswith("27 internet social media"):
-            boost += 9.0
-
-    if has_any({"hobby", "hobbys", "freizeit"}):
-        if area_norm.startswith("32 hobbys freizeit"):
-            boost += 8.0
-
-    if has_any({"kochen", "koch", "haushalt", "staubsaugen", "mull", "wäsche", "wasche"}):
-        if area_norm.startswith("07 tagesablauf gewohnheiten"):
-            boost += 8.0
-
-    current_activity_query = bool(
-        re.search(
-            r"\b(?:was machst du|was treibst du|was bist du.*am machen|"
-            r"was zockst du gerade|was schaust du gerade|was guckst du gerade|"
-            r"was machst du grad|was machst du aktuell)\b",
-            query_norm,
-        )
-    )
-
-    day_query = bool(
-        re.search(
-            r"\b(?:wie war dein tag|was hast du heute gemacht|was hast du gemacht heute)\b",
-            query_norm,
-        )
-    )
-
-    if current_activity_query or day_query:
-        if area_norm.startswith("07 tagesablauf gewohnheiten"):
-            boost += 8.0
-        if area_norm.startswith("39 offline leben"):
-            boost += 11.0
-        if nr in {120, 567, 569}:
-            boost += 8.0
-
-    if "lieblings" in query_tokens or "lieblings" in query_norm:
-        if "lieblings" in question_norm:
-            boost += 12.0
-        else:
-            boost -= 2.5
-
-    return boost
-
-
 def _entry_score(entry: dict, query: str, query_tokens: set[str]) -> float:
     answer = str(entry.get("answer") or "").strip()
     if not answer:
         return -1.0
-
     status = str(entry.get("status") or "FIXED").upper()
     if status == "N/A":
         return -1.0
@@ -244,6 +149,7 @@ def _entry_score(entry: dict, query: str, query_tokens: set[str]) -> float:
     area = str(entry.get("area") or "")
     q_norm = _normalize(question)
     a_norm = _normalize(answer)
+    area_norm = _normalize(area)
     q_tokens = _tokens(question)
     a_tokens = _tokens(answer)
     area_tokens = _tokens(area)
@@ -252,23 +158,15 @@ def _entry_score(entry: dict, query: str, query_tokens: set[str]) -> float:
     overlap_a = query_tokens & a_tokens
     overlap_area = query_tokens & area_tokens
 
-    # The question/intent is much more trustworthy than incidental words
-    # inside a long answer. This prevents broad lore paragraphs from winning.
-    score = (
-        5.4 * len(overlap_q)
-        + 0.65 * len(overlap_a)
-        + 0.8 * len(overlap_area)
-    )
+    score = 4.5 * len(overlap_q) + 1.2 * len(overlap_a) + 0.6 * len(overlap_area)
 
     meaningful = max(1, len(query_tokens))
     coverage = len(overlap_q | overlap_a) / meaningful
-    score += min(5.5, coverage * 5.5)
+    score += min(5.0, coverage * 5.0)
 
     query_norm = _normalize(query)
     if query_norm and len(query_norm) >= 5 and query_norm in q_norm:
-        score += 10.0
-
-    score += _intent_area_boost(entry, query, query_tokens)
+        score += 9.0
 
     priority = str(entry.get("priority") or "").upper()
     if priority == "MUSS":
@@ -276,25 +174,16 @@ def _entry_score(entry: dict, query: str, query_tokens: set[str]) -> float:
     elif priority == "WICHTIG":
         score += 0.6
 
-    # Subject ownership: "Hanae" inside an answer must not magically turn
-    # an Evilnae fact into a fact ABOUT Hanae.
-    hanae_in_query = "hanae" in query_tokens
-    hanae_in_question = "hanae" in q_tokens or "hanae" in q_norm
-    hanae_in_area = "hanae" in _normalize(area)
-
-    if hanae_in_query:
-        if hanae_in_question:
-            score += 11.0
-        elif hanae_in_area:
-            score += 6.0
-        elif "hanae" in a_tokens:
-            score -= 7.0
-    elif hanae_in_question:
-        score -= 14.0
+    # Strong entity boosts avoid generic answers beating character-specific rows.
+    if "hanae" in query_tokens and ("hanae" in q_tokens or "hanae" in a_tokens):
+        score += 4.0
+    elif "hanae" not in query_tokens and "hanae" in q_tokens:
+        # A self-question about Evilnae must not accidentally resolve to a Hanae fact
+        # merely because both rows contain words like "alt", "mag" or "spielt".
+        score -= 12.0
 
     if "error" in query_tokens and ("error" in q_tokens or "error" in a_tokens):
-        score += 5.0
-
+        score += 4.0
     if ("spinne" in query_tokens or "spinnen" in query_tokens) and "spinnen" in (q_tokens | a_tokens):
         score += 6.0
 
@@ -349,136 +238,26 @@ def _self_query(text: str) -> bool:
         r"\bmagst du\b", r"\bliebst du\b", r"\bhasst du\b", r"\bfindest du\b",
         r"\bdein(?:e|er|en|em|es)?\b", r"\bhast du\b", r"\bbist du\b",
         r"\bkannst du\b", r"\bwie alt\b", r"\bwas zockst du\b", r"\bwas spielst du\b",
-        r"\bwas schaust du\b", r"\bwas guckst du\b", r"\bwas horst du\b",
-        r"\bwas trinkst du\b", r"\bwas isst du\b", r"\bwas denkst du\b",
-        r"\bwer bist du\b", r"\bwas machst du\b", r"\bwas treibst du\b",
-        r"\blieblings[a-z0-9]*\b", r"\bwas haltst du von\b",
+        r"\bwas schaust du\b", r"\bwas horst du\b", r"\bwas trinkst du\b",
+        r"\bwas isst du\b", r"\bwas denkst du\b", r"\bwer bist du\b",
     )
     return any(re.search(pattern, norm) for pattern in patterns)
-
-
-def _favorite_subject(text: str) -> Optional[str]:
-    norm = _normalize(text)
-    match = re.search(
-        r"\blieblings\s*(?P<kind>[a-z0-9]{2,40})\b",
-        norm,
-    )
-    if match:
-        return match.group("kind")
-
-    for token in norm.split():
-        if token.startswith("lieblings") and len(token) > len("lieblings"):
-            return token[len("lieblings"):]
-
-    return None
 
 
 def resolve_foundation_self_query(user_text: str) -> Optional[FoundationHit]:
     text = str(user_text or "").strip()
     if not text or not _self_query(text):
         return None
-
-    hits = search_foundation(text, limit=8, min_score=4.5)
+    hits = search_foundation(text, limit=5, min_score=4.5)
     if not hits:
         return None
-
-    favorite_subject = _favorite_subject(text)
-
-    if favorite_subject:
-        favorite_subject = favorite_subject.rstrip("s")
-        category_hits = []
-
-        for hit in hits:
-            question_norm = _normalize(hit.question)
-            question_tokens = _tokens(hit.question)
-
-            subject_match = (
-                favorite_subject in question_norm
-                or favorite_subject in question_tokens
-                or any(
-                    token.startswith(favorite_subject)
-                    or favorite_subject.startswith(token)
-                    for token in question_tokens
-                    if len(token) >= 3
-                )
-            )
-
-            if subject_match and "lieblings" in question_norm:
-                category_hits.append(hit)
-
-        # Important: no matching favorite category means OPEN/LEARN.
-        # Do not let a generic "which opinions are fixed" row become a fake
-        # favorite answer for cars, food, etc.
-        if not category_hits:
-            return None
-
-        return category_hits[0]
-
     top = hits[0]
+    # A concrete self answer must have some question overlap; broad area-only matches are not enough.
     q_tokens = _tokens(top.question)
     u_tokens = _tokens(text)
-
-    if not (q_tokens & u_tokens) and top.score < 9.0:
+    if not (q_tokens & u_tokens) and top.score < 8.0:
         return None
-
     return top
-
-
-def build_direct_foundation_directive(user_text: str) -> str:
-    text = str(user_text or "").strip()
-    hit = resolve_foundation_self_query(text)
-
-    favorite_subject = _favorite_subject(text)
-
-    if hit is None:
-        if favorite_subject:
-            return (
-                "[DIRECT FOUNDATION ANSWER]\n"
-                f"Für die angefragte Lieblings-Kategorie '{favorite_subject}' gibt es "
-                "keinen festen Canon-Favoriten. Das ist OPEN/LEARN. "
-                "Erfinde deshalb KEINEN festen Lieblingswert. Evilnae darf einen "
-                "spontanen Eindruck haben oder sagen, dass sie dort keinen festen "
-                "Favoriten hat."
-            )
-
-        return (
-            "[DIRECT FOUNDATION ANSWER]\n"
-            "Keine einzelne direkte Foundation-Zeile ist für diese Self-Frage "
-            "verbindlich genug. Nutze die relevante Foundation normal und erfinde "
-            "keine feste persönliche Tatsache."
-        )
-
-    question_norm = _normalize(hit.question)
-    answer = hit.answer.strip()
-
-    concrete_required = bool(
-        "lieblings" in question_norm
-        or re.search(r"\bwelche\b", question_norm)
-        or re.search(r"\bwas sind\b", question_norm)
-    )
-
-    concrete_rule = (
-        "Nenne in der Discord-Antwort mindestens einen konkreten Canon-Namen/Wert "
-        "aus dieser Antwort; bei Listenfragen normalerweise 2-4 passende Beispiele. "
-        "Eine nur generische Paraphrase reicht NICHT."
-        if concrete_required
-        else
-        "Beantworte genau die gefragte Eigenschaft zuerst und bleibe bei diesem Canon."
-    )
-
-    return f"""
-[DIRECT FOUNDATION ANSWER — HARD PRIORITY]
-
-Excel row: #{hit.nr}
-Question: {hit.question}
-Canon answer: {answer}
-
-RULE:
-{concrete_rule}
-
-Keine plausiblere Modell-Erfindung anstelle des Canon benutzen.
-Wenn du danach Persönlichkeit hinzufügst, darf sie den Canon nicht ersetzen.
-""".strip()
 
 
 def build_character_context(user_text: str, limit: int = 8, include_core: bool = True) -> str:
@@ -520,74 +299,34 @@ def foundation_blocks_learning(topic: str) -> tuple[bool, Optional[FoundationHit
 def foundation_violation_reasons(answer: str, hit: Optional[FoundationHit]) -> list[str]:
     if hit is None:
         return []
-
     output = _normalize(answer)
     canon = _normalize(hit.answer)
-
     if not output:
         return ["empty_foundation_answer"]
-
     reasons = []
 
-    canon_no = (
-        canon.startswith("nein")
-        or " selbst nie " in f" {canon} "
-        or " nie wirklich gespielt" in canon
-    )
+    # Strong yes/no polarity contradictions.
+    canon_no = canon.startswith("nein") or " selbst nie " in f" {canon} " or " nie wirklich gespielt" in canon
     canon_yes = canon.startswith("ja") and not canon.startswith("ja aber nicht")
 
-    positive_claim = bool(
-        re.search(
-            r"\b(ja|mag ich|liebe ich|find ich gut|hab ich|habe ich|gespielt|gezockt)\b",
-            output,
-        )
-    )
-    negative_claim = bool(
-        re.search(
-            r"\b(nein|mag ich nicht|nicht mein|nie gespielt|nie gezockt|hab ich nie|habe ich nie)\b",
-            output,
-        )
-    )
+    positive_claim = bool(re.search(r"\b(ja|mag ich|liebe ich|find ich gut|hab ich|habe ich|gespielt|gezockt)\b", output))
+    negative_claim = bool(re.search(r"\b(nein|mag ich nicht|nicht mein|nie gespielt|nie gezockt|hab ich nie|habe ich nie)\b", output))
 
     if canon_no and positive_claim and not negative_claim:
         reasons.append("foundation_polarity_contradiction")
     if canon_yes and negative_claim and not positive_claim:
         reasons.append("foundation_polarity_contradiction")
 
+    # Age is fixed at 18.
     if hit.nr == 10:
         numbers = re.findall(r"\b\d{1,3}\b", output)
         if numbers and "18" not in numbers:
             reasons.append("foundation_age_contradiction")
 
+    # Known-not-played rows may never become claimed personal experience.
     if "nie wirklich gespielt" in canon or "selbst nie" in canon:
         if re.search(r"\b(ich hab|ich habe|hab ich|habe ich).{0,60}\b(gespielt|gezockt)\b", output):
             reasons.append("foundation_experience_contradiction")
-
-    # Direct favorite/list facts must visibly use the Canon instead of merely
-    # returning a generic answer that could belong to any character.
-    question_norm = _normalize(hit.question)
-    concrete_fact = bool(
-        "lieblings" in question_norm
-        or re.search(r"\bwelche\b", question_norm)
-        or re.search(r"\bwas sind\b", question_norm)
-    )
-
-    if concrete_fact and hit.status.upper() == "FIXED":
-        canon_tokens = {
-            token
-            for token in _tokens(hit.answer)
-            if len(token) >= 4
-            and token not in {
-                "evilnae", "besonders", "generell", "dabei", "daran", "immer",
-                "ziemlich", "wirklich", "festen", "feste", "gehort", "gehoren",
-            }
-        }
-        output_tokens = _tokens(answer)
-
-        # One concrete anchor is enough. This catches e.g. an invented
-        # "Blinding Lights" while allowing concise canonical answers.
-        if canon_tokens and not (canon_tokens & output_tokens):
-            reasons.append("foundation_content_not_used")
 
     return list(dict.fromkeys(reasons))
 

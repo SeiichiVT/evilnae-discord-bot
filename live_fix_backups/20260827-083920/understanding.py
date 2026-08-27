@@ -3,14 +3,12 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from character_foundation import search_foundation
-
 
 # =========================================================
 # VERSION
 # =========================================================
 
-UNDERSTANDING_VERSION = "1.1-subject-authority"
+UNDERSTANDING_VERSION = "1.0"
 
 
 # =========================================================
@@ -1207,32 +1205,6 @@ def infer_knowledge_scope(
 # BUILD KNOWLEDGE CONSTRAINT
 # =========================================================
 
-def _foundation_authorizes_subject_fact(user_text: str, subject_name: str) -> bool:
-    subject = str(subject_name or "").strip().lower()
-    if not subject:
-        return False
-
-    try:
-        hits = search_foundation(user_text, limit=6, min_score=5.0)
-    except Exception:
-        return False
-
-    for hit in hits:
-        question = str(hit.question or "").lower()
-        area = str(hit.area or "").lower()
-
-        explicitly_about_subject = (
-            subject in question
-            or (subject == "hanae" and "hanae" in area)
-            or (subject == "error" and "error" in area)
-        )
-
-        if explicitly_about_subject and float(hit.score or 0.0) >= 8.0:
-            return True
-
-    return False
-
-
 def build_knowledge_constraint(
     *,
     user_text: str,
@@ -1350,49 +1322,34 @@ def build_knowledge_constraint(
 
     if knowledge_available:
 
-        # Knowledge availability is SUBJECT-SCOPED.
-        # A random Self/Foundation fact about Evilnae must never authorize a
-        # factual claim about Hanae merely because the Brain returned True.
-        subject_authorized = (
-            knowledge_source == "conversation_world"
-            or _foundation_authorizes_subject_fact(
-                user_text,
-                subject_name,
+        return KnowledgeConstraint(
+
+            active=False,
+
+            subject_name=(
+                subject_name
+            ),
+
+            subject_id=(
+                subject_id
+            ),
+
+            scope=(
+                infer_knowledge_scope(
+                    user_text
+                )
+            ),
+
+            knowledge_available=True,
+
+            knowledge_source=(
+                knowledge_source
+            ),
+
+            reason=(
+                "knowledge_available"
             )
         )
-
-        if subject_authorized:
-            return KnowledgeConstraint(
-
-                active=False,
-
-                subject_name=(
-                    subject_name
-                ),
-
-                subject_id=(
-                    subject_id
-                ),
-
-                scope=(
-                    infer_knowledge_scope(
-                        user_text
-                    )
-                ),
-
-                knowledge_available=True,
-
-                knowledge_source=(
-                    knowledge_source
-                ),
-
-                reason=(
-                    "subject_scoped_knowledge_available"
-                )
-            )
-
-        knowledge_available = False
-        knowledge_source = "subject_scope_mismatch"
 
     return KnowledgeConstraint(
 

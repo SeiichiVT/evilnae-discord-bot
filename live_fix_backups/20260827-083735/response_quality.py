@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Iterable, Optional
 
-OUTPUT_QUALITY_VERSION = "2.3"
+OUTPUT_QUALITY_VERSION = "2.0"
 
 STOPWORDS = {
     "aber","als","am","an","auch","auf","aus","bei","bin","bist","bis","da","das","dass",
@@ -16,25 +16,6 @@ STOPWORDS = {
 }
 
 GENERIC_PATTERNS = {
-    "evilnae_polite_praise": (
-        re.compile(
-            r"^\s*(?:vielen\s+)?danke\b.{0,45}\b(?:witzig|lustig|cool|süß|suess|nett|kompliment|mühe|muehe)\b"
-            r"|\bich\s+geb(?:e)?\s+mir\s+mühe\b",
-            re.I
-        ), 4
-    ),
-    "automatic_plan_agreement": (
-        re.compile(
-            r"\bklingt\s+nach\s+einem\s+plan\b|\bdas\s+ist\s+(?:ja\s+)?(?:ein\s+)?guter\s+plan\b",
-            re.I
-        ), 3
-    ),
-    "overpolite_smalltalk": (
-        re.compile(
-            r"\b(?:danke\s+der\s+nachfrage|das\s+freut\s+mich\s+zu\s+hören|das\s+freut\s+mich\s+zu\s+hoeren)\b",
-            re.I
-        ), 3
-    ),
     "sounds_like_wrapper": (
         re.compile(
             r"\b(?:das\s+)?klingt\s+(?:ja\s+|echt\s+|wirklich\s+|ziemlich\s+|total\s+)?"
@@ -292,37 +273,6 @@ def _words(text: str) -> list[str]:
     )
 
 
-# =========================================================
-# 2.1 TEXTUAL CONTENT CHECK
-# =========================================================
-
-_QUALITY_CUSTOM_EMOJI_RE = re.compile(
-    r"<a?:[A-Za-z0-9_]+:\d+>"
-)
-_QUALITY_MENTION_RE = re.compile(
-    r"<(?:@!?|@&|#)\d+>"
-)
-_QUALITY_COLON_EMOJI_RE = re.compile(
-    r"(?<!\w):[A-Za-z0-9_+\-]{2,}:(?!\w)"
-)
-
-
-def _has_textual_content(text: str) -> bool:
-    value = str(text or "").strip()
-    if not value:
-        return False
-    value = _QUALITY_CUSTOM_EMOJI_RE.sub(" ", value)
-    value = _QUALITY_MENTION_RE.sub(" ", value)
-    value = _QUALITY_COLON_EMOJI_RE.sub(" ", value)
-    return bool(
-        re.search(
-            r"[^\W_]",
-            value,
-            flags=re.UNICODE,
-        )
-    )
-
-
 def _content_tokens(
     text: str
 ) -> set[str]:
@@ -467,16 +417,6 @@ def _similarity(
         sequence_similarity,
         jaccard
     )
-
-
-def _word_ngrams(text: str, n: int = 4) -> set[tuple[str, ...]]:
-    words = _words(text)
-    if len(words) < n:
-        return set()
-    return {
-        tuple(words[index:index + n])
-        for index in range(0, len(words) - n + 1)
-    }
 
 
 def _sentence_count(
@@ -647,20 +587,6 @@ def analyze_response_quality(
     )
 
     # =====================================================
-    # TEXTUAL CONTENT FLOOR
-    # =====================================================
-
-    if not _has_textual_content(
-        text
-    ):
-
-        issues.append(
-            "no_textual_content"
-        )
-
-        grammar_score += 10
-
-    # =====================================================
     # GENERIC / BOT STYLE
     # =====================================================
 
@@ -757,34 +683,23 @@ def analyze_response_quality(
         )
     )
 
-    normalized_user = _normalize(user_text)
-    normalized_answer = _normalize(text)
-
-    answer_words_for_echo = _words(text)
-
-    exact_or_substring_echo = (
-        len(answer_words_for_echo) >= 2
-        and normalized_answer
-        and normalized_user
-        and (
-            normalized_answer == normalized_user
-            or (
-                len(answer_words_for_echo) >= 3
-                and normalized_answer in normalized_user
+    if (
+        user_overlap >= 0.72
+        and
+        len(
+            _content_tokens(
+                text
             )
         )
-    )
-
-    if exact_or_substring_echo:
-        issues.append("direct_user_echo")
-        echo_score += 5
-
-    elif (
-        user_overlap >= 0.72
-        and len(_content_tokens(text)) >= 3
+        >=
+        4
     ):
-        issues.append("high_user_restatement")
-        echo_score += 3
+
+        issues.append(
+            "high_user_restatement"
+        )
+
+        echo_score += 2
 
     # =====================================================
     # GRAMMAR / GARBLED
@@ -894,23 +809,6 @@ def analyze_response_quality(
         )
 
         grammar_score += 2
-
-
-    # =====================================================
-    # EXACT PHRASE REPETITION
-    # =====================================================
-
-    candidate_4grams = _word_ngrams(text, 4)
-    recent_4grams = set()
-
-    for recent_message in recent[-12:]:
-        recent_4grams.update(_word_ngrams(recent_message, 4))
-
-    shared_4grams = candidate_4grams & recent_4grams
-
-    if shared_4grams:
-        issues.append("repeated_4word_phrase")
-        repetition_score += 4
 
     # =====================================================
     # SEMANTIC REPETITION
@@ -1045,9 +943,10 @@ def analyze_response_quality(
 
     severe = (
         grammar_score >= 3
-        or repetition_score >= 4
-        or echo_score >= 4
-        or total_penalty >= 7
+        or
+        repetition_score >= 4
+        or
+        total_penalty >= 7
     )
 
     return (
@@ -1140,20 +1039,6 @@ def compare_response_candidates(
             )
         )
 
-    if not candidate:
-
-        return result(
-            False,
-            "empty_candidate"
-        )
-
-    if candidate_analysis.severe:
-
-        return result(
-            False,
-            "candidate_severe_quality_issue"
-        )
-
     if (
         _normalize(
             candidate
@@ -1169,6 +1054,20 @@ def compare_response_candidates(
         return result(
             True,
             "same_content"
+        )
+
+    if not candidate:
+
+        return result(
+            False,
+            "empty_candidate"
+        )
+
+    if candidate_analysis.severe:
+
+        return result(
+            False,
+            "candidate_severe_quality_issue"
         )
 
     if meaning_preserved < 0.86:
@@ -1397,8 +1296,6 @@ Schreibe denselben zulässigen Inhalt neu.
 - Keine neuen Fakten.
 - Keine kürzlich benutzte Gag-/Phrasenfamilie wiederholen.
 - Keine kaputten Satzfragmente oder Komma-Wortketten.
-- Die Antwort braucht echten Text mit mindestens einem Wort.
-- Keine Unicode-Emojis oder Discord-Custom-Emotes; der Emote-Layer kommt später.
 - Wenn der Gedanke fertig ist: aufhören.
 """.strip()
 

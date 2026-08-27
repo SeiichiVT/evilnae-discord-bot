@@ -19,7 +19,7 @@ from character_foundation import (
 # VERSION
 # =========================================================
 
-SELF_MODEL_VERSION = "2.1-character-foundation"
+SELF_MODEL_VERSION = "2.0-character-foundation"
 
 
 # =========================================================
@@ -742,37 +742,6 @@ def resolve_self_query(
             specificity_guard=False,
             fact=foundation_fact,
             reason=f"foundation_row_{foundation_hit.nr}",
-        )
-
-
-    # =====================================================
-    # GENERIC FAVORITE CATEGORY GUARD v2.1
-    #
-    # Foundation had the first chance above. If no matching
-    # Foundation row exists, ANY Lieblings-X category remains
-    # unknown/OPEN instead of silently inventing a Tesla/song/etc.
-    # =====================================================
-
-    generic_favorite_match = re.search(
-        r"\blieblings[\s_-]*(?P<kind>[a-zäöüß0-9]{2,40})\b",
-        lowered,
-        flags=re.IGNORECASE,
-    )
-
-    if generic_favorite_match:
-        favorite_kind = _normalize(generic_favorite_match.group("kind"))
-        key = f"favorite:{favorite_kind}"
-        fact = get_self_fact(key)
-
-        return SelfEvidence(
-            matched=True,
-            query_type="favorite",
-            key=key,
-            known=(fact is not None),
-            strict_unknown=(fact is None),
-            specificity_guard=False,
-            fact=fact,
-            reason=("known_favorite" if fact else "favorite_not_established"),
         )
 
     # =====================================================
@@ -1871,13 +1840,12 @@ def self_knowledge_violation_reasons(
             ==
             "favorite"
             and
-            not uncertainty
+            FAVORITE_ASSERTION_PATTERN
+            .search(
+                answer
+            )
         ):
 
-            # The user explicitly asked for a fixed favorite, but no
-            # Foundation/Learned fact exists. Any confident concrete answer
-            # would create canon out of thin air, even if the Writer avoids
-            # the literal words "mein Lieblings...".
             reasons.append(
                 "unsupported_self_favorite"
             )

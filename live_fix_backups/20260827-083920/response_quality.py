@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Iterable, Optional
 
-OUTPUT_QUALITY_VERSION = "2.3"
+OUTPUT_QUALITY_VERSION = "2.1"
 
 STOPWORDS = {
     "aber","als","am","an","auch","auf","aus","bei","bin","bist","bis","da","das","dass",
@@ -16,25 +16,6 @@ STOPWORDS = {
 }
 
 GENERIC_PATTERNS = {
-    "evilnae_polite_praise": (
-        re.compile(
-            r"^\s*(?:vielen\s+)?danke\b.{0,45}\b(?:witzig|lustig|cool|süß|suess|nett|kompliment|mühe|muehe)\b"
-            r"|\bich\s+geb(?:e)?\s+mir\s+mühe\b",
-            re.I
-        ), 4
-    ),
-    "automatic_plan_agreement": (
-        re.compile(
-            r"\bklingt\s+nach\s+einem\s+plan\b|\bdas\s+ist\s+(?:ja\s+)?(?:ein\s+)?guter\s+plan\b",
-            re.I
-        ), 3
-    ),
-    "overpolite_smalltalk": (
-        re.compile(
-            r"\b(?:danke\s+der\s+nachfrage|das\s+freut\s+mich\s+zu\s+hören|das\s+freut\s+mich\s+zu\s+hoeren)\b",
-            re.I
-        ), 3
-    ),
     "sounds_like_wrapper": (
         re.compile(
             r"\b(?:das\s+)?klingt\s+(?:ja\s+|echt\s+|wirklich\s+|ziemlich\s+|total\s+)?"
@@ -469,16 +450,6 @@ def _similarity(
     )
 
 
-def _word_ngrams(text: str, n: int = 4) -> set[tuple[str, ...]]:
-    words = _words(text)
-    if len(words) < n:
-        return set()
-    return {
-        tuple(words[index:index + n])
-        for index in range(0, len(words) - n + 1)
-    }
-
-
 def _sentence_count(
     text: str
 ) -> int:
@@ -757,34 +728,23 @@ def analyze_response_quality(
         )
     )
 
-    normalized_user = _normalize(user_text)
-    normalized_answer = _normalize(text)
-
-    answer_words_for_echo = _words(text)
-
-    exact_or_substring_echo = (
-        len(answer_words_for_echo) >= 2
-        and normalized_answer
-        and normalized_user
-        and (
-            normalized_answer == normalized_user
-            or (
-                len(answer_words_for_echo) >= 3
-                and normalized_answer in normalized_user
+    if (
+        user_overlap >= 0.72
+        and
+        len(
+            _content_tokens(
+                text
             )
         )
-    )
-
-    if exact_or_substring_echo:
-        issues.append("direct_user_echo")
-        echo_score += 5
-
-    elif (
-        user_overlap >= 0.72
-        and len(_content_tokens(text)) >= 3
+        >=
+        4
     ):
-        issues.append("high_user_restatement")
-        echo_score += 3
+
+        issues.append(
+            "high_user_restatement"
+        )
+
+        echo_score += 2
 
     # =====================================================
     # GRAMMAR / GARBLED
@@ -894,23 +854,6 @@ def analyze_response_quality(
         )
 
         grammar_score += 2
-
-
-    # =====================================================
-    # EXACT PHRASE REPETITION
-    # =====================================================
-
-    candidate_4grams = _word_ngrams(text, 4)
-    recent_4grams = set()
-
-    for recent_message in recent[-12:]:
-        recent_4grams.update(_word_ngrams(recent_message, 4))
-
-    shared_4grams = candidate_4grams & recent_4grams
-
-    if shared_4grams:
-        issues.append("repeated_4word_phrase")
-        repetition_score += 4
 
     # =====================================================
     # SEMANTIC REPETITION
@@ -1045,9 +988,10 @@ def analyze_response_quality(
 
     severe = (
         grammar_score >= 3
-        or repetition_score >= 4
-        or echo_score >= 4
-        or total_penalty >= 7
+        or
+        repetition_score >= 4
+        or
+        total_penalty >= 7
     )
 
     return (

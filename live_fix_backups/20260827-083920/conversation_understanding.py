@@ -8,7 +8,7 @@ from typing import Optional
 # VERSION
 # =========================================================
 
-CONVERSATION_UNDERSTANDING_VERSION = "1.1-thread-ownership"
+CONVERSATION_UNDERSTANDING_VERSION = "1.0"
 
 
 # =========================================================
@@ -481,31 +481,66 @@ def format_address_upgrade_debug(
 # CHANNEL ITEM FORMAT
 # =========================================================
 
-def _format_item(item) -> str:
-    item_type = str(item.get("type", ""))
-    username = str(item.get("username", "Unbekannt"))
-    content = _normalize(item.get("content", ""))
+def _format_item(
+    item
+) -> str:
 
-    if len(content) > 260:
-        content = content[:257] + "..."
+    item_type = str(
+        item.get(
+            "type",
+            ""
+        )
+    )
+
+    username = str(
+        item.get(
+            "username",
+            "Unbekannt"
+        )
+    )
+
+    content = (
+        _normalize(
+            item.get(
+                "content",
+                ""
+            )
+        )
+    )
+
+    if len(
+        content
+    ) > 260:
+
+        content = (
+            content[:257]
+            +
+            "..."
+        )
 
     if item_type == "bot":
-        origin = str(item.get("origin") or "reply")
-        reply_name = item.get("reply_to_name")
 
-        if origin == "participation":
-            return f"Evilnae [eigener Einwurf]: {content}"
-        if origin == "initiative":
-            return f"Evilnae [spontaner eigener Gedanke]: {content}"
-        if reply_name:
-            return f"Evilnae [antwortet auf {reply_name}]: {content}"
-        return f"Evilnae: {content}"
+        return (
+            f"Evilnae: {content}"
+        )
 
-    reply_name = item.get("reply_to_name")
+    reply_name = (
+        item.get(
+            "reply_to_name"
+        )
+    )
+
     if reply_name:
-        return f"{username} [antwortet auf {reply_name}]: {content}"
 
-    return f"{username}: {content}"
+        return (
+            f"{username} "
+            f"[antwortet auf {reply_name}]: "
+            f"{content}"
+        )
+
+    return (
+        f"{username}: {content}"
+    )
 
 
 # =========================================================
@@ -756,26 +791,6 @@ def build_reference_context(
             )
         )
 
-
-    # -----------------------------------------------------
-    # PRONOUN -> EVILNAE SELF OWNERSHIP
-    # -----------------------------------------------------
-
-    if (
-        re.search(r"\b(?:sie|ihr)\b", text, flags=re.IGNORECASE)
-        and any(
-            str(item.get("type", "")) == "bot"
-            for item in relevant_items[-3:]
-        )
-    ):
-        rules.append(
-            (
-                "Wenn 'sie/ihr' im unmittelbaren Verlauf grammatisch auf Evilnae "
-                "zeigt, ist damit DU selbst gemeint. Antworte dann in der ersten "
-                "Person (ich/mich/mir) und beschreibe Evilnae nicht wie eine dritte Person."
-            )
-        )
-
     rules_text = "\n".join(
 
         f"- {rule}"
@@ -817,31 +832,43 @@ def build_episode_focus(
 ) -> str:
 
     if not channel_snapshot:
-        return "Keine aktuelle Conversation Episode."
 
-    items = list(channel_snapshot[-limit:])
+        return (
+            "Keine aktuelle "
+            "Conversation Episode."
+        )
+
+    items = list(
+        channel_snapshot[
+            -limit:
+        ]
+    )
+
     timeline = "\n".join(
+
         f"- {_format_item(item)}"
-        for item in items
+
+        for item
+        in items
     )
 
     return f"""
 [CURRENT CONVERSATION EPISODE v{CONVERSATION_UNDERSTANDING_VERSION}]
 
-Behandle die folgenden Nachrichten als eine mögliche laufende soziale Situation,
+Behandle die folgenden Nachrichten
+als eine mögliche laufende soziale Situation,
 nicht als isolierte Einzelprompts:
 
 {timeline}
 
-HARD THREAD-OWNERSHIP RULES:
+WICHTIG:
+
 - Mehrere User können Teil derselben Episode sein.
 - Eine Zwischenmeldung beendet einen Gesprächsstrang nicht automatisch.
-- Eine Evilnae-Antwort, die als [antwortet auf NAME] markiert ist, gehört zunächst zu DIESEM User/Thread.
-- Ein persönliches Detail, Gag oder Wunsch aus der Antwort an User A darf NICHT automatisch in die Antwort an User B übertragen werden.
-- Nur wenn der neue User das gemeinsame Thema ausdrücklich aufgreift, wird es zu einem gemeinsamen Channel-Thema.
-- Trenne Geschehen IM DISCORD von Dingen, die ein User außerhalb des Channels gerade macht.
-- Evilnae ist IMMER die Sprecherin der neuen Antwort. Wenn im Verlauf über "Evil/Evilnae" oder passend mit "sie" gesprochen wird, darf sie sich nicht selbst wie eine dritte Person behandeln.
-- Wenn jemand Hanae gegen Evilnae anfeuert, ist Evilnae eine der beteiligten Seiten — nicht ein neutraler Kommentator, der automatisch Hanae anfeuert.
+- Trenne Geschehen IM DISCORD von Dingen,
+  die ein User außerhalb des Channels gerade macht.
+- Wenn eine neue Nachricht auf ein laufendes Bit/Event
+  Bezug nimmt, nutze dieses gemeinsame Event.
 """.strip()
 
 

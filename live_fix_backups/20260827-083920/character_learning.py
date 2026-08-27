@@ -7,7 +7,7 @@ from pathlib import Path
 
 from character_foundation import foundation_blocks_learning
 
-CHARACTER_LEARNING_VERSION = "1.1"
+CHARACTER_LEARNING_VERSION = "1.0"
 CHARACTER_LEARNING_PATH = Path("evilnae_character_learning.json")
 
 _LOCK = threading.RLock()
@@ -112,29 +112,6 @@ def _extract_preference(answer: str):
     return None
 
 
-def _valid_preference_topic(topic: str) -> bool:
-    normalized = _normalize(topic)
-    if not normalized:
-        return False
-
-    # Prevent lines such as "ich liebe dich trotzdem, sis" from becoming
-    # a learned preference called "dich trotzdem sis".
-    blocked_starts = (
-        "dich", "dir", "euch", "euer", "eure", "ihn", "ihm", "sie", "ihr",
-        "das", "es", "uns", "mich", "mir",
-    )
-    first = normalized.split()[0]
-    if first in blocked_starts:
-        return False
-
-    if normalized in {
-        "hanae", "sis", "schwester", "chat", "community", "leute", "menschen",
-    }:
-        return False
-
-    return len(normalized) >= 2
-
-
 def _status_for_confirmations(count: int) -> str:
     if count >= 5:
         return "favorite_candidate"
@@ -166,10 +143,6 @@ def observe_character_learning(*, user_text: str, evilnae_answer: str) -> dict:
     topic, sentiment = extracted
     result["topic"] = topic
     result["sentiment"] = sentiment
-
-    if not _valid_preference_topic(topic):
-        result["reason"] = "invalid_preference_topic"
-        return result
 
     blocked, hit = foundation_blocks_learning(topic)
     if blocked:
@@ -248,11 +221,7 @@ def observe_character_learning(*, user_text: str, evilnae_answer: str) -> dict:
 def format_character_learning_for_prompt(user_text: str = "", limit: int = 6) -> str:
     with _LOCK:
         data = _load()
-        entries = [
-            entry
-            for entry in data.get("entries", {}).values()
-            if _valid_preference_topic(str(entry.get("topic") or ""))
-        ]
+        entries = list(data.get("entries", {}).values())
 
     if not entries:
         return "[LEARNED CHARACTER]\nNoch keine eigenständig entwickelten stabilen Character-Präferenzen."
