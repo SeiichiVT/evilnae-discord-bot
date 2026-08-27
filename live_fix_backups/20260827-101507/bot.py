@@ -295,7 +295,7 @@ for stream_name in (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "3.1.3-addressing-reliability"
+BOT_VERSION = "3.1.2-social-context"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -11158,96 +11158,6 @@ Kein generischer Ersatz-Füllsatz.
                         "[RELIABILITY DIRECT RESCUE FAILED] "
                         f"user={username}"
                     )
-
-                    # -----------------------------------------
-                    # 3.1.3 SECOND DIRECT RESCUE
-                    #
-                    # Harmless direct turns must not disappear
-                    # only because Writer + first rescue both
-                    # returned forbidden counter-questions.
-                    #
-                    # Use the remaining repair-budget slot for
-                    # one generated statement-only attempt.
-                    # No canned deterministic fallback.
-                    # -----------------------------------------
-
-                    statement_only_context = (
-                        writer_context
-                        + "\n\n"
-                        + (
-                            "[DIRECT STATEMENT-ONLY RESCUE]\n\n"
-                            "Die Antwort darf auf keinen Fall verloren gehen.\n\n"
-                            "Schreibe jetzt GENAU EINE kurze natürliche Aussage, "
-                            "die direkt auf die aktuelle User-Nachricht reagiert.\n\n"
-                            "HARD:\n"
-                            "- KEIN Fragezeichen.\n"
-                            "- KEINE Gegenfrage.\n"
-                            "- Nicht 'was meinst du?', 'und du?' oder ähnlich.\n"
-                            "- Kein generischer Support-/Bot-Füllsatz.\n"
-                            "- Nicht bloß die User-Nachricht wiederholen.\n"
-                            "- Evilnae darf trocken, smug oder leicht frech klingen.\n"
-                            "- Nutze den aktuellen Kontext und ihre aktuelle Tätigkeit, "
-                            "wenn das natürlich passt.\n"
-                            "- Mindestens ein echtes Wort."
-                        )
-                    )
-
-                    statement_only_rescue = (
-                        await repair_writer_answer(
-                            original_answer=(
-                                direct_rescue
-                                or
-                                answer
-                                or
-                                response.output_text
-                                or
-                                ""
-                            ),
-                            violation_reasons=[
-                                "direct_reply_must_not_disappear",
-                                "statement_only_no_counterquestion",
-                            ],
-                            writer_context=(
-                                statement_only_context
-                            ),
-                            current_mood=current_mood,
-                            username=username,
-                            token_limit=writer_token_limit,
-                            autonomous_participation=False,
-                        )
-                    )
-
-                    if statement_only_rescue:
-                        reliability_baseline_answer = (
-                            choose_reliability_fallback(
-                                candidates=[
-                                    (
-                                        "direct_statement_rescue",
-                                        statement_only_rescue,
-                                    ),
-                                ],
-                                curiosity_result=curiosity_result,
-                                self_evidence=self_evidence,
-                                knowledge_constraint=knowledge_constraint,
-                                username=username,
-                                stage="baseline_direct_statement_rescue",
-                            )
-                        )
-
-                    if reliability_baseline_answer:
-                        answer = reliability_baseline_answer
-
-                        print(
-                            "[RELIABILITY DIRECT STATEMENT RESCUE SUCCESS] "
-                            f"user={username} "
-                            f"answer={answer!r}"
-                        )
-
-                    else:
-                        print(
-                            "[RELIABILITY DIRECT STATEMENT RESCUE FAILED] "
-                            f"user={username}"
-                        )
 
         # -------------------------------------------------
         # FRESH CHANNEL HISTORY FOR LOCAL VOICE

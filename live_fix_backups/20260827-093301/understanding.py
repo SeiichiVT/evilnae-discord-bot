@@ -10,7 +10,7 @@ from character_foundation import search_foundation
 # VERSION
 # =========================================================
 
-UNDERSTANDING_VERSION = "1.2-social-context"
+UNDERSTANDING_VERSION = "1.1-subject-authority"
 
 
 # =========================================================
@@ -1078,43 +1078,6 @@ def is_evilnae_opinion_question(
 
 
 # =========================================================
-# 1.2 SOCIAL COMPARISON / PROVOCATION
-# =========================================================
-# Social comparisons with Hanae are banter, not a request for
-# a factual dossier about Hanae.
-# =========================================================
-
-HANAE_SOCIAL_COMPARISON_PATTERNS = [
-    re.compile(
-        r"\bhanae\b.{0,60}\b(?:süßer|suesser|netter|freundlicher|besser|"
-        r"lustiger|cooler|lieber|stärker|staerker)\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\bhanae\b.{0,25}\b(?:hätte|haette|würde|wuerde)\b.{0,70}\b"
-        r"(?:süßer|suesser|netter|freundlicher|besser|lustiger|cooler|anders)\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\bhanae\b.{0,25}\b(?:ist|wäre|waere)\b.{0,35}\b"
-        r"(?:besser|süßer|suesser|netter|freundlicher|cooler|lustiger)\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\b(?:team|seite)\s+hanae\b",
-        flags=re.IGNORECASE,
-    ),
-]
-
-
-def is_social_comparison_or_provocation(text: str, subject_name: str) -> bool:
-    if str(subject_name or "").strip().lower() != "hanae":
-        return False
-    value = str(text or "")
-    return any(pattern.search(value) for pattern in HANAE_SOCIAL_COMPARISON_PATTERNS)
-
-
-# =========================================================
 # PERSON FACT REQUEST
 # =========================================================
 
@@ -1353,36 +1316,6 @@ def build_knowledge_constraint(
 
             reason=(
                 "evilnae_opinion_question"
-            )
-        )
-
-    if is_social_comparison_or_provocation(
-        user_text,
-        subject_name,
-    ):
-
-        return KnowledgeConstraint(
-
-            active=False,
-
-            subject_name=(
-                subject_name
-            ),
-
-            subject_id=(
-                subject_id
-            ),
-
-            knowledge_available=(
-                knowledge_available
-            ),
-
-            knowledge_source=(
-                knowledge_source
-            ),
-
-            reason=(
-                "social_comparison_or_provocation"
             )
         )
 

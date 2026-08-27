@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Iterable, Optional
 
-OUTPUT_QUALITY_VERSION = "2.4"
+OUTPUT_QUALITY_VERSION = "2.3"
 
 STOPWORDS = {
     "aber","als","am","an","auch","auf","aus","bei","bin","bist","bis","da","das","dass",
@@ -32,21 +32,6 @@ GENERIC_PATTERNS = {
     "overpolite_smalltalk": (
         re.compile(
             r"\b(?:danke\s+der\s+nachfrage|das\s+freut\s+mich\s+zu\s+hören|das\s+freut\s+mich\s+zu\s+hoeren)\b",
-            re.I
-        ), 3
-    ),
-    "casual_therapy_invitation": (
-        re.compile(
-            r"\bwas\s+hast\s+du\s+auf\s+dem\s+herzen\b"
-            r"|\bich\s+bin\s+ganz\s+ohr\b"
-            r"|\bich\s+höre\s+dir\s+zu\b"
-            r"|\bich\s+hoere\s+dir\s+zu\b",
-            re.I
-        ), 3
-    ),
-    "soft_fail_wrapper": (
-        re.compile(
-            r"\bdas\s+klingt\s+(?:ja\s+)?nach\s+(?:einem|einer)\s+.{0,35}\b(?:fail|missgeschick)\b",
             re.I
         ), 3
     ),

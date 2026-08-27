@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-ROUTING_HARDENING_VERSION = "1.2"
+ROUTING_HARDENING_VERSION = "1.1"
 
 EVIL_VARIANT_PATTERN = re.compile(
     r"(?<![A-Za-zÄÖÜäöüß0-9_])e+v+i+l+(?:\s*n+a+e+)?(?![A-Za-zÄÖÜäöüß0-9_])",
@@ -43,49 +43,6 @@ THIRD_PERSON_LEAD_PATTERN = re.compile(
     r"gegen|für|fuer)\s+",
     re.IGNORECASE,
 )
-
-
-# =========================================================
-# v1.2 SOCIAL VOCATIVE ADDRESSING
-# =========================================================
-#
-# DIRECT:
-#   "WOW Evil WOW..."
-#   "Ach Evil..."
-#   "Wow evil.. mehr nicht?"
-#
-# THIRD PERSON:
-#   "Wow, Evil ist heute ruhig."
-#   "Evil hat das gestern gesagt."
-# =========================================================
-
-SOCIAL_VOCATIVE_PREFIX_PATTERN = re.compile(
-    r"^\s*(?:(?:"
-    r"wow+|ach+|ey+|hey+|yo+|boah+|bro+|bruh+|"
-    r"alter+|wtf+|lol+|haha+|hahaha+|uff+|pff+"
-    r")[\s,;:!?._\-–—]*)+$",
-    re.IGNORECASE,
-)
-
-THIRD_PERSON_AFTER_EVIL_PATTERN = re.compile(
-    r"^\s*(?:"
-    r"ist|war|hat|hatte|wird|macht|mag|findet|kann|"
-    r"will|kommt|geht|schläft|schlaeft|sagt|meint|"
-    r"denkt|braucht|sollte|würde|wuerde|hätte|haette"
-    r")\b",
-    re.IGNORECASE,
-)
-
-DIRECT_SOCIAL_FOLLOWUP_PATTERN = re.compile(
-    r"^\s*(?:"
-    r"wow+|wtf+|bro+|bruh+|mehr\s+nicht|ernsthaft|"
-    r"echt\s+jetzt|really|aha|okay|ok|ach\s+komm|"
-    r"komm\s+schon|was\s+soll\s+das|na\s+toll|"
-    r"nicht\s+dein\s+ernst"
-    r")\b",
-    re.IGNORECASE,
-)
-
 
 REFERENCE_PATTERNS = {
     "predicate_inheritance": re.compile(
@@ -227,52 +184,20 @@ def _looks_like_direct_vocative(
     match,
 ) -> bool:
 
-    raw_before = text[
+    before = text[
         :match.start()
-    ]
-
-    raw_after = text[
-        match.end():
-    ]
-
-    before = raw_before.strip(
+    ].strip(
         " \t,;:!?._-–—"
     )
 
-    after = raw_after.strip(
+    after = text[
+        match.end():
+    ].strip(
         " \t,;:!?._-–—"
     )
 
     is_start = not before
     is_end = not after
-
-    # -----------------------------------------------------
-    # v1.2 INTERJECTION + NAME = SOCIAL VOCATIVE
-    #
-    # "WOW Evil WOW..." addresses Evilnae.
-    #
-    # "Wow, Evil ist heute ruhig" remains third-person.
-    # -----------------------------------------------------
-
-    if SOCIAL_VOCATIVE_PREFIX_PATTERN.fullmatch(
-        raw_before
-    ):
-        after_social = raw_after.lstrip(
-            " \t,;:!?._-–—"
-        )
-
-        if not after_social:
-            return True
-
-        if DIRECT_SOCIAL_FOLLOWUP_PATTERN.search(
-            after_social
-        ):
-            return True
-
-        if not THIRD_PERSON_AFTER_EVIL_PATTERN.search(
-            after_social
-        ):
-            return True
 
     if is_start:
 

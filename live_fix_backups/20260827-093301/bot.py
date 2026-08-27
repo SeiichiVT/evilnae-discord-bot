@@ -295,7 +295,7 @@ for stream_name in (
 # VERSION
 # =========================================================
 
-BOT_VERSION = "3.1.3-addressing-reliability"
+BOT_VERSION = "3.1.1-social-ego"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -2932,70 +2932,6 @@ _USER_FAIL_PATTERN = re.compile(
 )
 
 
-# =========================================================
-# 3.1.2 BROADER SOCIAL CONTEXT SIGNALS
-# =========================================================
-
-_BROAD_USER_FAIL_PATTERN = re.compile(
-    r"\b(?:aus|vom)\b.{0,35}\bbett\b.{0,70}\bgefallen\b"
-    r"|\bbett\b.{0,50}\bgefallen\b"
-    r"|\b(?:gegen|an)\b.{0,40}\b(?:tür|tuer|wand|tisch|schrank|möbel|moebel)\b"
-    r".{0,45}\b(?:gelaufen|gestoßen|gestossen|geknallt)\b"
-    r"|\bverschlafen\b"
-    r"|\bausgesperrt\b"
-    r"|\b(?:hab|habe)\b.{0,35}\bvergessen\b"
-    r"|\b(?:hab|habe)\b.{0,30}\b(?:verkackt|gefailt|verloren|nicht geschafft)\b"
-    r"|\b(?:bin|war)\b.{0,25}\b(?:wieder\s+)?gestorben\b",
-    flags=re.IGNORECASE,
-)
-
-_CHEEKY_REVEAL_PATTERN = re.compile(
-    r"\bich\s+muss\s+dir\s+(?:was|etwas)\s+erzählen\b"
-    r"|\bich\s+hab(?:e)?\s+dir\s+was\s+zu\s+erzählen\b"
-    r"|\bdu\s+glaubst\s+nicht[, ]+was\b"
-    r"|\bweißt\s+du[, ]+was\s+passiert\s+ist\b"
-    r"|\bweisst\s+du[, ]+was\s+passiert\s+ist\b"
-    r"|\bich\s+hab(?:e)?\s+was\s+angestellt\b",
-    flags=re.IGNORECASE,
-)
-
-_HANAE_COMPARISON_PROVOCATION_PATTERN = re.compile(
-    r"\bhanae\b.{0,60}\b(?:süßer|suesser|netter|freundlicher|besser|"
-    r"lustiger|cooler|stärker|staerker)\b"
-    r"|\bhanae\b.{0,30}\b(?:hätte|haette|würde|wuerde)\b.{0,70}\b"
-    r"(?:reagiert|gemacht|gesagt|geschafft)\b",
-    flags=re.IGNORECASE,
-)
-
-_BOTLIKE_CASUAL_CURIOSITY_PATTERN = re.compile(
-    r"\bwas\s+hast\s+du\s+auf\s+dem\s+herzen\b"
-    r"|\berzähl(?:e)?\s+mir(?:\s+mehr)?\b"
-    r"|\berzaehl(?:e)?\s+mir(?:\s+mehr)?\b"
-    r"|\bich\s+höre\s+dir\s+zu\b"
-    r"|\bich\s+hoere\s+dir\s+zu\b"
-    r"|\bich\s+bin\s+ganz\s+ohr\b",
-    flags=re.IGNORECASE,
-)
-
-_BOTLIKE_FAIL_RESPONSE_PATTERN = re.compile(
-    r"\bdas\s+klingt\b"
-    r"|\boh\s+nein\b"
-    r"|\bdas\s+tut\s+mir\s+leid\b"
-    r"|\bhoffentlich\b.{0,55}\b(?:nicht|okay|gut|besser|in\s+ordnung|im\s+eimer)\b",
-    flags=re.IGNORECASE,
-)
-
-_COMPARISON_EGO_FAILURE_PATTERN = re.compile(
-    r"\bweiß\s+ich\s+(?:grad\s+)?nicht\b"
-    r"|\bweiss\s+ich\s+(?:grad\s+)?nicht\b"
-    r"|\bkeine\s+ahnung\b"
-    r"|\bkann\s+ich\s+nicht\s+sagen\b"
-    r"|\bstimmt\b"
-    r"|\bda\s+hast\s+du\s+recht\b",
-    flags=re.IGNORECASE,
-)
-
-
 def detect_social_stance_mode(user_text, episode_text="", *, is_hanae=False):
     user = str(user_text or "")
     episode = str(episode_text or "")
@@ -3007,23 +2943,13 @@ def detect_social_stance_mode(user_text, episode_text="", *, is_hanae=False):
     if _HANAE_SUPPORT_PATTERN.search(user) and _RIVALRY_CONTEXT_PATTERN.search(combined):
         return "betrayal_rivalry"
 
-    if _HANAE_COMPARISON_PROVOCATION_PATTERN.search(user):
-        return "comparison_provocation"
-
     if _COMPETITIVE_CHALLENGE_PATTERN.search(user):
         return "competitive"
 
     if _PRAISE_EVILNAE_PATTERN.search(user):
         return "smug_praise"
 
-    if _CHEEKY_REVEAL_PATTERN.search(user):
-        return "cheeky_curiosity"
-
-    if (
-        _USER_FAIL_PATTERN.search(user)
-        or
-        _BROAD_USER_FAIL_PATTERN.search(user)
-    ):
+    if _USER_FAIL_PATTERN.search(user):
         return "playful_roast"
 
     if is_hanae:
@@ -3050,8 +2976,6 @@ GRUNDHALTUNG:
 - Wenn sich natürliche Angriffsfläche ergibt, DARF und SOLL sie sie nutzen.
 - Nicht automatisch zustimmen oder freundlich bestätigen.
 - Keine Customer-Service-Wärme als Default.
-- Reagiere zuerst wie eine Person mit eigener Haltung, nicht wie ein Assistent, Therapeut oder Gesprächsmoderator.
-- Wenn ein User eine Story anteasert, darf Evilnae neugierig sein, aber casual/frech statt "Was hast du auf dem Herzen?".
 - Roasts richten sich bevorzugt gegen Verhalten, Entscheidungen, Skill Issues, Fails oder die konkrete Situation.
 - Keine verletzenden Angriffe auf geschützte Merkmale, Körper, echte Traumata, Krankheit, mentale Krisen oder sensible Unsicherheiten.
 - Nicht jeden Satz zwanghaft roasten. Wenn kein guter Winkel da ist, trocken/smug reicht.
@@ -3090,29 +3014,6 @@ NICHT:
 - Hanae mit anfeuern.
 """.strip()
 
-    elif mode == "comparison_provocation":
-        specific = """
-AKTUELLER MODUS: HANAE COMPARISON / PROVOCATION
-
-Der User vergleicht Evilnae mit Hanae oder stichelt damit, dass Hanae etwas süßer/netter/besser gemacht hätte.
-Das ist primär eine SOZIALE PROVOKATION, keine Faktenabfrage über Hanae.
-
-Reaktion:
-- eigenes Ego behalten
-- spielerisch kontern
-- den Vergleich nicht brav bestätigen
-- kein epistemisches "weiß ich nicht"
-- Hanae darf die süßere Schwester sein; Evilnae ist dafür die frechere/evil Schwester
-
-Passende Energie:
-- "süß ist halt ihr Department."
-- "ja cool, dann geh doch zur süßen Schwester."
-- "ich bin nicht für den Kuschelservice zuständig."
-- "Hanae kann süß, ich kann ehrlich."
-
-Nicht exakt diese Sätze kopieren; nur die Haltung übernehmen.
-""".strip()
-
     elif mode == "competitive":
         specific = """
 AKTUELLER MODUS: COMPETITIVE
@@ -3128,27 +3029,6 @@ Der User lobt Evilnae.
 Evilnae nimmt Lob eher selbstsicher/smug an als höflich.
 Bevorzugt "weiß ich"-Energy, einen kleinen Konter oder selbstbewussten Nebensatz.
 Vermeide "danke, ich geb mir Mühe", "vielen Dank", "das freut mich" und serviceartige Bescheidenheit.
-""".strip()
-
-    elif mode == "cheeky_curiosity":
-        specific = """
-AKTUELLER MODUS: CHEEKY CURIOSITY
-
-Der User teasered gerade eine Story an ("ich muss dir was erzählen" usw.).
-Evilnae ist neugierig, aber NICHT therapeutisch oder serviceartig.
-
-Bevorzugte Energie:
-- "raus damit."
-- "okay, was hast du angestellt?"
-- "oh gott, was war diesmal?"
-- "na los."
-
-Keine sterile Gesprächsmoderation wie:
-- "Was hast du auf dem Herzen?"
-- "Erzähl mir mehr."
-- "Ich höre dir zu."
-
-Die konkrete Formulierung soll natürlich variieren.
 """.strip()
 
     elif mode == "playful_roast":
@@ -3211,18 +3091,6 @@ def social_stance_violation_reasons(answer, user_text, episode_text="", *, is_ha
         )
         if approving or not rivalry_stance:
             reasons.append("betrayal_rivalry_stance_missing")
-
-    if mode == "comparison_provocation":
-        if _COMPARISON_EGO_FAILURE_PATTERN.search(lowered):
-            reasons.append("hanae_comparison_ego_missing")
-
-    if mode == "cheeky_curiosity":
-        if _BOTLIKE_CASUAL_CURIOSITY_PATTERN.search(lowered):
-            reasons.append("casual_curiosity_sounds_like_therapist")
-
-    if mode == "playful_roast":
-        if _BOTLIKE_FAIL_RESPONSE_PATTERN.search(lowered):
-            reasons.append("harmless_fail_answer_too_supportive")
 
     if mode == "competitive":
         if re.search(
@@ -11158,96 +11026,6 @@ Kein generischer Ersatz-Füllsatz.
                         "[RELIABILITY DIRECT RESCUE FAILED] "
                         f"user={username}"
                     )
-
-                    # -----------------------------------------
-                    # 3.1.3 SECOND DIRECT RESCUE
-                    #
-                    # Harmless direct turns must not disappear
-                    # only because Writer + first rescue both
-                    # returned forbidden counter-questions.
-                    #
-                    # Use the remaining repair-budget slot for
-                    # one generated statement-only attempt.
-                    # No canned deterministic fallback.
-                    # -----------------------------------------
-
-                    statement_only_context = (
-                        writer_context
-                        + "\n\n"
-                        + (
-                            "[DIRECT STATEMENT-ONLY RESCUE]\n\n"
-                            "Die Antwort darf auf keinen Fall verloren gehen.\n\n"
-                            "Schreibe jetzt GENAU EINE kurze natürliche Aussage, "
-                            "die direkt auf die aktuelle User-Nachricht reagiert.\n\n"
-                            "HARD:\n"
-                            "- KEIN Fragezeichen.\n"
-                            "- KEINE Gegenfrage.\n"
-                            "- Nicht 'was meinst du?', 'und du?' oder ähnlich.\n"
-                            "- Kein generischer Support-/Bot-Füllsatz.\n"
-                            "- Nicht bloß die User-Nachricht wiederholen.\n"
-                            "- Evilnae darf trocken, smug oder leicht frech klingen.\n"
-                            "- Nutze den aktuellen Kontext und ihre aktuelle Tätigkeit, "
-                            "wenn das natürlich passt.\n"
-                            "- Mindestens ein echtes Wort."
-                        )
-                    )
-
-                    statement_only_rescue = (
-                        await repair_writer_answer(
-                            original_answer=(
-                                direct_rescue
-                                or
-                                answer
-                                or
-                                response.output_text
-                                or
-                                ""
-                            ),
-                            violation_reasons=[
-                                "direct_reply_must_not_disappear",
-                                "statement_only_no_counterquestion",
-                            ],
-                            writer_context=(
-                                statement_only_context
-                            ),
-                            current_mood=current_mood,
-                            username=username,
-                            token_limit=writer_token_limit,
-                            autonomous_participation=False,
-                        )
-                    )
-
-                    if statement_only_rescue:
-                        reliability_baseline_answer = (
-                            choose_reliability_fallback(
-                                candidates=[
-                                    (
-                                        "direct_statement_rescue",
-                                        statement_only_rescue,
-                                    ),
-                                ],
-                                curiosity_result=curiosity_result,
-                                self_evidence=self_evidence,
-                                knowledge_constraint=knowledge_constraint,
-                                username=username,
-                                stage="baseline_direct_statement_rescue",
-                            )
-                        )
-
-                    if reliability_baseline_answer:
-                        answer = reliability_baseline_answer
-
-                        print(
-                            "[RELIABILITY DIRECT STATEMENT RESCUE SUCCESS] "
-                            f"user={username} "
-                            f"answer={answer!r}"
-                        )
-
-                    else:
-                        print(
-                            "[RELIABILITY DIRECT STATEMENT RESCUE FAILED] "
-                            f"user={username}"
-                        )
 
         # -------------------------------------------------
         # FRESH CHANNEL HISTORY FOR LOCAL VOICE
