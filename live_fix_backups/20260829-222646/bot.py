@@ -162,26 +162,6 @@ from agency import (
     format_agency_debug,
 )
 
-
-from server_awareness import (
-    SERVER_AWARENESS_VERSION,
-    observe_discord_message,
-    register_bot_message as register_server_bot_message,
-    server_awareness_stats,
-    format_server_awareness_debug,
-)
-
-from agency_initiative_v2 import (
-    AGENCY_INITIATIVE_V2_VERSION,
-    set_message_channel_context,
-    set_initiative_channel_context,
-    wrap_agency_guard_v2,
-    wrap_participation_brain_server_v2,
-    wrap_should_initiate_v2,
-    wrap_choose_initiative_type_v2,
-    wrap_initiative_prompt_v2,
-)
-
 from self_model import (
     SELF_MODEL_VERSION,
     resolve_self_query,
@@ -422,38 +402,6 @@ build_initiative_prompt = (
 )
 
 
-
-# =========================================================
-# 4.0.0 AGENCY / INITIATIVE 2.0 WRAPPERS
-# =========================================================
-
-apply_agency_guard = wrap_agency_guard_v2(
-    apply_agency_guard
-)
-
-run_participation_brain = (
-    wrap_participation_brain_server_v2(
-        run_participation_brain
-    )
-)
-
-should_initiate = wrap_should_initiate_v2(
-    should_initiate
-)
-
-choose_initiative_type = (
-    wrap_choose_initiative_type_v2(
-        choose_initiative_type
-    )
-)
-
-build_initiative_prompt = (
-    wrap_initiative_prompt_v2(
-        build_initiative_prompt
-    )
-)
-
-
 # =========================================================
 # UTF-8 CONSOLE SAFETY
 # =========================================================
@@ -655,7 +603,7 @@ AUTO_LOG_PATH = _setup_auto_file_logging()
 # VERSION
 # =========================================================
 
-BOT_VERSION = "4.0.0-agency-server-awareness"
+BOT_VERSION = "3.9.0-self-development-arcs"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -2561,11 +2509,6 @@ def add_channel_bot_message(
     answer
 ):
 
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="reply",
-    )
-
     context = (
         get_channel_context(
             channel_id
@@ -2607,11 +2550,6 @@ def add_channel_continuation_message(
     answer
 ):
 
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="continuation",
-    )
-
     context = (
         get_channel_context(
             channel_id
@@ -2651,11 +2589,6 @@ def add_channel_participation_message(
     answer
 ):
 
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="participation",
-    )
-
     context = (
         get_channel_context(
             channel_id
@@ -2694,11 +2627,6 @@ def add_channel_initiative_message(
     channel_id,
     answer
 ):
-
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="initiative",
-    )
 
     context = (
         get_channel_context(
@@ -4685,10 +4613,6 @@ async def generate_initiative_message(
     *,
     channel_id
 ):
-
-    set_initiative_channel_context(
-        channel_id
-    )
 
     apply_time_decay()
 
@@ -8882,22 +8806,6 @@ async def on_ready():
         f"{AGENCY_VERSION}: ACTIVE"
     )
 
-    awareness_state = (
-        server_awareness_stats()
-    )
-
-    print(
-        f"Server Awareness v"
-        f"{SERVER_AWARENESS_VERSION}: ACTIVE "
-        f"channels={awareness_state.get('channels', 0)} "
-        f"active_1h={awareness_state.get('active_channels_1h', 0)}"
-    )
-
-    print(
-        f"Agency / Initiative v"
-        f"{AGENCY_INITIATIVE_V2_VERSION}: ACTIVE"
-    )
-
     print(
         "Continuation reply/react/stay_silent: ACTIVE"
     )
@@ -8932,7 +8840,7 @@ async def on_ready():
     )
 
     print(
-        "Autonomy / Initiative v2: ACTIVE"
+        "Autonomy / Initiative v1: ACTIVE"
     )
 
     print(
@@ -9079,32 +8987,6 @@ async def on_message(
 
         return
 
-    # =====================================================
-    # 4.0 SERVER AWARENESS — METADATA ONLY
-    # =====================================================
-    #
-    # Runs BEFORE the response-channel limit so Evilnae can know
-    # whether the wider server is quiet/active/crowded without
-    # replying outside ALLOWED_CHANNEL_ID.
-    #
-    # Persistent state stores no raw Discord message text.
-    # =====================================================
-
-    try:
-        observe_discord_message(
-            message,
-            bot_user_id=(
-                str(bot.user.id)
-                if bot.user
-                else None
-            ),
-        )
-    except Exception as error:
-        print(
-            "[SERVER AWARENESS ERROR] "
-            f"{type(error).__name__}: {error}"
-        )
-
     # -----------------------------------------------------
     # CHANNEL LIMIT
     # -----------------------------------------------------
@@ -9236,10 +9118,6 @@ async def on_message(
         format_perception_debug(
             perception
         )
-    )
-
-    set_message_channel_context(
-        perception.channel_id
     )
 
     channel_id = (

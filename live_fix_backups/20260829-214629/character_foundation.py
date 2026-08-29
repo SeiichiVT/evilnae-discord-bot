@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-CHARACTER_FOUNDATION_VERSION = "1.2-relevance-floor"
+CHARACTER_FOUNDATION_VERSION = "1.1-live-retrieval"
 FOUNDATION_PATH = Path("character_foundation.json")
 
 _LOCK = threading.RLock()
@@ -482,7 +482,7 @@ Wenn du danach Persönlichkeit hinzufügst, darf sie den Canon nicht ersetzen.
 
 
 def build_character_context(user_text: str, limit: int = 8, include_core: bool = True) -> str:
-    hits = search_foundation(user_text, limit=limit, min_score=6.5)
+    hits = search_foundation(user_text, limit=limit, min_score=4.0)
     lines = []
     if include_core:
         lines.append(CORE_RULE_TEXT)

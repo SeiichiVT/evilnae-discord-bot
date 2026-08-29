@@ -162,26 +162,6 @@ from agency import (
     format_agency_debug,
 )
 
-
-from server_awareness import (
-    SERVER_AWARENESS_VERSION,
-    observe_discord_message,
-    register_bot_message as register_server_bot_message,
-    server_awareness_stats,
-    format_server_awareness_debug,
-)
-
-from agency_initiative_v2 import (
-    AGENCY_INITIATIVE_V2_VERSION,
-    set_message_channel_context,
-    set_initiative_channel_context,
-    wrap_agency_guard_v2,
-    wrap_participation_brain_server_v2,
-    wrap_should_initiate_v2,
-    wrap_choose_initiative_type_v2,
-    wrap_initiative_prompt_v2,
-)
-
 from self_model import (
     SELF_MODEL_VERSION,
     resolve_self_query,
@@ -317,143 +297,6 @@ from openai import (
     InternalServerError,
 )
 
-from live_stability import (
-    LIVE_STABILITY_VERSION,
-    CONSOLE_OUTPUT_VERSION,
-    SOCIAL_EMOTIONAL_STATE_VERSION,
-    social_state_stats,
-    EXPERIENCE_LEARNING_VERSION,
-    experience_stats,
-    SELF_DEVELOPMENT_VERSION,
-    self_development_stats,
-    ConsoleOutputFilter,
-    get_console_mode,
-    wrap_perceive_message,
-    wrap_response_planner,
-    wrap_participation_brain,
-    wrap_reference_context,
-    wrap_episode_focus,
-    wrap_response_quality_analyzer,
-    wrap_character_state_observer,
-    wrap_surface_writer,
-    wrap_local_voice,
-    wrap_salience_observer_v2,
-    wrap_character_learning_observer_v2,
-    wrap_reflection_prompt_v2,
-    wrap_apply_learning_signals_v2,
-    wrap_store_reflection_v2,
-    wrap_character_learning_prompt_v3,
-    wrap_initiative_prompt_v3,
-)
-
-
-# =========================================================
-# 3.6.2 LIVE STABILITY WRAPPERS
-# =========================================================
-
-perceive_message = wrap_perceive_message(
-    perceive_message
-)
-
-build_response_plan = wrap_response_planner(
-    build_response_plan
-)
-
-run_participation_brain = wrap_participation_brain(
-    run_participation_brain
-)
-
-build_reference_context = wrap_reference_context(
-    build_reference_context
-)
-
-build_episode_focus = wrap_episode_focus(
-    build_episode_focus
-)
-
-analyze_response_quality = wrap_response_quality_analyzer(
-    analyze_response_quality
-)
-
-observe_character_state = wrap_character_state_observer(
-    observe_character_state
-)
-
-generate_surface_response_from_plan = wrap_surface_writer(
-    generate_surface_response_from_plan
-)
-
-humanize_evilnae_response = wrap_local_voice(
-    humanize_evilnae_response
-)
-
-
-observe_salience_event = wrap_salience_observer_v2(
-    observe_salience_event
-)
-
-observe_character_learning = wrap_character_learning_observer_v2(
-    observe_character_learning
-)
-
-build_reflection_prompt = wrap_reflection_prompt_v2(
-    build_reflection_prompt
-)
-
-apply_learning_signals = wrap_apply_learning_signals_v2(
-    apply_learning_signals
-)
-
-store_reflection = wrap_store_reflection_v2(
-    store_reflection
-)
-
-
-format_character_learning_for_prompt = (
-    wrap_character_learning_prompt_v3(
-        format_character_learning_for_prompt
-    )
-)
-
-build_initiative_prompt = (
-    wrap_initiative_prompt_v3(
-        build_initiative_prompt
-    )
-)
-
-
-
-# =========================================================
-# 4.0.0 AGENCY / INITIATIVE 2.0 WRAPPERS
-# =========================================================
-
-apply_agency_guard = wrap_agency_guard_v2(
-    apply_agency_guard
-)
-
-run_participation_brain = (
-    wrap_participation_brain_server_v2(
-        run_participation_brain
-    )
-)
-
-should_initiate = wrap_should_initiate_v2(
-    should_initiate
-)
-
-choose_initiative_type = (
-    wrap_choose_initiative_type_v2(
-        choose_initiative_type
-    )
-)
-
-build_initiative_prompt = (
-    wrap_initiative_prompt_v2(
-        build_initiative_prompt
-    )
-)
-
-
 # =========================================================
 # UTF-8 CONSOLE SAFETY
 # =========================================================
@@ -492,7 +335,7 @@ for stream_name in (
 # same output in the terminal.
 # =========================================================
 
-AUTO_FILE_LOGGING_VERSION = "1.1-compact-console"
+AUTO_FILE_LOGGING_VERSION = "1.0"
 AUTO_LOG_KEEP_FILES = 60
 
 _AUTO_LOG_FILE = None
@@ -505,59 +348,27 @@ class _EvilnaeTeeStream:
     def __init__(self, console_stream, file_stream):
         self._console_stream = console_stream
         self._file_stream = file_stream
-        self._console_filter = ConsoleOutputFilter()
 
     def write(self, data):
         value = str(data if data is not None else "")
-
         with _AUTO_LOG_LOCK:
-            # Full diagnostics always go to file.
+            try:
+                self._console_stream.write(value)
+            except Exception:
+                pass
             try:
                 self._file_stream.write(value)
                 self._file_stream.flush()
             except Exception:
                 pass
-
-            # Terminal is filtered separately.
-            try:
-                console_value = (
-                    self._console_filter
-                    .filter_chunk(value)
-                )
-
-                if console_value:
-                    self._console_stream.write(
-                        console_value
-                    )
-
-            except Exception:
-                try:
-                    self._console_stream.write(
-                        value
-                    )
-                except Exception:
-                    pass
-
         return len(value)
 
     def flush(self):
         with _AUTO_LOG_LOCK:
             try:
-                pending = (
-                    self._console_filter
-                    .flush_pending()
-                )
-
-                if pending:
-                    self._console_stream.write(
-                        pending
-                    )
-
                 self._console_stream.flush()
-
             except Exception:
                 pass
-
             try:
                 self._file_stream.flush()
             except Exception:
@@ -655,7 +466,7 @@ AUTO_LOG_PATH = _setup_auto_file_logging()
 # VERSION
 # =========================================================
 
-BOT_VERSION = "4.0.0-agency-server-awareness"
+BOT_VERSION = "3.6.1-affect-repetition"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -2561,11 +2372,6 @@ def add_channel_bot_message(
     answer
 ):
 
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="reply",
-    )
-
     context = (
         get_channel_context(
             channel_id
@@ -2607,11 +2413,6 @@ def add_channel_continuation_message(
     answer
 ):
 
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="continuation",
-    )
-
     context = (
         get_channel_context(
             channel_id
@@ -2651,11 +2452,6 @@ def add_channel_participation_message(
     answer
 ):
 
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="participation",
-    )
-
     context = (
         get_channel_context(
             channel_id
@@ -2694,11 +2490,6 @@ def add_channel_initiative_message(
     channel_id,
     answer
 ):
-
-    register_server_bot_message(
-        channel_id=channel_id,
-        kind="initiative",
-    )
 
     context = (
         get_channel_context(
@@ -4685,10 +4476,6 @@ async def generate_initiative_message(
     *,
     channel_id
 ):
-
-    set_initiative_channel_context(
-        channel_id
-    )
 
     apply_time_decay()
 
@@ -8736,51 +8523,6 @@ async def on_ready():
     )
 
     print(
-        f"Live Stability v"
-        f"{LIVE_STABILITY_VERSION}: ACTIVE"
-    )
-
-    social_stats = (
-        social_state_stats()
-    )
-
-    print(
-        f"Social Emotional State v"
-        f"{SOCIAL_EMOTIONAL_STATE_VERSION}: ACTIVE "
-        f"users={social_stats.get('users', 0)}"
-    )
-
-    experience_learning_stats = (
-        experience_stats()
-    )
-
-    print(
-        f"Experience Learning v"
-        f"{EXPERIENCE_LEARNING_VERSION}: ACTIVE "
-        f"total={experience_learning_stats.get('total', 0)} "
-        f"candidates={experience_learning_stats.get('candidates', 0)}"
-    )
-
-    self_development_state = (
-        self_development_stats()
-    )
-
-    print(
-        f"Self Development v"
-        f"{SELF_DEVELOPMENT_VERSION}: ACTIVE "
-        f"arcs={self_development_state.get('arcs', 0)} "
-        f"active={self_development_state.get('active_arcs', 0)} "
-        f"tracks={self_development_state.get('style_tracks', 0)}"
-    )
-
-    print(
-        f"Compact Console v"
-        f"{CONSOLE_OUTPUT_VERSION}: "
-        f"{get_console_mode()} "
-        "(full file log unchanged)"
-    )
-
-    print(
         "Qwen Acceptance v2: ACTIVE"
     )
 
@@ -8882,22 +8624,6 @@ async def on_ready():
         f"{AGENCY_VERSION}: ACTIVE"
     )
 
-    awareness_state = (
-        server_awareness_stats()
-    )
-
-    print(
-        f"Server Awareness v"
-        f"{SERVER_AWARENESS_VERSION}: ACTIVE "
-        f"channels={awareness_state.get('channels', 0)} "
-        f"active_1h={awareness_state.get('active_channels_1h', 0)}"
-    )
-
-    print(
-        f"Agency / Initiative v"
-        f"{AGENCY_INITIATIVE_V2_VERSION}: ACTIVE"
-    )
-
     print(
         "Continuation reply/react/stay_silent: ACTIVE"
     )
@@ -8932,7 +8658,7 @@ async def on_ready():
     )
 
     print(
-        "Autonomy / Initiative v2: ACTIVE"
+        "Autonomy / Initiative v1: ACTIVE"
     )
 
     print(
@@ -9079,32 +8805,6 @@ async def on_message(
 
         return
 
-    # =====================================================
-    # 4.0 SERVER AWARENESS — METADATA ONLY
-    # =====================================================
-    #
-    # Runs BEFORE the response-channel limit so Evilnae can know
-    # whether the wider server is quiet/active/crowded without
-    # replying outside ALLOWED_CHANNEL_ID.
-    #
-    # Persistent state stores no raw Discord message text.
-    # =====================================================
-
-    try:
-        observe_discord_message(
-            message,
-            bot_user_id=(
-                str(bot.user.id)
-                if bot.user
-                else None
-            ),
-        )
-    except Exception as error:
-        print(
-            "[SERVER AWARENESS ERROR] "
-            f"{type(error).__name__}: {error}"
-        )
-
     # -----------------------------------------------------
     # CHANNEL LIMIT
     # -----------------------------------------------------
@@ -9236,10 +8936,6 @@ async def on_message(
         format_perception_debug(
             perception
         )
-    )
-
-    set_message_channel_context(
-        perception.channel_id
     )
 
     channel_id = (

@@ -8,7 +8,7 @@ from typing import Optional
 # VERSION
 # =========================================================
 
-AGENCY_VERSION = "2.0-server-aware"
+AGENCY_VERSION = "1.0"
 
 
 # =========================================================

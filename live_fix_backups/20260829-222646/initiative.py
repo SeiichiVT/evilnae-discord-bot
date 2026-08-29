@@ -9,7 +9,7 @@ from dataclasses import dataclass, asdict
 # VERSION
 # =========================================================
 
-INITIATIVE_VERSION = "2.0-server-aware"
+INITIATIVE_VERSION = "1.0"
 
 
 # =========================================================
