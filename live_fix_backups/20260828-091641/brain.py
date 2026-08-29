@@ -13,7 +13,7 @@ from conversation_state import (
 # VERSION
 # =========================================================
 
-BRAIN_VERSION = "2.4-response-planner"
+BRAIN_VERSION = "2.3-curiosity"
 
 
 # =========================================================
@@ -84,34 +84,6 @@ class BrainDecision:
     target_user_name: Optional[str] = None
 
     # -----------------------------------------------------
-    # RESPONSE PLAN
-    # -----------------------------------------------------
-
-    social_move: str = "answer"
-
-    stance: str = "dry"
-
-    core_thought: str = ""
-
-    emotional_angle: str = ""
-
-    target_focus: str = "current_user"
-
-    reply_shape: str = "one_liner"
-
-    banter_intensity: float = 0.30
-
-    warmth_intensity: float = 0.30
-
-    plan_must_include: list[str] = field(
-        default_factory=list
-    )
-
-    plan_must_avoid: list[str] = field(
-        default_factory=list
-    )
-
-    # -----------------------------------------------------
     # WRITER GUIDANCE
     # -----------------------------------------------------
 
@@ -167,53 +139,6 @@ ALLOWED_TONES = {
     "confused",
     "playful",
     "gen_z",
-}
-
-
-ALLOWED_SOCIAL_MOVES = {
-
-    "answer",
-    "acknowledge",
-    "tease",
-    "roast",
-    "counter",
-    "challenge",
-    "disagree",
-    "support",
-    "correct",
-    "clarify",
-    "curious_tease",
-    "smug_acknowledge",
-    "deflect",
-    "change_topic",
-    "ask",
-    "react",
-    "stay_silent",
-}
-
-
-ALLOWED_STANCES = {
-
-    "neutral",
-    "dry",
-    "smug",
-    "playful",
-    "competitive",
-    "warm",
-    "serious",
-    "curious",
-    "annoyed",
-    "confused",
-}
-
-
-ALLOWED_REPLY_SHAPES = {
-
-    "fragment",
-    "one_liner",
-    "short",
-    "compact",
-    "medium",
 }
 
 
@@ -314,29 +239,6 @@ def default_brain_decision(
         target_user_id=None,
 
         target_user_name=None,
-
-        social_move="answer",
-
-        stance="dry",
-
-        core_thought=(
-            "Auf den konkreten Moment reagieren "
-            "und eine eigene Haltung zeigen."
-        ),
-
-        emotional_angle="",
-
-        target_focus="current_user",
-
-        reply_shape="one_liner",
-
-        banter_intensity=0.30,
-
-        warmth_intensity=0.30,
-
-        plan_must_include=[],
-
-        plan_must_avoid=[],
 
         avoid_phrases=[],
 
@@ -1713,76 +1615,6 @@ ask_person
 stay_silent
 
 
-
-==================================================
-RESPONSE PLANNING
-==================================================
-
-Du planst ausdrücklich, WAS Evilnae sagen will.
-Du formulierst weiterhin NICHT die fertige Discord-Nachricht.
-
-social_move:
-answer, acknowledge, tease, roast, counter, challenge,
-disagree, support, correct, clarify, curious_tease,
-smug_acknowledge, deflect, change_topic, ask, react, stay_silent
-
-stance:
-neutral, dry, smug, playful, competitive, warm,
-serious, curious, annoyed, confused
-
-core_thought:
-Der EINE interne Gedanke hinter der Antwort.
-Kein fertiger Discord-Satz.
-
-GUTE core_thought Beispiele:
-- "der User hat gerade gegen sein eigenes Bett verloren"
-- "der Hanae-Vergleich ist frecher Verrat und verdient einen Konter"
-- "ich hätte definitiv Lust, Hanaes Stream etwas zu sabotieren"
-- "ich weiß nicht, was Hanae gerade macht"
-- "das Lob nehme ich selbstverständlich an"
-
-SCHLECHT:
-- "natürlich antworten"
-- "freundlich reagieren"
-- "Gespräch fortführen"
-
-emotional_angle:
-Kurzer interner Winkel, nur wenn relevant:
-amused, fake offended, genuinely concerned, smug,
-curious, competitive usw.
-
-target_focus:
-Worauf reagiert sie konkret?
-z.B. current_user, Hanae comparison, user fail,
-current activity, specific question, running gag.
-
-reply_shape:
-fragment, one_liner, short, compact, medium.
-
-banter_intensity:
-0.0 bis 1.0.
-
-warmth_intensity:
-0.0 bis 1.0.
-
-Ernst/verletzlich:
-Banter stark runter.
-
-Harmlose Angriffsfläche/Rivalität/Provokation:
-Banter darf hoch.
-
-plan_must_include:
-Nur konkrete notwendige Inhalte.
-Keine Fakten erfinden.
-
-plan_must_avoid:
-Konkrete Dinge, die diese Antwort nicht tun darf.
-
-PLAN-PRINZIP:
-Normalerweise EIN social_move + EINE stance + EIN core_thought.
-Der Writer formuliert erst danach die echte Discord-Nachricht.
-
-
 ==================================================
 AUSGABE
 ==================================================
@@ -1814,16 +1646,6 @@ Schema:
   "should_ask_person": false,
   "target_user_id": null,
   "target_user_name": null,
-  "social_move": "answer",
-  "stance": "dry",
-  "core_thought": "Der eine interne Gedanke hinter der Antwort.",
-  "emotional_angle": "",
-  "target_focus": "current_user",
-  "reply_shape": "one_liner",
-  "banter_intensity": 0.3,
-  "warmth_intensity": 0.3,
-  "plan_must_include": [],
-  "plan_must_avoid": [],
   "avoid_phrases": [],
   "relevant_memories": [],
   "response_goal": "Kurzes Ziel der Antwort.",
@@ -2008,89 +1830,6 @@ def parse_brain_decision(
             data.get(
                 "target_user_name"
             )
-        ),
-
-        social_move=safe_enum(
-            data.get(
-                "social_move"
-            ),
-            ALLOWED_SOCIAL_MOVES,
-            fallback.social_move
-        ),
-
-        stance=safe_enum(
-            data.get(
-                "stance"
-            ),
-            ALLOWED_STANCES,
-            fallback.stance
-        ),
-
-        core_thought=(
-            str(
-                data.get(
-                    "core_thought",
-                    fallback.core_thought
-                )
-            )[:500]
-        ),
-
-        emotional_angle=(
-            str(
-                data.get(
-                    "emotional_angle",
-                    fallback.emotional_angle
-                )
-            )[:300]
-        ),
-
-        target_focus=(
-            str(
-                data.get(
-                    "target_focus",
-                    fallback.target_focus
-                )
-            )[:200]
-        ),
-
-        reply_shape=safe_enum(
-            data.get(
-                "reply_shape"
-            ),
-            ALLOWED_REPLY_SHAPES,
-            fallback.reply_shape
-        ),
-
-        banter_intensity=(
-            safe_float_01(
-                data.get(
-                    "banter_intensity"
-                ),
-                fallback.banter_intensity
-            )
-        ),
-
-        warmth_intensity=(
-            safe_float_01(
-                data.get(
-                    "warmth_intensity"
-                ),
-                fallback.warmth_intensity
-            )
-        ),
-
-        plan_must_include=safe_list(
-            data.get(
-                "plan_must_include"
-            ),
-            limit=8
-        ),
-
-        plan_must_avoid=safe_list(
-            data.get(
-                "plan_must_avoid"
-            ),
-            limit=8
         ),
 
         avoid_phrases=safe_list(
@@ -2279,7 +2018,7 @@ async def run_brain(
 
                 input=prompt,
 
-                max_output_tokens=650,
+                max_output_tokens=500,
 
                 request_type="response",
 
@@ -2448,36 +2187,6 @@ Target user:
 Target Discord-ID:
 {decision.target_user_id}
 
-Social move:
-{decision.social_move}
-
-Stance:
-{decision.stance}
-
-Core thought:
-{decision.core_thought}
-
-Emotional angle:
-{decision.emotional_angle}
-
-Target focus:
-{decision.target_focus}
-
-Reply shape:
-{decision.reply_shape}
-
-Banter intensity:
-{decision.banter_intensity:.2f}
-
-Warmth intensity:
-{decision.warmth_intensity:.2f}
-
-Plan must include:
-{", ".join(decision.plan_must_include) if decision.plan_must_include else "Nichts."}
-
-Plan must avoid:
-{", ".join(decision.plan_must_avoid) if decision.plan_must_avoid else "Nichts."}
-
 Avoid phrases:
 {avoid_text}
 
@@ -2504,10 +2213,6 @@ def format_brain_debug(
         f"action={decision.action} "
         f"length={decision.response_length} "
         f"tone={decision.tone} "
-        f"move={decision.social_move} "
-        f"stance={decision.stance} "
-        f"shape={decision.reply_shape} "
-        f"banter={decision.banter_intensity:.2f} "
         f"question={decision.ask_question} "
         f"correction="
         f"{decision.acknowledge_correction} "

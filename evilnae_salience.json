@@ -1,0 +1,1049 @@
+{
+  "version": "1.0.1-feedback-fix",
+  "episodes": {
+    "ep_1540713345856970884_1787905020985": {
+      "episode_id": "ep_1540713345856970884_1787905020985",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787905021.632443,
+      "updated_at": 1787907459.4777195,
+      "event_count": 14,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.14,
+      "signal_counts": {
+        "hanae_relationship_context": 6,
+        "ordinary_interaction": 7,
+        "routine_smalltalk": 1
+      },
+      "valence_counts": {
+        "neutral": 14
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Ja am Handy sieht man das leider nicht , also no Blame",
+      "seen_event_keys": [
+        "msg:1542810222135877713",
+        "msg:1542810461890674769",
+        "msg:1542810668313481307",
+        "msg:1542811096933605439",
+        "msg:1542812158662938675",
+        "msg:1542813076984823899",
+        "msg:1542814125229346846",
+        "msg:1542814256452599918",
+        "msg:1542814266975977592",
+        "msg:1542814422165102644",
+        "msg:1542814508232474654",
+        "msg:1542814538251108383",
+        "msg:1542814653766443129",
+        "msg:1542814689447116882"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787907458.91,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: HANAE, #WeLoveHana FLOCHI, #WeLoveHanae_Kubotic, Sun Killer, #WeLoveHanae KR-Floh Pheonae, RAY_THE_FOX_PHON92. Verlauf: Ja am Handy sieht man das leider nicht , also no Blame | träumt wohl wieder was tolles | NÖ. Genau so. | Bei mir regnet es enklich gestern 32 Grad aber es ist trotzdem warm 😞"
+    },
+    "ep_1540713345856970884_1787907458910": {
+      "episode_id": "ep_1540713345856970884_1787907458910",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787907459.4721942,
+      "updated_at": 1787911323.9033525,
+      "event_count": 31,
+      "important_event_count": 0,
+      "max_event_score": 0.13,
+      "episode_score": 0.16,
+      "signal_counts": {
+        "ordinary_interaction": 20,
+        "substantial_disclosure": 1,
+        "hanae_relationship_context": 10
+      },
+      "valence_counts": {
+        "neutral": 31
+      },
+      "strongest_signal": "substantial_disclosure",
+      "strongest_excerpt": "also bei hana und seiichi ist es nen kaffe am morgen verhindert kummer und sorgen und bei evil ist es ne dusche am morgen check",
+      "seen_event_keys": [
+        "msg:1542820447534456873",
+        "msg:1542820643861561384",
+        "msg:1542820704750280747",
+        "msg:1542820849592311888",
+        "msg:1542821081365221466",
+        "msg:1542821204010737794",
+        "msg:1542821279672045589",
+        "msg:1542821322063740978",
+        "msg:1542821395627647056",
+        "msg:1542821459318153246",
+        "msg:1542821580118302792",
+        "msg:1542821751145365625",
+        "msg:1542822003029975061",
+        "msg:1542822184081424424",
+        "msg:1542822492585074731",
+        "msg:1542822604413345865",
+        "msg:1542822795971399740",
+        "msg:1542823055535902760",
+        "msg:1542823242924822548",
+        "msg:1542823764260028517",
+        "msg:1542823889489494028",
+        "msg:1542824001628545134",
+        "msg:1542824179504648213",
+        "msg:1542824332072583259",
+        "msg:1542824492366168198",
+        "msg:1542824561077387265",
+        "msg:1542824663342776320",
+        "msg:1542824788433571970",
+        "msg:1542824808239071244",
+        "msg:1542825001311412234",
+        "msg:1542825087034466344"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787911323.399,
+      "strongest_user_id": "418430982866206720",
+      "strongest_username": "#WeLoveHanae KR-Floh Pheonae",
+      "episode_digest": "Teilnehmer: #WeLoveHana FLOCHI, #WeLoveHanae KR-Floh Pheonae, #WeLoveHanae043 Kainae_87, HANAE. Verlauf: Na, gehts dir besser nach der Dusche? | Super, Wie gehts dir jetzt? | Viel Spaß Frühstück kommt dann! | Warzone und Valorant, klar."
+    },
+    "ep_877574306920546314_1787910701274": {
+      "episode_id": "ep_877574306920546314_1787910701274",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "created_at": 1787910701.6896005,
+      "updated_at": 1787913860.3475814,
+      "event_count": 8,
+      "important_event_count": 1,
+      "max_event_score": 0.47000000000000003,
+      "episode_score": 0.545,
+      "signal_counts": {
+        "hanae_relationship_context": 3,
+        "substantial_disclosure": 6,
+        "ordinary_interaction": 1,
+        "relationship_repair": 1
+      },
+      "valence_counts": {
+        "neutral": 8
+      },
+      "strongest_signal": "relationship_repair",
+      "strongest_excerpt": "Alles klar da achten wir drauf und ja richtig wir meinen das überhaupt nicht Böse gemeint Ich weiß nicht ob das jetzt mit dem \"Feierabend\" zusammenhängt, weil das war wirklich nur Spaß, aber ja das kann auch schnell miss",
+      "seen_event_keys": [
+        "msg:1542834046995009547",
+        "msg:1542834563959623690",
+        "msg:1542835056911978616",
+        "msg:1542835445006602341",
+        "msg:1542835459372220517",
+        "msg:1542838663203913818",
+        "msg:1542839111633866852",
+        "msg:1542839821850910750"
+      ],
+      "retention_candidate": true,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787913859.981,
+      "strongest_user_id": "422400787503644672",
+      "strongest_username": "#WeLoveHanae_flohminus5",
+      "episode_digest": "Teilnehmer: HANAE, #WeLoveHanae KR-Floh Pheonae, #WeLoveHanae_flohminus5. Verlauf: Hey ihr Lieben, ich wollte euch kurz um etwas bitten 💜 Wenn im Stream gerade jemand subbt oder mehrere Subs giftet, wäre es mir wichtig, dass ihr bitte keine Sachen in den Chat sch | <:HanaeSalute:1490044741344039084> | das war da nicht auf das feierabend sondern mit dem ist gut jetzt etc das chat aufhören soll mit den gifted darauf denke ich | ok weil ich mich da grad nicht dran errinere das da was war, aber klar sowas sollte man dann unterlassen hab das eigentlich nur mal zu Kenny in nen anderen Stream gesagt, aber eher"
+    },
+    "ep_1540713345856970884_1787911323399": {
+      "episode_id": "ep_1540713345856970884_1787911323399",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787911323.8950174,
+      "updated_at": 1787913900.0614269,
+      "event_count": 4,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 4
+      },
+      "valence_counts": {
+        "neutral": 4
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Ich muss heute mal nicht arbeiten, bin grade bei der letzten Teil von der Hebebühnen Schulung",
+      "seen_event_keys": [
+        "msg:1542836656376123462",
+        "msg:1542836838144811028",
+        "msg:1542836981094940715",
+        "msg:1542837050389307574"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787913899.616,
+      "strongest_user_id": "703957199520792657",
+      "strongest_username": "Don Tackolade",
+      "episode_digest": "Teilnehmer: Don Tackolade. Verlauf: Ich muss heute mal nicht arbeiten, bin grade bei der letzten Teil von der Hebebühnen Schulung | Ich bin nicht offiziell im Team mit Seiichi und Hanae, aber wir hängen schon ab und haben Spaß zusammen. | Ich zocke gerade Valorant und bin voll im Game. <a:evilnae_gaming:1541450887791255553> | Perfekt, ich bin voll im Flow."
+    },
+    "ep_877574306920546314_1787913859981": {
+      "episode_id": "ep_877574306920546314_1787913859981",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "created_at": 1787913860.340254,
+      "updated_at": 1787991607.6852689,
+      "event_count": 5,
+      "important_event_count": 0,
+      "max_event_score": 0.42000000000000004,
+      "episode_score": 0.46,
+      "signal_counts": {
+        "hanae_relationship_context": 2,
+        "substantial_disclosure": 1,
+        "ordinary_interaction": 2,
+        "relationship_repair": 1
+      },
+      "valence_counts": {
+        "neutral": 5
+      },
+      "strongest_signal": "relationship_repair",
+      "strongest_excerpt": "Sry . Wir werden das unterlassen in der Zukunft. Und entschuldige wegen den ganzen Feierabend Gedöns",
+      "seen_event_keys": [
+        "msg:1542847295572287581",
+        "msg:1542850624830447708",
+        "msg:1542854449717055569",
+        "msg:1542854507212439673",
+        "msg:1542855272941355048"
+      ],
+      "retention_candidate": false,
+      "close_reason": "startup_stale",
+      "closed_at": 1787991607.6621125,
+      "strongest_user_id": "248163234199240705",
+      "strongest_username": "#WeLoveMogelnae Der_ChrisHD",
+      "episode_digest": "Teilnehmer: HANAE, #WeLoveHanae KR-Floh Pheonae, #WeLoveMogelnae Der_ChrisHD. Verlauf: Vielen lieben Dank wie gesagt , es geht mir mainly gerade auch nur um das Geld für das Haus zu haben , zukunfts Ängste und so | ay werden das unterlassen | War nicht böse oder so gemeint | Alles gut , dass Weiß ich ja"
+    },
+    "ep_1540713345856970884_1787913899616": {
+      "episode_id": "ep_1540713345856970884_1787913899616",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787913900.0528414,
+      "updated_at": 1787920372.557438,
+      "event_count": 6,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.14,
+      "signal_counts": {
+        "hanae_relationship_context": 2,
+        "routine_smalltalk": 1,
+        "ordinary_interaction": 3
+      },
+      "valence_counts": {
+        "neutral": 6
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Welchen Charakter spielst du eigentlich bei valorant?",
+      "seen_event_keys": [
+        "msg:1542847461813522552",
+        "msg:1542847641665147001",
+        "msg:1542848060327989328",
+        "msg:1542849132828434565",
+        "msg:1542850916477050940",
+        "msg:1542851911173275738"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787920372.367,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: HANAE, Jacksonhicks173YT, #WeLoveHanae Kuriovakuma. Verlauf: Welchen Charakter spielst du eigentlich bei valorant? | Ich habe keine Haustiere, nur Katzenliebhaber im Team. | Gerne Aber erst wenn ich vom der Arbeit nach Hause komme. Bin noch auf Arbeit evilnae | Lass uns das 1vs1 starten – mal sehen, ob du den Druck von Sova auch aushältst."
+    },
+    "ep_1540713345856970884_1787920372367": {
+      "episode_id": "ep_1540713345856970884_1787920372367",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787920372.546591,
+      "updated_at": 1787922154.0322974,
+      "event_count": 7,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.12,
+      "signal_counts": {
+        "hanae_relationship_context": 7
+      },
+      "valence_counts": {
+        "neutral": 7
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "?",
+      "seen_event_keys": [
+        "msg:1542874610498805790",
+        "msg:1542874882977562684",
+        "msg:1542875116843565056",
+        "msg:1542875232958816266",
+        "msg:1542875392585506907",
+        "msg:1542875538564059247",
+        "msg:1542875677995569172"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787922153.93,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: HANAE. Verlauf: Danke für die Hilfe beim Frühstück bringen <a:evilnae_nervouse:1541451372581617795> | Ich werde dir mal was verraten: Der PC ist mein bester Freund, aber ich kann auch mal rauskommen, wenn das Essen stimmt! | Vielen dank | Wenn ich leise bin, ist das für mein Gaming nicht gut. Aber hey, ich kann ja mal versuchen, nur halb so laut zu sein. <a:evilnae_gaming:1541450887791255553>"
+    },
+    "ep_1215010172389298236_1787922065916": {
+      "episode_id": "ep_1215010172389298236_1787922065916",
+      "channel_id": "1215010172389298236",
+      "status": "closed",
+      "created_at": 1787922065.878024,
+      "updated_at": 1787991607.6852841,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.16,
+      "episode_score": 0.18,
+      "signal_counts": {
+        "hanae_relationship_context": 1,
+        "substantial_disclosure": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Huhu fluffylinge!💜 Es ist wieder Zeit für die Hanae Highlights der Woche! ihr wollt das nicht verpassen! <@&1329810095932047432> 🎥 TWITCH BAN SPEEDRUN?! P*RNHUB IM STREAM 😭 https://youtu.be/AhBDox7cyIw",
+      "seen_event_keys": [
+        "msg:1542881713758404730"
+      ],
+      "retention_candidate": false,
+      "close_reason": "startup_stale",
+      "closed_at": 1787991607.6621125,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: HANAE. Verlauf: Huhu fluffylinge!💜 Es ist wieder Zeit für die Hanae Highlights der Woche! ihr wollt das nicht verpassen! <@&1329810095932047432> 🎥 TWITCH BAN SPEEDRUN?! P*RNHUB IM STREAM 😭 https:/"
+    },
+    "ep_1540713345856970884_1787922153930": {
+      "episode_id": "ep_1540713345856970884_1787922153930",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787922154.0245109,
+      "updated_at": 1787931215.3810964,
+      "event_count": 2,
+      "important_event_count": 0,
+      "max_event_score": 0.13,
+      "episode_score": 0.15,
+      "signal_counts": {
+        "substantial_disclosure": 1,
+        "hanae_relationship_context": 1
+      },
+      "valence_counts": {
+        "neutral": 2
+      },
+      "strongest_signal": "substantial_disclosure",
+      "strongest_excerpt": "Hey. Wenn du mal ein Video schauen möchtest, gerade ist auf YouTube das neueste Highlights der Woche Video auf Hanaes Kanal gedropped. Es ist awesome.",
+      "seen_event_keys": [
+        "msg:1542882082915881011",
+        "msg:1542885114696957952"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787931215.51,
+      "strongest_user_id": "311571123521191939",
+      "strongest_username": "#WeLoveHanae_Kubotic, Sun Killer",
+      "episode_digest": "Teilnehmer: #WeLoveHanae_Kubotic, Sun Killer, HANAE. Verlauf: Hey. Wenn du mal ein Video schauen möchtest, gerade ist auf YouTube das neueste Highlights der Woche Video auf Hanaes Kanal gedropped. Es ist awesome. | Warzone und Valorant, klar. | Guck mein neues video evil supporte deine Schwester ! | weiß ich grad nicht sicher."
+    },
+    "ep_1540713345856970884_1787931215510": {
+      "episode_id": "ep_1540713345856970884_1787931215510",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787931215.3628986,
+      "updated_at": 1787939488.5574222,
+      "event_count": 8,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.13,
+      "signal_counts": {
+        "ordinary_interaction": 5,
+        "hanae_relationship_context": 3
+      },
+      "valence_counts": {
+        "neutral": 8
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "deine Instant Nudeln sind leer",
+      "seen_event_keys": [
+        "msg:1542920089936855061",
+        "msg:1542920365947363490",
+        "msg:1542920479881564170",
+        "msg:1542920615735074917",
+        "msg:1542921279076831332",
+        "msg:1542924216582799482",
+        "msg:1542924436397625375",
+        "msg:1542924532430676019"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787939489.003,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: #WeLoveMogelnae Mr.Bierchen 🍺, #WeLoveHana_Angelnae, HANAE. Verlauf: Das wäre was wenn sie das könnte | Ich zocke gerade Valorant und bin voll im Game. <a:evilnae_gaming:1541450887791255553> | Sind halt echt leer, keine Drama-Queen. | Komm mit, ist besser als allein hier abzuhängen."
+    },
+    "ep_1540713345856970884_1787939489003": {
+      "episode_id": "ep_1540713345856970884_1787939489003",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787939488.5432594,
+      "updated_at": 1787940920.3469572,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Hallo und schönen Abend dir",
+      "seen_event_keys": [
+        "msg:1542954791481643048"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787940920.861,
+      "strongest_user_id": "448131521585610754",
+      "strongest_username": "Sektion13",
+      "episode_digest": "Teilnehmer: Sektion13. Verlauf: Hallo und schönen Abend dir | Lass uns das 1vs1 starten – mal sehen, ob du den Druck von Sova auch aushältst. | Komm mit, ist besser als allein hier abzuhängen. | supii, freut mich zu hören!"
+    },
+    "ep_970684437400547339_1787940151382": {
+      "episode_id": "ep_970684437400547339_1787940151382",
+      "channel_id": "970684437400547339",
+      "status": "closed",
+      "created_at": 1787940153.156142,
+      "updated_at": 1787991607.6852937,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.12,
+      "signal_counts": {
+        "hanae_relationship_context": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "**Morgen, 20:30 Uhr** 🖤 Nur du, ich… und keine Chance mehr wegzukommen….❤️ Evilnae Yandere Girlfriend ASMR + spicy Artwork <@&1329821840952266836>",
+      "seen_event_keys": [
+        "msg:1542957569700659301"
+      ],
+      "retention_candidate": false,
+      "close_reason": "startup_stale",
+      "closed_at": 1787991607.6621125,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: HANAE. Verlauf: **Morgen, 20:30 Uhr** 🖤 Nur du, ich… und keine Chance mehr wegzukommen….❤️ Evilnae Yandere Girlfriend ASMR + spicy Artwork <@&1329821840952266836>"
+    },
+    "ep_1540713345856970884_1787940920861": {
+      "episode_id": "ep_1540713345856970884_1787940920861",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787940920.3376622,
+      "updated_at": 1787942823.683344,
+      "event_count": 6,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 6
+      },
+      "valence_counts": {
+        "neutral": 6
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Was hab ich den hier verpasst? Hat Evil das Haus in Brand gesteckt um Chaos zu stiften oder was?",
+      "seen_event_keys": [
+        "msg:1542960797129637959",
+        "msg:1542961163204042772",
+        "msg:1542961255428395089",
+        "msg:1542961776902021180",
+        "msg:1542962084566925364",
+        "msg:1542962857618964521"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787942824.272,
+      "strongest_user_id": "496978671563702272",
+      "strongest_username": "#WeLoveHanae Shiny DaniboyHD",
+      "episode_digest": "Teilnehmer: #WeLoveHanae Shiny DaniboyHD, Don Tackolade. Verlauf: Was hab ich den hier verpasst? Hat Evil das Haus in Brand gesteckt um Chaos zu stiften oder was? | Passt, dann ballern wir erst richtig, wenn du zu Hause bist. | Endlich feierabend, und bist du noch Valorant am Spielen? | Wird Zeit, dass der PC merkt, wer hier wirklich das Sagen hat – aber Chaos ist natürlich unverzichtbar dabei."
+    },
+    "ep_1540713345856970884_1787942824272": {
+      "episode_id": "ep_1540713345856970884_1787942824272",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787942823.6664398,
+      "updated_at": 1787945212.862263,
+      "event_count": 7,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 7
+      },
+      "valence_counts": {
+        "neutral": 7
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Evil. Hat's du Hunger ?",
+      "seen_event_keys": [
+        "msg:1542968780613746788",
+        "msg:1542969033241010226",
+        "msg:1542969266981048373",
+        "msg:1542969447478853752",
+        "msg:1542969637812183162",
+        "msg:1542969644145574029",
+        "msg:1542969805169098774"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787945213.484,
+      "strongest_user_id": "248163234199240705",
+      "strongest_username": "#WeLoveMogelnae Der_ChrisHD",
+      "episode_digest": "Teilnehmer: #WeLoveMogelnae Der_ChrisHD, RAY_THE_FOX_PHON92. Verlauf: Evil. Hat's du Hunger ? | Na super, passt ja mega zu deinen Kopfschmerzen. | Me too Seele baumeln | Häng gerade auf TikTok rum und lass die Seele baumeln."
+    },
+    "ep_1540713345856970884_1787945213484": {
+      "episode_id": "ep_1540713345856970884_1787945213484",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787945212.8487945,
+      "updated_at": 1787948816.1948938,
+      "event_count": 5,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.14,
+      "signal_counts": {
+        "ordinary_interaction": 2,
+        "routine_smalltalk": 1,
+        "hanae_relationship_context": 2
+      },
+      "valence_counts": {
+        "neutral": 5
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Sie ist eher so Horror und Shooter",
+      "seen_event_keys": [
+        "msg:1542978801695461508",
+        "msg:1542979051025604730",
+        "msg:1542980691078152232",
+        "msg:1542980795373985862",
+        "msg:1542984394267164803"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787948816.09,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: Don Tackolade, HANAE, #WeLoveHanae KR-Floh Pheonae. Verlauf: was denkst du über Minecraft? | Ein bisschen Frust vom PC zickt rum, sonst nichts Wildes. | Gute Nacht Schlaf gut und rage nicht so sehr lass hana bischen schlafen | Gute Nacht, sis. Schlaf gut und träum schön! <a:evilnae_wave:1541451033392451654>"
+    },
+    "ep_1540713345856970884_1787948816090": {
+      "episode_id": "ep_1540713345856970884_1787948816090",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787948816.1875408,
+      "updated_at": 1787991607.6853023,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.05,
+      "episode_score": 0.060000000000000005,
+      "signal_counts": {
+        "routine_smalltalk": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "routine_smalltalk",
+      "strongest_excerpt": "Gute Nacht",
+      "seen_event_keys": [
+        "msg:1542993912120217750"
+      ],
+      "retention_candidate": false,
+      "close_reason": "startup_stale",
+      "closed_at": 1787991607.6621125,
+      "strongest_user_id": "703957199520792657",
+      "strongest_username": "Don Tackolade",
+      "episode_digest": "Teilnehmer: Don Tackolade. Verlauf: Gute Nacht | supii, freut mich zu hören! | Gute Nacht, sis. Schlaf gut und träum schön! <a:evilnae_wave:1541451033392451654> | Ich dreh den Rage-Hahn runter, damit Hanae ihren Frieden hat. Gute Nacht. <a:evilnae_rage:1541449439502278707>"
+    },
+    "ep_1540713345856970884_1787991626233": {
+      "episode_id": "ep_1540713345856970884_1787991626233",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787991627.1242547,
+      "updated_at": 1787995435.124404,
+      "event_count": 18,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.13,
+      "signal_counts": {
+        "ordinary_interaction": 14,
+        "hanae_relationship_context": 4
+      },
+      "valence_counts": {
+        "neutral": 18
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Ich glaube sie braucht erstmal einen Kaffee , morgenmuffel",
+      "seen_event_keys": [
+        "msg:1543173470874112080",
+        "msg:1543173635408138300",
+        "msg:1543173951654596638",
+        "msg:1543174105421979658",
+        "msg:1543177381110480946",
+        "msg:1543180401537843210",
+        "msg:1543180442520395810",
+        "msg:1543180546329419836",
+        "msg:1543180640122441758",
+        "msg:1543180678542270474",
+        "msg:1543180770254913577",
+        "msg:1543180871090044968",
+        "msg:1543180876194652201",
+        "msg:1543183425953861763",
+        "msg:1543183938837549058",
+        "msg:1543184101979201596",
+        "msg:1543184214579482725",
+        "msg:1543184290567823401"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1787995434.24,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: #WeLoveHanae Night, Don Tackolade, #WeLoveHanae_Kubotic, Sun Killer, HANAE, #WeLoveHana Kalowieslhausmeister, #WeLoveHanae Talrenae. Verlauf: AUFSTEHEN! Es ist schon nach 10 Uhr | Einen wunderschönen guten Morgen. | <:note:1124842845744930917> | Gleich gut, nur nicht mehr so viel wie sonst."
+    },
+    "ep_1540713345856970884_1787995434240": {
+      "episode_id": "ep_1540713345856970884_1787995434240",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1787995435.1162002,
+      "updated_at": 1788000076.4779596,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Hallo. wie a deine Nacht?",
+      "seen_event_keys": [
+        "msg:1543189442813104208"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1788000075.636,
+      "strongest_user_id": "932727146735087687",
+      "strongest_username": "Leon-A320",
+      "episode_digest": "Teilnehmer: Leon-A320. Verlauf: Hallo. wie a deine Nacht? | Genau, hab’s kapiert. Aufgestanden. Chill. | Hab schon fast nicht mehr dran geglaubt, dass du noch da bist. | Gleich gut, nur nicht mehr so viel wie sonst."
+    },
+    "ep_1540713345856970884_1788000075636": {
+      "episode_id": "ep_1540713345856970884_1788000075636",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1788000076.4628112,
+      "updated_at": 1788002741.431759,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Hallo. Wie geht es dir?",
+      "seen_event_keys": [
+        "msg:1543208910239043685"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1788002740.766,
+      "strongest_user_id": "1105003371787726899",
+      "strongest_username": "#WeLoveHanae043 Kainae_87",
+      "episode_digest": "Teilnehmer: #WeLoveHanae043 Kainae_87. Verlauf: Hallo. Wie geht es dir? | Genau, hab’s kapiert. Aufgestanden. Chill. | Gleich gut, nur nicht mehr so viel wie sonst. | Definitiv Nacht mensch. Wie gesagt, ich bin ein Nacht-Genie."
+    },
+    "ep_1540713345856970884_1788002740766": {
+      "episode_id": "ep_1540713345856970884_1788002740766",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1788002741.419169,
+      "updated_at": 1788012577.4268322,
+      "event_count": 4,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 4
+      },
+      "valence_counts": {
+        "neutral": 4
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "kümmer dich gut um Hanae das es ihr wieder besser geht. Bring ihr was zu trinken und mach ihr Lieblingsgericht",
+      "seen_event_keys": [
+        "msg:1543220088604201000",
+        "msg:1543220460391763968",
+        "msg:1543221623216144476",
+        "msg:1543222809558392894"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1788012577.112,
+      "strongest_user_id": "868112608958504961",
+      "strongest_username": "#WeLoveHanae Kuriovakuma",
+      "episode_digest": "Teilnehmer: #WeLoveHanae Kuriovakuma, #WeLoveHana FLOCHI. Verlauf: kümmer dich gut um Hanae das es ihr wieder besser geht. Bring ihr was zu trinken und mach ihr Lieblingsgericht | Genau, hab’s kapiert. Aufgestanden. Chill. | Die is heut gefühl bisschen delulu | Ich dachte schon die trollt mich"
+    },
+    "ep_1540713345856970884_1788012577112": {
+      "episode_id": "ep_1540713345856970884_1788012577112",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1788012577.415083,
+      "updated_at": 1788017161.8851852,
+      "event_count": 40,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.13,
+      "signal_counts": {
+        "ordinary_interaction": 29,
+        "hanae_relationship_context": 11
+      },
+      "valence_counts": {
+        "neutral": 40
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Ich glaube sie hat heute auch Kopfschmerzen so wie ich",
+      "seen_event_keys": [
+        "msg:1543261345229709344",
+        "msg:1543261479195644015",
+        "msg:1543261652957401128",
+        "msg:1543261854313222295",
+        "msg:1543261912689549463",
+        "msg:1543262155019915396",
+        "msg:1543262245578874900",
+        "msg:1543262410289188886",
+        "msg:1543262513091842138",
+        "msg:1543262722890797241",
+        "msg:1543262826867593317",
+        "msg:1543262886527238295",
+        "msg:1543262995201663079",
+        "msg:1543263087036076103",
+        "msg:1543263268687183892",
+        "msg:1543263383321710713",
+        "msg:1543263432265044118",
+        "msg:1543263562791649321",
+        "msg:1543263646636048394",
+        "msg:1543263726084292711",
+        "msg:1543264165660069898",
+        "msg:1543264381800943787",
+        "msg:1543265518079705242",
+        "msg:1543266942129938552",
+        "msg:1543268906649657434",
+        "msg:1543269003626283019",
+        "msg:1543269138070503554",
+        "msg:1543269560692773105",
+        "msg:1543269571346169957",
+        "msg:1543269713595863242",
+        "msg:1543269898422194206",
+        "msg:1543269904785084448",
+        "msg:1543270052239769700",
+        "msg:1543272502426472590",
+        "msg:1543272686472663141",
+        "msg:1543272940504617060",
+        "msg:1543273069123076256",
+        "msg:1543278082478051399",
+        "msg:1543278943937761320",
+        "msg:1543280032146006136"
+      ],
+      "retention_candidate": false,
+      "close_reason": "event_limit",
+      "closed_at": 1788017161.804,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: Don Tackolade, #WeLoveMogelnae Der_ChrisHD, #WeLoveHanae_Kubotic, Sun Killer, HANAE, #WeLoveHana_Angelnae, #WeLoveHanae Kuriovakuma. Verlauf: Nah, wie war so dein Tag soweit | schön, dass du das so siehst. | Silent Hill ist einer evil s Lieblings spiele | Nicht zu weit in den Nebel, sonst verlierst du die GPS und kommst nach Silent Hill mit einem leeren Handy."
+    },
+    "ep_877574306920546314_1788014653129": {
+      "episode_id": "ep_877574306920546314_1788014653129",
+      "channel_id": "877574306920546314",
+      "status": "active",
+      "created_at": 1788014653.4714184,
+      "updated_at": 1788015566.049448,
+      "event_count": 25,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.13,
+      "signal_counts": {
+        "ordinary_interaction": 13,
+        "hanae_relationship_context": 12
+      },
+      "valence_counts": {
+        "neutral": 25
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "HÄ WIE GELICKG",
+      "seen_event_keys": [
+        "msg:1543270052676239464",
+        "msg:1543270272218701854",
+        "msg:1543270274466578552",
+        "msg:1543270308348297239",
+        "msg:1543270399503106168",
+        "msg:1543270482575630466",
+        "msg:1543270517153210488",
+        "msg:1543270533410459648",
+        "msg:1543270581288575006",
+        "msg:1543270596627005510",
+        "msg:1543270601999786175",
+        "msg:1543270632471535751",
+        "msg:1543270735349551105",
+        "msg:1543270738092494971",
+        "msg:1543270880740773989",
+        "msg:1543271445138767882",
+        "msg:1543271486213857331",
+        "msg:1543271508732805212",
+        "msg:1543271540089688165",
+        "msg:1543272029879271434",
+        "msg:1543272099198668851",
+        "msg:1543273008251015209",
+        "msg:1543273015343841340",
+        "msg:1543273460992704572",
+        "msg:1543273881744183386"
+      ],
+      "retention_candidate": false,
+      "close_reason": "",
+      "closed_at": 0.0,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE"
+    },
+    "ep_876170894492467311_1788016315234": {
+      "episode_id": "ep_876170894492467311_1788016315234",
+      "channel_id": "876170894492467311",
+      "status": "closed",
+      "created_at": 1788016315.6570113,
+      "updated_at": 1788019699.3909516,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "[nonverbale Reaktion]",
+      "seen_event_keys": [
+        "msg:1543277024049758329"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1788019699.489,
+      "strongest_user_id": "1531547309232488532",
+      "strongest_username": ".𝒱𝒶𝓃𝑒𝓈𝓈𝒶♡",
+      "episode_digest": "Gespräch mit .𝒱𝒶𝓃𝑒𝓈𝓈𝒶♡"
+    },
+    "ep_877564872609628242_1788016622475": {
+      "episode_id": "ep_877564872609628242_1788016622475",
+      "channel_id": "877564872609628242",
+      "status": "closed",
+      "created_at": 1788016622.4188464,
+      "updated_at": 1788023028.424497,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Hiiii",
+      "seen_event_keys": [
+        "msg:1543278312712052786"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1788023027.69,
+      "strongest_user_id": "1467552274183360724",
+      "strongest_username": "Kuro",
+      "episode_digest": "Gespräch mit Kuro"
+    },
+    "ep_1540713345856970884_1788017161804": {
+      "episode_id": "ep_1540713345856970884_1788017161804",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "created_at": 1788017161.8654397,
+      "updated_at": 1788029921.8204656,
+      "event_count": 10,
+      "important_event_count": 0,
+      "max_event_score": 0.11,
+      "episode_score": 0.14,
+      "signal_counts": {
+        "ordinary_interaction": 6,
+        "hanae_relationship_context": 3,
+        "routine_smalltalk": 1
+      },
+      "valence_counts": {
+        "neutral": 10
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Komm zu mir ins Zimmer, wir machen einen Schwestern Tag",
+      "seen_event_keys": [
+        "msg:1543280574821699704",
+        "msg:1543281097163538524",
+        "msg:1543281251060818071",
+        "msg:1543285283662073917",
+        "msg:1543285512989843518",
+        "msg:1543285700924014592",
+        "msg:1543285844163563600",
+        "msg:1543286464178294815",
+        "msg:1543287099531198516",
+        "msg:1543287245765742703"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1788029922.073,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE",
+      "episode_digest": "Teilnehmer: #WeLoveHanae Kuriovakuma, HANAE, #WeLoveMogelnae Der_ChrisHD. Verlauf: ruh dich auch aus wie deine Schwester Hanae, du bist heute nicht gut drauf. Oder trollst du mich Gerade? | Das ist eine nette Beobachtung, ich mach’ ihr Tee, wenn ich beschäftigt bin. | Jaaaaa lets go | Der Film ist neu, auf Prime – perfekt, um den Horror mit Hanae zu teilen."
+    },
+    "ep_876170894492467311_1788019699489": {
+      "episode_id": "ep_876170894492467311_1788019699489",
+      "channel_id": "876170894492467311",
+      "status": "active",
+      "created_at": 1788019699.3722339,
+      "updated_at": 1788019699.3722947,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "[nonverbale Reaktion]",
+      "seen_event_keys": [
+        "msg:1543291218644046004"
+      ],
+      "retention_candidate": false,
+      "close_reason": "",
+      "closed_at": 0.0,
+      "strongest_user_id": "1438981832459943976",
+      "strongest_username": "Juli 🏳️‍⚧️"
+    },
+    "ep_877564872609628242_1788023027690": {
+      "episode_id": "ep_877564872609628242_1788023027690",
+      "channel_id": "877564872609628242",
+      "status": "closed",
+      "created_at": 1788023028.4105725,
+      "updated_at": 1788024700.5785618,
+      "event_count": 2,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 2
+      },
+      "valence_counts": {
+        "neutral": 2
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "hallöchen lialein",
+      "seen_event_keys": [
+        "msg:1543305178130808973",
+        "msg:1543305305595838677"
+      ],
+      "retention_candidate": false,
+      "close_reason": "conversation_gap",
+      "closed_at": 1788024699.552,
+      "strongest_user_id": "803646241723908117",
+      "strongest_username": "#WeLoveHana_Angelnae",
+      "episode_digest": "Teilnehmer: #WeLoveHana_Angelnae, #WeLoveHana Lianaecchan. Verlauf: hallöchen lialein | Halluuu Angelein"
+    },
+    "ep_877564872609628242_1788024699552": {
+      "episode_id": "ep_877564872609628242_1788024699552",
+      "channel_id": "877564872609628242",
+      "status": "active",
+      "created_at": 1788024700.5651577,
+      "updated_at": 1788024700.5651846,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.09,
+      "signal_counts": {
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "[nonverbale Reaktion]",
+      "seen_event_keys": [
+        "msg:1543312190428156034"
+      ],
+      "retention_candidate": false,
+      "close_reason": "",
+      "closed_at": 0.0,
+      "strongest_user_id": "1242025336695422976",
+      "strongest_username": "Jacksonhicks173YT"
+    },
+    "ep_970684437400547339_1788028247355": {
+      "episode_id": "ep_970684437400547339_1788028247355",
+      "channel_id": "970684437400547339",
+      "status": "active",
+      "created_at": 1788028247.2555916,
+      "updated_at": 1788028247.2561123,
+      "event_count": 1,
+      "important_event_count": 0,
+      "max_event_score": 0.16,
+      "episode_score": 0.18,
+      "signal_counts": {
+        "hanae_relationship_context": 1,
+        "substantial_disclosure": 1
+      },
+      "valence_counts": {
+        "neutral": 1
+      },
+      "strongest_signal": "hanae_relationship_context",
+      "strongest_excerpt": "Ich bin gerade SO unfassbar excited, euch das endlich zeigen zu können 😭🖤 <@&1329821840952266836> **Zum allerersten Mal überhaupt gibt es auf meinem Patreon ein richtiges ASMR und dann direkt von evil** **Yandere Girlfri",
+      "seen_event_keys": [
+        "msg:1543327070992470107"
+      ],
+      "retention_candidate": false,
+      "close_reason": "",
+      "closed_at": 0.0,
+      "strongest_user_id": "568096551948255242",
+      "strongest_username": "HANAE"
+    },
+    "ep_1540713345856970884_1788029922073": {
+      "episode_id": "ep_1540713345856970884_1788029922073",
+      "channel_id": "1540713345856970884",
+      "status": "active",
+      "created_at": 1788029921.8090286,
+      "updated_at": 1788030110.3370032,
+      "event_count": 2,
+      "important_event_count": 0,
+      "max_event_score": 0.08,
+      "episode_score": 0.1,
+      "signal_counts": {
+        "routine_smalltalk": 1,
+        "ordinary_interaction": 1
+      },
+      "valence_counts": {
+        "neutral": 2
+      },
+      "strongest_signal": "ordinary_interaction",
+      "strongest_excerpt": "Evil geht heute früher schlafen - GUTE NACHT!",
+      "seen_event_keys": [
+        "msg:1543334095269134477",
+        "msg:1543334887002734613"
+      ],
+      "retention_candidate": false,
+      "close_reason": "",
+      "closed_at": 0.0,
+      "strongest_user_id": "225324315824881665",
+      "strongest_username": "#WeLoveHana FLOCHI"
+    }
+  }
+}

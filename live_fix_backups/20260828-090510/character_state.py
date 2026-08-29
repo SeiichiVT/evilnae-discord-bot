@@ -6,18 +6,18 @@ from pathlib import Path
 
 from character_foundation import get_foundation_entry
 
-CHARACTER_STATE_VERSION = "1.2-fresh-activity"
+CHARACTER_STATE_VERSION = "1.1-current-activity"
 CHARACTER_STATE_PATH = Path("evilnae_character_state.json")
 
 _LOCK = threading.RLock()
 
 TTL_SECONDS = {
-    "location": 2 * 60 * 60,
-    "activity": 45 * 60,
-    "game": 90 * 60,
-    "food": 45 * 60,
-    "drink": 60 * 60,
-    "music": 45 * 60,
+    "location": 4 * 60 * 60,
+    "activity": 2 * 60 * 60,
+    "game": 3 * 60 * 60,
+    "food": 90 * 60,
+    "drink": 2 * 60 * 60,
+    "music": 60 * 60,
     "outfit": 12 * 60 * 60,
     "weather": 2 * 60 * 60,
 }
@@ -176,50 +176,19 @@ def observe_character_state(*, evilnae_answer: str) -> dict:
 def _active_states() -> dict:
     now = time.time()
     changed = False
-
     with _LOCK:
         data = _load()
         states = data.get("states", {})
-
         for key in list(states):
-            state = states.get(key, {})
-
             try:
-                stored_expires_at = float(state.get("expires_at") or 0.0)
+                expires_at = float(states[key].get("expires_at") or 0.0)
             except Exception:
-                stored_expires_at = 0.0
-
-            try:
-                updated_at = float(
-                    state.get("updated_at")
-                    or state.get("created_at")
-                    or 0.0
-                )
-            except Exception:
-                updated_at = 0.0
-
-            current_ttl = TTL_SECONDS.get(key, 60 * 60)
-            ttl_cap = updated_at + current_ttl if updated_at else 0.0
-
-            candidates = [
-                value
-                for value in (stored_expires_at, ttl_cap)
-                if value > 0.0
-            ]
-            effective_expires_at = min(candidates) if candidates else 0.0
-
-            if effective_expires_at and effective_expires_at < now:
+                expires_at = 0.0
+            if expires_at and expires_at < now:
                 states.pop(key, None)
                 changed = True
-                continue
-
-            if effective_expires_at and stored_expires_at != effective_expires_at:
-                state["expires_at"] = effective_expires_at
-                changed = True
-
         if changed:
             _save(data)
-
         return dict(states)
 
 
@@ -288,8 +257,6 @@ def format_character_state_for_prompt(user_text: str = "") -> str:
                     "Die aktuelle User-Frage fragt DIREKT, was Evilnae gerade macht.",
                     "FOUNDATION #567/#569 erlaubt ausdrücklich, für normalen Alltag eine konkrete harmlose Aktivität zu setzen.",
                     "Die allgemeine No-Invention-Regel gilt hier NICHT gegen solche erlaubten Alltagsaktivitäten.",
-                    "ÄLTERE Chat-Nachrichten über eine frühere Tätigkeit bedeuten NICHT automatisch, dass Evilnae sie Stunden später noch macht.",
-                    "Wenn kein aktiver State mehr existiert, entscheide ihren aktuellen Alltag neu statt eine alte Tätigkeit aus dem Channel-Verlauf fortzuschreiben.",
                     "Wähle GENAU EINE konkrete Sache, die sie gerade macht, statt vage 'chillen', 'nichts' oder 'rumhängen' zu antworten.",
                     "Geeignet sind z.B. ein konkretes festes Lieblingsgame, ein konkreter Canon-Anime/Film, TikTok/Twitter/YouTube, Musik oder Coding/PC-Kram.",
                     "Formuliere natürlich in erster Person, z.B. 'ich zocke gerade X' / 'ich schau gerade X' / 'häng gerade auf TikTok fest'.",

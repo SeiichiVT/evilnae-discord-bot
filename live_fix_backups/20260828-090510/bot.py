@@ -5,9 +5,6 @@ import json
 import asyncio
 import time
 import sys
-from types import SimpleNamespace
-import atexit
-import threading
 from collections import deque
 
 import discord
@@ -30,20 +27,6 @@ from brain import (
     run_brain,
     format_brain_debug,
     format_brain_decision,
-)
-
-from surface_writer import (
-    SURFACE_WRITER_VERSION,
-    SURFACE_WRITER_ENABLED,
-    generate_surface_response_from_plan,
-    format_surface_writer_debug,
-)
-
-from response_planner import (
-    RESPONSE_PLANNER_VERSION,
-    build_response_plan,
-    format_response_plan_for_writer,
-    format_response_plan_debug,
 )
 
 from social_actions import (
@@ -194,25 +177,6 @@ from evilnae_emotes import (
     format_evilnae_emote_debug,
 )
 
-from emotional_salience import (
-    EMOTIONAL_SALIENCE_VERSION,
-    observe_salience_event,
-    sync_closed_episode_salience,
-    format_salience_context,
-    format_salience_debug,
-    format_salience_stats_debug,
-)
-
-from conversation_episodes import (
-    CONVERSATION_EPISODES_VERSION,
-    observe_episode_message,
-    sync_evilnae_from_snapshot,
-    close_stale_episodes,
-    format_episode_context,
-    format_episode_observation_debug,
-    format_episode_stats_debug,
-)
-
 from conversation_understanding import (
     CONVERSATION_UNDERSTANDING_VERSION,
     upgrade_perception_addressing,
@@ -328,145 +292,10 @@ for stream_name in (
 
 
 # =========================================================
-# 3.2.0 AUTOMATIC LIVE FILE LOGGING
-# =========================================================
-# Every normal `python bot.py` start now writes stdout/stderr
-# to logs/evilnae_YYYYMMDD_HHMMSS.log while still showing the
-# same output in the terminal.
-# =========================================================
-
-AUTO_FILE_LOGGING_VERSION = "1.0"
-AUTO_LOG_KEEP_FILES = 60
-
-_AUTO_LOG_FILE = None
-_AUTO_LOG_PATH = None
-_AUTO_LOG_LOCK = threading.RLock()
-
-
-class _EvilnaeTeeStream:
-
-    def __init__(self, console_stream, file_stream):
-        self._console_stream = console_stream
-        self._file_stream = file_stream
-
-    def write(self, data):
-        value = str(data if data is not None else "")
-        with _AUTO_LOG_LOCK:
-            try:
-                self._console_stream.write(value)
-            except Exception:
-                pass
-            try:
-                self._file_stream.write(value)
-                self._file_stream.flush()
-            except Exception:
-                pass
-        return len(value)
-
-    def flush(self):
-        with _AUTO_LOG_LOCK:
-            try:
-                self._console_stream.flush()
-            except Exception:
-                pass
-            try:
-                self._file_stream.flush()
-            except Exception:
-                pass
-
-    def isatty(self):
-        try:
-            return bool(self._console_stream.isatty())
-        except Exception:
-            return False
-
-    def fileno(self):
-        return self._console_stream.fileno()
-
-    @property
-    def encoding(self):
-        return getattr(self._console_stream, "encoding", "utf-8")
-
-    def __getattr__(self, name):
-        return getattr(self._console_stream, name)
-
-
-def _prune_old_auto_logs(log_directory):
-    try:
-        names = sorted(
-            (
-                name
-                for name in os.listdir(log_directory)
-                if name.startswith("evilnae_") and name.endswith(".log")
-            ),
-            reverse=True,
-        )
-        for old_name in names[AUTO_LOG_KEEP_FILES:]:
-            try:
-                os.remove(os.path.join(log_directory, old_name))
-            except Exception:
-                pass
-    except Exception:
-        pass
-
-
-def _flush_auto_log():
-    try:
-        if _AUTO_LOG_FILE is not None:
-            _AUTO_LOG_FILE.flush()
-    except Exception:
-        pass
-
-
-def _setup_auto_file_logging():
-    global _AUTO_LOG_FILE
-    global _AUTO_LOG_PATH
-
-    log_directory = os.path.join(os.getcwd(), "logs")
-    os.makedirs(log_directory, exist_ok=True)
-
-    timestamp = time.strftime("%Y%m%d_%H%M%S")
-    log_path = os.path.join(log_directory, f"evilnae_{timestamp}.log")
-
-    try:
-        log_file = open(log_path, "a", encoding="utf-8", buffering=1)
-    except Exception as error:
-        print(
-            "[AUTO FILE LOGGING ERROR] "
-            f"{type(error).__name__}: {error}"
-        )
-        return None
-
-    _AUTO_LOG_FILE = log_file
-    _AUTO_LOG_PATH = log_path
-
-    original_stdout = sys.stdout
-    original_stderr = sys.stderr
-
-    sys.stdout = _EvilnaeTeeStream(original_stdout, log_file)
-    sys.stderr = _EvilnaeTeeStream(original_stderr, log_file)
-
-    atexit.register(_flush_auto_log)
-    _prune_old_auto_logs(log_directory)
-
-    print(
-        "[AUTO FILE LOGGING] "
-        f"v={AUTO_FILE_LOGGING_VERSION} "
-        f"path={os.path.abspath(log_path)} "
-        f"keep={AUTO_LOG_KEEP_FILES}"
-    )
-
-    return log_path
-
-
-AUTO_LOG_PATH = _setup_auto_file_logging()
-
-
-# =========================================================
 # VERSION
 # =========================================================
 
-BOT_VERSION = "3.6.1-affect-repetition"
+BOT_VERSION = "3.1.3-addressing-reliability"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -2960,85 +2789,55 @@ def has_unsupported_current_fact(
 ):
 
     if not answer:
+
         return False
 
-    answer_text = str(
-        answer
-        or ""
-    )
+    if (
+        decision.knowledge_available
+    ):
+
+        return False
+
+    if (
+        decision.knowledge_source
+        in {
+            "not_applicable",
+            "cohabitation_inference",
+        }
+    ):
+
+        return False
 
     suspicious_patterns = [
+
         r"\b(?:sie|er)\s+ist\s+gerade\b",
+
         r"\b(?:sie|er)\s+macht\s+gerade\b",
+
         r"\b(?:sie|er)\s+schaut\s+gerade\b",
+
         r"\b(?:sie|er)\s+spielt\s+gerade\b",
+
         r"\b(?:sie|er)\s+sitzt\s+gerade\b",
+
         r"\b(?:sie|er)\s+liegt\s+gerade\b",
+
         r"\b(?:sie|er)\s+arbeitet\s+gerade\b",
+
         r"\b(?:sie|er)\s+ist\s+jetzt\b",
+
         r"\b(?:sie|er)\s+macht\s+jetzt\b",
-
-        r"\b(?:hanae|error)\b.{0,45}"
-        r"\b(?:gerade|jetzt|aktuell|momentan)\b",
-
-        r"\b(?:hanae|error)\s+"
-        r"(?:ist|macht|schaut|guckt|spielt|sitzt|liegt|"
-        r"arbeitet|bereitet|streamt|isst|trinkt)\b"
-        r".{0,55}\b(?:gerade|jetzt|aktuell|momentan)\b",
-
-        # v3.6.1: volatile PRESENT states do not need the word
-        # "gerade" to be current claims.
-        r"\b(?:hanae|error|sie|er)\s+"
-        r"(?:ist|wirkt)\s+(?:auch\s+)?"
-        r"(?:schlecht\s+gelaunt|gut\s+gelaunt|"
-        r"müde|muede|traurig|happy|glücklich|gluecklich|"
-        r"genervt|sauer|krank|hungrig|wach|beschäftigt|beschaeftigt)\b",
     ]
 
-    suspicious = any(
+    return any(
         re.search(
             pattern,
-            answer_text,
-            flags=re.IGNORECASE,
+            answer,
+            flags=re.IGNORECASE
         )
-
         for pattern
         in suspicious_patterns
     )
-
-    if not suspicious:
-        return False
-
-    knowledge_available = bool(
-        getattr(
-            decision,
-            "knowledge_available",
-            False,
-        )
-    )
-
-    knowledge_source = str(
-        getattr(
-            decision,
-            "knowledge_source",
-            "unknown",
-        )
-        or
-        "unknown"
-    )
-
-    # Volatile current facts about another person need
-    # explicit Conversation World evidence.
-    if (
-        knowledge_available
-        and
-        knowledge_source
-        ==
-        "conversation_world"
-    ):
-        return False
-
-    return True
 
 
 def character_identity_violation_reasons(answer, user_text):
@@ -8143,36 +7942,6 @@ async def on_ready():
 
     apply_time_decay()
 
-    stale_episodes_closed = (
-        close_stale_episodes()
-    )
-
-    print(
-        format_episode_stats_debug()
-    )
-
-    if stale_episodes_closed:
-        print(
-            "[CONVERSATION EPISODE RECOVERY] "
-            f"closed_stale="
-            f"{stale_episodes_closed}"
-        )
-
-    closed_salience_synced = (
-        sync_closed_episode_salience()
-    )
-
-    print(
-        format_salience_stats_debug()
-    )
-
-    if closed_salience_synced:
-        print(
-            "[EMOTIONAL SALIENCE RECOVERY] "
-            f"closed_updated="
-            f"{closed_salience_synced}"
-        )
-
     # -----------------------------------------------------
     # EVILNAE APPLICATION EMOJIS
     # -----------------------------------------------------
@@ -8244,63 +8013,6 @@ async def on_ready():
 
     print(
         f"Brain v{BRAIN_VERSION}: ACTIVE"
-    )
-
-    print(
-        f"Response Planner v"
-        f"{RESPONSE_PLANNER_VERSION}: ACTIVE"
-    )
-
-    print(
-        "Structured Core Thought: ACTIVE"
-    )
-
-    print(
-        f"Conversation Episodes v"
-        f"{CONVERSATION_EPISODES_VERSION}: ACTIVE"
-    )
-
-    print(
-        "Episode Gap Boundary: 20min default"
-    )
-
-    print(
-        "Episode -> Character Learning: DISABLED"
-    )
-
-    print(
-        f"Emotional Salience v"
-        f"{EMOTIONAL_SALIENCE_VERSION}: ACTIVE"
-    )
-
-    print(
-        "Salience -> Character Learning: DISABLED"
-    )
-
-    print(
-        "Retention Candidate != Memory: ACTIVE"
-    )
-
-    print(
-        "Social Move / Stance Contract: ACTIVE"
-    )
-
-    print(
-        f"Qwen Surface Writer v"
-        f"{SURFACE_WRITER_VERSION}: "
-        f"{'PRIMARY' if SURFACE_WRITER_ENABLED else 'DISABLED'}"
-    )
-
-    print(
-        "OpenAI Text Writer: FALLBACK / REPAIR"
-    )
-
-    print(
-        "Duplicate Qwen Humanizer After Qwen Primary: DISABLED"
-    )
-
-    print(
-        format_surface_writer_debug()
     )
 
     print(
@@ -9000,135 +8712,6 @@ async def on_message(
             channel_id
         )
     )
-
-    # =====================================================
-    # PERSISTENT CONVERSATION EPISODES
-    # =====================================================
-
-    episode_observation = (
-        observe_episode_message(
-            channel_id=channel_id,
-            role="user",
-            user_id=user_id,
-            username=username,
-            content=(
-                perception.text
-                or perception.raw_content
-                or "[nonverbale Reaktion]"
-            ),
-            message_id=getattr(
-                message,
-                "id",
-                "",
-            ),
-            timestamp=(
-                message.created_at.timestamp()
-                if getattr(
-                    message,
-                    "created_at",
-                    None,
-                )
-                else time.time()
-            ),
-        )
-    )
-
-    synced_episode_evilnae = (
-        sync_evilnae_from_snapshot(
-            channel_id,
-            channel_snapshot,
-        )
-    )
-
-    persistent_episode_context_text = (
-        format_episode_context(
-            channel_id
-        )
-    )
-
-    print(
-        format_episode_observation_debug(
-            episode_observation
-        )
-    )
-
-    if synced_episode_evilnae:
-        print(
-            "[CONVERSATION EPISODE SYNC] "
-            f"user={username} "
-            f"evilnae_events_added="
-            f"{synced_episode_evilnae}"
-        )
-
-    # =====================================================
-    # EMOTIONAL SALIENCE
-    #
-    # Scores how much this moment may matter.
-    # This does NOT learn or alter the character yet.
-    # =====================================================
-
-    salience_result = (
-        observe_salience_event(
-            episode_id=(
-                episode_observation
-                .episode_id
-            ),
-            channel_id=channel_id,
-            user_id=user_id,
-            username=username,
-            text=(
-                perception.text
-                or perception.raw_content
-                or "[nonverbale Reaktion]"
-            ),
-            message_id=getattr(
-                message,
-                "id",
-                "",
-            ),
-            direct=bool(
-                getattr(
-                    perception,
-                    "directly_addresses_evilnae",
-                    False,
-                )
-                or
-                getattr(
-                    perception,
-                    "is_reply_to_evilnae",
-                    False,
-                )
-            ),
-            is_hanae=(
-                str(user_id)
-                ==
-                str(HANAE_USER_ID)
-            ),
-        )
-    )
-
-    salience_context_text = (
-        format_salience_context(
-            salience_result
-        )
-    )
-
-    closed_salience_synced = (
-        sync_closed_episode_salience()
-    )
-
-    print(
-        format_salience_debug(
-            salience_result
-        )
-    )
-
-    if closed_salience_synced:
-        print(
-            "[EMOTIONAL SALIENCE SYNC] "
-            f"closed_updated="
-            f"{closed_salience_synced}"
-        )
 
     # =====================================================
     # B3C REFERENCE / EPISODE CONTEXT
@@ -9890,10 +9473,6 @@ REGELN:
             + b3c_reference_context_text
             + "\n\n"
             + b3c_episode_focus_text
-            + "\n\n"
-            + persistent_episode_context_text
-            + "\n\n"
-            + salience_context_text
         )
 
         # B3F -> BRAIN
@@ -10478,59 +10057,6 @@ Participation-Entscheidung nötig.
         )
 
         # =================================================
-        # 8.5 RESPONSE PLANNER
-        # =================================================
-
-        social_mode_for_plan = (
-            detect_social_stance_mode(
-                user_text,
-                b3c_episode_focus_text,
-                is_hanae=is_hanae,
-            )
-        )
-
-        response_plan = (
-            build_response_plan(
-                decision=decision,
-                conversation_mode=(
-                    brain_conversation_mode
-                ),
-                social_mode=(
-                    social_mode_for_plan
-                ),
-                expression_style=(
-                    expression_plan.style
-                ),
-                user_text=(
-                    user_text
-                ),
-                current_inner_state=(
-                    current_inner_state
-                ),
-                is_hanae=(
-                    is_hanae
-                ),
-                recent_evilnae_messages=(
-                    channel_evilnae_messages[
-                        -12:
-                    ]
-                ),
-            )
-        )
-
-        response_plan_text = (
-            format_response_plan_for_writer(
-                response_plan
-            )
-        )
-
-        print(
-            format_response_plan_debug(
-                response_plan
-            )
-        )
-
-        # =================================================
         # 9. WRITER CONTEXT
         # =================================================
 
@@ -10611,12 +10137,6 @@ Participation-Entscheidung nötig.
             + turn_identity_text
             + "\n\n"
             + social_stance_text
-            + "\n\n"
-            + response_plan_text
-            + "\n\n"
-            + persistent_episode_context_text
-            + "\n\n"
-            + salience_context_text
         )
 
         # =====================================================
@@ -10705,238 +10225,6 @@ Participation-Entscheidung nötig.
             )
 
 
-        # =================================================
-        # 9.5 QWEN PRIMARY SURFACE WRITER ROUTER
-        #
-        # Qwen formuliert direkt aus dem Response Plan.
-        #
-        # Erfolg:
-        #   Qwen = Primary Text Writer
-        #   OpenAI Writer = übersprungen
-        #
-        # Fehler / Drift / Queue busy:
-        #   bestehender OpenAI Writer läuft unverändert.
-        # =================================================
-
-        surface_evidence_parts = []
-
-        for surface_piece in (
-            character_directive_text,
-            character_state_text,
-            persistent_episode_context_text,
-            salience_context_text,
-        ):
-
-            surface_piece = str(
-                surface_piece
-                or ""
-            ).strip()
-
-            if surface_piece:
-
-                surface_evidence_parts.append(
-                    surface_piece
-                )
-
-        if world_evidence.matched:
-
-            surface_evidence_parts.append(
-                format_world_evidence_for_writer(
-                    world_evidence
-                )
-            )
-
-        if self_evidence.matched:
-
-            surface_evidence_parts.append(
-                format_self_evidence_for_writer(
-                    self_evidence
-                )
-            )
-
-        if knowledge_constraint.active:
-
-            surface_evidence_parts.append(
-                format_knowledge_constraint(
-                    knowledge_constraint
-                )
-            )
-
-        surface_evidence_text = (
-            "\n\n".join(
-                surface_evidence_parts
-            )
-            or
-            "Keine zusätzlichen Evidence-Blöcke nötig."
-        )
-
-        surface_writer_used = False
-        surface_writer_result = None
-
-        async def primary_writer_callable(
-            **openai_writer_kwargs
-        ):
-
-            nonlocal surface_writer_used
-            nonlocal surface_writer_result
-
-            try:
-
-                surface_writer_result = (
-                    await generate_surface_response_from_plan(
-
-                        user_message=(
-                            user_text
-                        ),
-
-                        response_plan_text=(
-                            response_plan_text
-                        ),
-
-                        core_thought=(
-                            response_plan
-                            .core_thought
-                        ),
-
-                        social_move=(
-                            response_plan
-                            .social_move
-                        ),
-
-                        stance=(
-                            response_plan
-                            .stance
-                        ),
-
-                        reply_shape=(
-                            response_plan
-                            .reply_shape
-                        ),
-
-                        allow_question=(
-                            response_plan
-                            .allow_question
-                        ),
-
-                        inner_state_guidance=(
-                            inner_state_guidance
-                        ),
-
-                        recent_evilnae_messages=(
-                            state.history
-                            .recent_evilnae_messages
-                        ),
-
-                        channel_recent_evilnae_messages=(
-                            channel_evilnae_messages[
-                                -12:
-                            ]
-                        ),
-
-                        identity_context=(
-                            turn_identity_text
-                            + "\n\n"
-                            + social_stance_text
-                        ),
-
-                        evidence_context=(
-                            surface_evidence_text
-                        ),
-                    )
-                )
-
-            except Exception as error:
-
-                print(
-                    "[SURFACE WRITER INTEGRATION ERROR] "
-                    f"user={username} "
-                    f"error="
-                    f"{type(error).__name__}: "
-                    f"{error}"
-                )
-
-                surface_writer_result = None
-
-            if (
-                surface_writer_result
-                and
-                surface_writer_result.success
-                and
-                surface_writer_result.output_text
-            ):
-
-                surface_writer_used = True
-
-                print(
-                    "[WRITER ROUTER] "
-                    f"user={username} "
-                    "primary=qwen_surface "
-                    "openai_writer=skipped"
-                )
-
-                return SimpleNamespace(
-                    output_text=(
-                        surface_writer_result
-                        .output_text
-                    ),
-                    surface_writer=True,
-                )
-
-            fallback_reason = (
-                getattr(
-                    surface_writer_result,
-                    "reason",
-                    "surface_writer_error",
-                )
-                if surface_writer_result
-                else
-                "surface_writer_error"
-            )
-
-            print(
-                "[WRITER ROUTER] "
-                f"user={username} "
-                "primary=qwen_surface_failed "
-                "fallback=openai_writer "
-                f"reason={fallback_reason}"
-            )
-
-            return await safe_openai_request(
-                **openai_writer_kwargs
-            )
-
-        async def secondary_voice_callable(
-            **voice_kwargs
-        ):
-
-            if surface_writer_used:
-
-                print(
-                    "[LOCAL VOICE SECOND PASS SKIP] "
-                    f"user={username} "
-                    "reason=qwen_already_primary"
-                )
-
-                return SimpleNamespace(
-                    output_text=(
-                        voice_kwargs.get(
-                            "draft",
-                            ""
-                        )
-                    ),
-                    meaning_preserved=1.0,
-                    used=False,
-                    rewritten=False,
-                    reason=(
-                        "qwen_already_primary"
-                    ),
-                )
-
-            return await humanize_evilnae_response(
-                **voice_kwargs
-            )
-
-
         writer_token_limit = (
             get_writer_token_limit(
                 decision.response_length
@@ -10980,7 +10268,7 @@ Participation-Entscheidung nötig.
 
                 writer_task = (
                     asyncio.create_task(
-                        primary_writer_callable(
+                        safe_openai_request(
 
                             model="gpt-4o-mini",
 
@@ -10995,13 +10283,9 @@ Participation-Entscheidung nötig.
                             ),
 
                             input=(
-                                "Setze jetzt den RESPONSE PLAN um "
-                                "und formuliere Evilnaes tatsächliche "
+                                "Formuliere jetzt "
+                                "Evilnaes tatsächliche "
                                 "Discord-Nachricht. "
-                                "Transportiere den Core Thought, "
-                                "aber kopiere ihn nicht stumpf. "
-                                "Füge keinen zweiten Gedanken und "
-                                "keinen freundlichen Assistant-Abschluss hinzu. "
                                 "Die Antwort muss echten Text "
                                 "mit mindestens einem Wort enthalten. "
                                 "Schreibe selbst keine Unicode-Emojis "
@@ -12148,7 +11432,7 @@ Kein generischer Ersatz-Füllsatz.
         try:
 
             voice_result = (
-                await secondary_voice_callable(
+                await humanize_evilnae_response(
 
                     user_message=(
                         user_text

@@ -5,7 +5,6 @@ import json
 import asyncio
 import time
 import sys
-from types import SimpleNamespace
 import atexit
 import threading
 from collections import deque
@@ -30,13 +29,6 @@ from brain import (
     run_brain,
     format_brain_debug,
     format_brain_decision,
-)
-
-from surface_writer import (
-    SURFACE_WRITER_VERSION,
-    SURFACE_WRITER_ENABLED,
-    generate_surface_response_from_plan,
-    format_surface_writer_debug,
 )
 
 from response_planner import (
@@ -192,25 +184,6 @@ from evilnae_emotes import (
     load_application_emojis,
     apply_evilnae_emote_layer,
     format_evilnae_emote_debug,
-)
-
-from emotional_salience import (
-    EMOTIONAL_SALIENCE_VERSION,
-    observe_salience_event,
-    sync_closed_episode_salience,
-    format_salience_context,
-    format_salience_debug,
-    format_salience_stats_debug,
-)
-
-from conversation_episodes import (
-    CONVERSATION_EPISODES_VERSION,
-    observe_episode_message,
-    sync_evilnae_from_snapshot,
-    close_stale_episodes,
-    format_episode_context,
-    format_episode_observation_debug,
-    format_episode_stats_debug,
 )
 
 from conversation_understanding import (
@@ -466,7 +439,7 @@ AUTO_LOG_PATH = _setup_auto_file_logging()
 # VERSION
 # =========================================================
 
-BOT_VERSION = "3.6.1-affect-repetition"
+BOT_VERSION = "3.3.0-response-planner"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -2962,10 +2935,7 @@ def has_unsupported_current_fact(
     if not answer:
         return False
 
-    answer_text = str(
-        answer
-        or ""
-    )
+    answer_text = str(answer or "")
 
     suspicious_patterns = [
         r"\b(?:sie|er)\s+ist\s+gerade\b",
@@ -2977,65 +2947,29 @@ def has_unsupported_current_fact(
         r"\b(?:sie|er)\s+arbeitet\s+gerade\b",
         r"\b(?:sie|er)\s+ist\s+jetzt\b",
         r"\b(?:sie|er)\s+macht\s+jetzt\b",
-
-        r"\b(?:hanae|error)\b.{0,45}"
-        r"\b(?:gerade|jetzt|aktuell|momentan)\b",
-
+        r"\b(?:hanae|error)\b.{0,45}\b(?:gerade|jetzt|aktuell|momentan)\b",
         r"\b(?:hanae|error)\s+"
-        r"(?:ist|macht|schaut|guckt|spielt|sitzt|liegt|"
-        r"arbeitet|bereitet|streamt|isst|trinkt)\b"
+        r"(?:ist|macht|schaut|guckt|spielt|sitzt|liegt|arbeitet|bereitet|streamt|isst|trinkt)\b"
         r".{0,55}\b(?:gerade|jetzt|aktuell|momentan)\b",
-
-        # v3.6.1: volatile PRESENT states do not need the word
-        # "gerade" to be current claims.
-        r"\b(?:hanae|error|sie|er)\s+"
-        r"(?:ist|wirkt)\s+(?:auch\s+)?"
-        r"(?:schlecht\s+gelaunt|gut\s+gelaunt|"
-        r"müde|muede|traurig|happy|glücklich|gluecklich|"
-        r"genervt|sauer|krank|hungrig|wach|beschäftigt|beschaeftigt)\b",
     ]
 
     suspicious = any(
-        re.search(
-            pattern,
-            answer_text,
-            flags=re.IGNORECASE,
-        )
-
-        for pattern
-        in suspicious_patterns
+        re.search(pattern, answer_text, flags=re.IGNORECASE)
+        for pattern in suspicious_patterns
     )
 
     if not suspicious:
         return False
 
     knowledge_available = bool(
-        getattr(
-            decision,
-            "knowledge_available",
-            False,
-        )
+        getattr(decision, "knowledge_available", False)
     )
-
     knowledge_source = str(
-        getattr(
-            decision,
-            "knowledge_source",
-            "unknown",
-        )
-        or
-        "unknown"
+        getattr(decision, "knowledge_source", "unknown") or "unknown"
     )
 
-    # Volatile current facts about another person need
-    # explicit Conversation World evidence.
-    if (
-        knowledge_available
-        and
-        knowledge_source
-        ==
-        "conversation_world"
-    ):
+    # Current facts about someone else need explicit Conversation World evidence.
+    if knowledge_available and knowledge_source == "conversation_world":
         return False
 
     return True
@@ -8143,36 +8077,6 @@ async def on_ready():
 
     apply_time_decay()
 
-    stale_episodes_closed = (
-        close_stale_episodes()
-    )
-
-    print(
-        format_episode_stats_debug()
-    )
-
-    if stale_episodes_closed:
-        print(
-            "[CONVERSATION EPISODE RECOVERY] "
-            f"closed_stale="
-            f"{stale_episodes_closed}"
-        )
-
-    closed_salience_synced = (
-        sync_closed_episode_salience()
-    )
-
-    print(
-        format_salience_stats_debug()
-    )
-
-    if closed_salience_synced:
-        print(
-            "[EMOTIONAL SALIENCE RECOVERY] "
-            f"closed_updated="
-            f"{closed_salience_synced}"
-        )
-
     # -----------------------------------------------------
     # EVILNAE APPLICATION EMOJIS
     # -----------------------------------------------------
@@ -8256,51 +8160,7 @@ async def on_ready():
     )
 
     print(
-        f"Conversation Episodes v"
-        f"{CONVERSATION_EPISODES_VERSION}: ACTIVE"
-    )
-
-    print(
-        "Episode Gap Boundary: 20min default"
-    )
-
-    print(
-        "Episode -> Character Learning: DISABLED"
-    )
-
-    print(
-        f"Emotional Salience v"
-        f"{EMOTIONAL_SALIENCE_VERSION}: ACTIVE"
-    )
-
-    print(
-        "Salience -> Character Learning: DISABLED"
-    )
-
-    print(
-        "Retention Candidate != Memory: ACTIVE"
-    )
-
-    print(
         "Social Move / Stance Contract: ACTIVE"
-    )
-
-    print(
-        f"Qwen Surface Writer v"
-        f"{SURFACE_WRITER_VERSION}: "
-        f"{'PRIMARY' if SURFACE_WRITER_ENABLED else 'DISABLED'}"
-    )
-
-    print(
-        "OpenAI Text Writer: FALLBACK / REPAIR"
-    )
-
-    print(
-        "Duplicate Qwen Humanizer After Qwen Primary: DISABLED"
-    )
-
-    print(
-        format_surface_writer_debug()
     )
 
     print(
@@ -9000,135 +8860,6 @@ async def on_message(
             channel_id
         )
     )
-
-    # =====================================================
-    # PERSISTENT CONVERSATION EPISODES
-    # =====================================================
-
-    episode_observation = (
-        observe_episode_message(
-            channel_id=channel_id,
-            role="user",
-            user_id=user_id,
-            username=username,
-            content=(
-                perception.text
-                or perception.raw_content
-                or "[nonverbale Reaktion]"
-            ),
-            message_id=getattr(
-                message,
-                "id",
-                "",
-            ),
-            timestamp=(
-                message.created_at.timestamp()
-                if getattr(
-                    message,
-                    "created_at",
-                    None,
-                )
-                else time.time()
-            ),
-        )
-    )
-
-    synced_episode_evilnae = (
-        sync_evilnae_from_snapshot(
-            channel_id,
-            channel_snapshot,
-        )
-    )
-
-    persistent_episode_context_text = (
-        format_episode_context(
-            channel_id
-        )
-    )
-
-    print(
-        format_episode_observation_debug(
-            episode_observation
-        )
-    )
-
-    if synced_episode_evilnae:
-        print(
-            "[CONVERSATION EPISODE SYNC] "
-            f"user={username} "
-            f"evilnae_events_added="
-            f"{synced_episode_evilnae}"
-        )
-
-    # =====================================================
-    # EMOTIONAL SALIENCE
-    #
-    # Scores how much this moment may matter.
-    # This does NOT learn or alter the character yet.
-    # =====================================================
-
-    salience_result = (
-        observe_salience_event(
-            episode_id=(
-                episode_observation
-                .episode_id
-            ),
-            channel_id=channel_id,
-            user_id=user_id,
-            username=username,
-            text=(
-                perception.text
-                or perception.raw_content
-                or "[nonverbale Reaktion]"
-            ),
-            message_id=getattr(
-                message,
-                "id",
-                "",
-            ),
-            direct=bool(
-                getattr(
-                    perception,
-                    "directly_addresses_evilnae",
-                    False,
-                )
-                or
-                getattr(
-                    perception,
-                    "is_reply_to_evilnae",
-                    False,
-                )
-            ),
-            is_hanae=(
-                str(user_id)
-                ==
-                str(HANAE_USER_ID)
-            ),
-        )
-    )
-
-    salience_context_text = (
-        format_salience_context(
-            salience_result
-        )
-    )
-
-    closed_salience_synced = (
-        sync_closed_episode_salience()
-    )
-
-    print(
-        format_salience_debug(
-            salience_result
-        )
-    )
-
-    if closed_salience_synced:
-        print(
-            "[EMOTIONAL SALIENCE SYNC] "
-            f"closed_updated="
-            f"{closed_salience_synced}"
-        )
 
     # =====================================================
     # B3C REFERENCE / EPISODE CONTEXT
@@ -9890,10 +9621,6 @@ REGELN:
             + b3c_reference_context_text
             + "\n\n"
             + b3c_episode_focus_text
-            + "\n\n"
-            + persistent_episode_context_text
-            + "\n\n"
-            + salience_context_text
         )
 
         # B3F -> BRAIN
@@ -10501,20 +10228,6 @@ Participation-Entscheidung nötig.
                 expression_style=(
                     expression_plan.style
                 ),
-                user_text=(
-                    user_text
-                ),
-                current_inner_state=(
-                    current_inner_state
-                ),
-                is_hanae=(
-                    is_hanae
-                ),
-                recent_evilnae_messages=(
-                    channel_evilnae_messages[
-                        -12:
-                    ]
-                ),
             )
         )
 
@@ -10613,10 +10326,6 @@ Participation-Entscheidung nötig.
             + social_stance_text
             + "\n\n"
             + response_plan_text
-            + "\n\n"
-            + persistent_episode_context_text
-            + "\n\n"
-            + salience_context_text
         )
 
         # =====================================================
@@ -10705,238 +10414,6 @@ Participation-Entscheidung nötig.
             )
 
 
-        # =================================================
-        # 9.5 QWEN PRIMARY SURFACE WRITER ROUTER
-        #
-        # Qwen formuliert direkt aus dem Response Plan.
-        #
-        # Erfolg:
-        #   Qwen = Primary Text Writer
-        #   OpenAI Writer = übersprungen
-        #
-        # Fehler / Drift / Queue busy:
-        #   bestehender OpenAI Writer läuft unverändert.
-        # =================================================
-
-        surface_evidence_parts = []
-
-        for surface_piece in (
-            character_directive_text,
-            character_state_text,
-            persistent_episode_context_text,
-            salience_context_text,
-        ):
-
-            surface_piece = str(
-                surface_piece
-                or ""
-            ).strip()
-
-            if surface_piece:
-
-                surface_evidence_parts.append(
-                    surface_piece
-                )
-
-        if world_evidence.matched:
-
-            surface_evidence_parts.append(
-                format_world_evidence_for_writer(
-                    world_evidence
-                )
-            )
-
-        if self_evidence.matched:
-
-            surface_evidence_parts.append(
-                format_self_evidence_for_writer(
-                    self_evidence
-                )
-            )
-
-        if knowledge_constraint.active:
-
-            surface_evidence_parts.append(
-                format_knowledge_constraint(
-                    knowledge_constraint
-                )
-            )
-
-        surface_evidence_text = (
-            "\n\n".join(
-                surface_evidence_parts
-            )
-            or
-            "Keine zusätzlichen Evidence-Blöcke nötig."
-        )
-
-        surface_writer_used = False
-        surface_writer_result = None
-
-        async def primary_writer_callable(
-            **openai_writer_kwargs
-        ):
-
-            nonlocal surface_writer_used
-            nonlocal surface_writer_result
-
-            try:
-
-                surface_writer_result = (
-                    await generate_surface_response_from_plan(
-
-                        user_message=(
-                            user_text
-                        ),
-
-                        response_plan_text=(
-                            response_plan_text
-                        ),
-
-                        core_thought=(
-                            response_plan
-                            .core_thought
-                        ),
-
-                        social_move=(
-                            response_plan
-                            .social_move
-                        ),
-
-                        stance=(
-                            response_plan
-                            .stance
-                        ),
-
-                        reply_shape=(
-                            response_plan
-                            .reply_shape
-                        ),
-
-                        allow_question=(
-                            response_plan
-                            .allow_question
-                        ),
-
-                        inner_state_guidance=(
-                            inner_state_guidance
-                        ),
-
-                        recent_evilnae_messages=(
-                            state.history
-                            .recent_evilnae_messages
-                        ),
-
-                        channel_recent_evilnae_messages=(
-                            channel_evilnae_messages[
-                                -12:
-                            ]
-                        ),
-
-                        identity_context=(
-                            turn_identity_text
-                            + "\n\n"
-                            + social_stance_text
-                        ),
-
-                        evidence_context=(
-                            surface_evidence_text
-                        ),
-                    )
-                )
-
-            except Exception as error:
-
-                print(
-                    "[SURFACE WRITER INTEGRATION ERROR] "
-                    f"user={username} "
-                    f"error="
-                    f"{type(error).__name__}: "
-                    f"{error}"
-                )
-
-                surface_writer_result = None
-
-            if (
-                surface_writer_result
-                and
-                surface_writer_result.success
-                and
-                surface_writer_result.output_text
-            ):
-
-                surface_writer_used = True
-
-                print(
-                    "[WRITER ROUTER] "
-                    f"user={username} "
-                    "primary=qwen_surface "
-                    "openai_writer=skipped"
-                )
-
-                return SimpleNamespace(
-                    output_text=(
-                        surface_writer_result
-                        .output_text
-                    ),
-                    surface_writer=True,
-                )
-
-            fallback_reason = (
-                getattr(
-                    surface_writer_result,
-                    "reason",
-                    "surface_writer_error",
-                )
-                if surface_writer_result
-                else
-                "surface_writer_error"
-            )
-
-            print(
-                "[WRITER ROUTER] "
-                f"user={username} "
-                "primary=qwen_surface_failed "
-                "fallback=openai_writer "
-                f"reason={fallback_reason}"
-            )
-
-            return await safe_openai_request(
-                **openai_writer_kwargs
-            )
-
-        async def secondary_voice_callable(
-            **voice_kwargs
-        ):
-
-            if surface_writer_used:
-
-                print(
-                    "[LOCAL VOICE SECOND PASS SKIP] "
-                    f"user={username} "
-                    "reason=qwen_already_primary"
-                )
-
-                return SimpleNamespace(
-                    output_text=(
-                        voice_kwargs.get(
-                            "draft",
-                            ""
-                        )
-                    ),
-                    meaning_preserved=1.0,
-                    used=False,
-                    rewritten=False,
-                    reason=(
-                        "qwen_already_primary"
-                    ),
-                )
-
-            return await humanize_evilnae_response(
-                **voice_kwargs
-            )
-
-
         writer_token_limit = (
             get_writer_token_limit(
                 decision.response_length
@@ -10980,7 +10457,7 @@ Participation-Entscheidung nötig.
 
                 writer_task = (
                     asyncio.create_task(
-                        primary_writer_callable(
+                        safe_openai_request(
 
                             model="gpt-4o-mini",
 
@@ -12148,7 +11625,7 @@ Kein generischer Ersatz-Füllsatz.
         try:
 
             voice_result = (
-                await secondary_voice_callable(
+                await humanize_evilnae_response(
 
                     user_message=(
                         user_text

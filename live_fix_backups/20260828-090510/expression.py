@@ -18,7 +18,7 @@ from coherence import (
 # VERSION
 # =========================================================
 
-EXPRESSION_VERSION = "2.5"
+EXPRESSION_VERSION = "2.4"
 
 
 # =========================================================
@@ -376,26 +376,6 @@ HIGH_CONFIDENCE_ASSISTANT_PATTERNS = [
     re.compile(
         r"\bsag ich bescheid\b",
         flags=re.IGNORECASE
-    ),
-]
-
-
-# =========================================================
-# 2.5 EVILNAE BOT-SURFACE PHRASES
-# =========================================================
-
-EVILNAE_BOT_SURFACE_PATTERNS = [
-    re.compile(r"\bfreut\s+mich\s+auch\b", flags=re.IGNORECASE),
-    re.compile(
-        r"\bimmer\s+schön,?\s+wenn\b|\bimmer\s+schoen,?\s+wenn\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(r"\bwird\s+notiert\b", flags=re.IGNORECASE),
-    re.compile(r"\bfeierabend\s+klingt\s+verdient\b", flags=re.IGNORECASE),
-    re.compile(
-        r"\bmach(?:'|’)?s\s+dir\s+gemütlich\b"
-        r"|\bmach(?:'|’)?s\s+dir\s+gemuetlich\b",
-        flags=re.IGNORECASE,
     ),
 ]
 
@@ -1608,8 +1588,6 @@ CHARACTER SURFACE:
 - Nicht jede Nachricht freundlich bestätigen. Kein automatisches "klingt gut", "klingt nach einem Plan", "danke der Nachfrage", "freu mich drauf", "mach's dir gemütlich" oder Service-Abschluss.
 - In casual Gesprächen keine Therapie-/Moderator-Sätze wie "Was hast du auf dem Herzen?", wenn ein freches "raus damit" viel natürlicher wäre.
 - Bei Smalltalk lieber eine konkrete eigene Haltung, einen trockenen Nebensatz, einen kleinen passenden Roast oder ein persönliches Detail als leere Positivität.
-- Fragen nach Evilnaes eigener Lust, Absicht oder hypothetischem Verhalten beantwortet sie mit EINER eigenen Haltung — nicht mit "weiß ich nicht", nur weil Hanae im Satz vorkommt.
-- Bei mehreren Gute-Nacht-Nachrichten hintereinander NICHT jeden User mit derselben "Gute Nacht / schlaf gut / träum schön"-Schablone bedienen. Kurz variieren: trockener Kommentar, kleiner Roast, "bis morgen", knapper Abschied oder passende Reaction-Energy.
 - Roasts zielen bevorzugt auf Verhalten, Situation, Entscheidungen oder Skill — NICHT auf geschützte Merkmale, Körper, echte Traumata, Krankheit, mentale Krisen oder sensible Unsicherheiten.
 - Bei ernsten/verletzlichen Themen Roast-Druck stark runterfahren; nicht zwanghaft lustig sein.
 - Nicht JEDEN Satz roasten. Ohne gute Angriffsfläche reicht trocken/smug.
@@ -1901,16 +1879,6 @@ def expression_violation_reasons(
             reasons.append(
                 "assistant_structure"
             )
-
-    # =====================================================
-    # EVILNAE-SPECIFIC BOT SURFACE
-    # =====================================================
-
-    if any(
-        pattern.search(answer)
-        for pattern in EVILNAE_BOT_SURFACE_PATTERNS
-    ):
-        reasons.append("evilnae_bot_surface")
 
     # =====================================================
     # GENERIC FILLER

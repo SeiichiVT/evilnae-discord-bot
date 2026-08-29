@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-ROUTING_HARDENING_VERSION = "1.3-trailing-vocative"
+ROUTING_HARDENING_VERSION = "1.2"
 
 EVIL_VARIANT_PATTERN = re.compile(
     r"(?<![A-Za-zÄÖÜäöüß0-9_])e+v+i+l+(?:\s*n+a+e+)?(?![A-Za-zÄÖÜäöüß0-9_])",
@@ -338,23 +338,6 @@ def _looks_like_direct_vocative(
                     :match.start()
                 ]
             )
-        )
-    ):
-        return True
-
-    # v1.3: trailing vocative after a first-person correction.
-    #
-    # "bin ich gar nicht evil!" = addressed TO Evilnae,
-    # not a third-person statement ABOUT Evilnae.
-    if (
-        is_end
-        and
-        re.search(
-            r"\b(?:bin|war)\s+ich\s+(?:gar\s+)?nicht\b",
-            text[
-                :match.start()
-            ],
-            flags=re.IGNORECASE,
         )
     ):
         return True

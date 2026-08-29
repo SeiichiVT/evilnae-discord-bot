@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Iterable, Optional
 
-OUTPUT_QUALITY_VERSION = "2.6-concept-repetition"
+OUTPUT_QUALITY_VERSION = "2.4"
 
 STOPWORDS = {
     "aber","als","am","an","auch","auf","aus","bei","bin","bist","bis","da","das","dass",
@@ -47,27 +47,6 @@ GENERIC_PATTERNS = {
     "soft_fail_wrapper": (
         re.compile(
             r"\bdas\s+klingt\s+(?:ja\s+)?nach\s+(?:einem|einer)\s+.{0,35}\b(?:fail|missgeschick)\b",
-            re.I
-        ), 3
-    ),
-    "bot_happy_mirror": (
-        re.compile(
-            r"\bfreut\s+mich\s+auch\b"
-            r"|\bimmer\s+schön,?\s+wenn\b"
-            r"|\bimmer\s+schoen,?\s+wenn\b",
-            re.I
-        ), 4
-    ),
-    "assistant_noted_schedule": (
-        re.compile(r"\bwird\s+notiert\b", re.I), 4
-    ),
-    "assistant_deserved_validation": (
-        re.compile(r"\bfeierabend\s+klingt\s+verdient\b", re.I), 4
-    ),
-    "cozy_service_phrase": (
-        re.compile(
-            r"\bmach(?:'|’)?s\s+dir\s+gemütlich\b"
-            r"|\bmach(?:'|’)?s\s+dir\s+gemuetlich\b",
             re.I
         ), 3
     ),
@@ -158,50 +137,6 @@ GENERIC_PATTERNS = {
 }
 
 PHRASE_FAMILIES = {
-    "low_motivation_mood": (
-        re.compile(
-            r"\b(?:"
-            r"null\s+bock|kein(?:en)?\s+bock|keine\s+lust|"
-            r"nicht\s+aus\s+lust|unmotiviert|widerwillig|"
-            r"nicht\s+in\s+stimmung|schlecht\s+gelaunt|"
-            r"keine\s+motivation"
-            r")\b",
-            re.I
-        ),
-    ),
-    "minimal_shutdown": (
-        re.compile(
-            r"\bmehr\s+muss\s+nicht\b",
-            re.I
-        ),
-        re.compile(
-            r"\bwochenende\b.{0,35}\bich\s+(?:da|auch)\b",
-            re.I
-        ),
-        re.compile(
-            r"\bich\s+bin\s+wach\b.{0,35}\boptional\b",
-            re.I
-        ),
-    ),
-    "goodnight_sleep": (
-        re.compile(
-            r"\b(?:gute\s+nacht|schlaf\s+(?:gut|schön|schoen))\b",
-            re.I
-        ),
-    ),
-    "goodnight_dream": (
-        re.compile(
-            r"\bträum\w*.{0,30}\b(?:schön|schoen|süß|suess|was)\b"
-            r"|\bträum\s+was\b",
-            re.I
-        ),
-    ),
-    "goodnight_comfy": (
-        re.compile(
-            r"\bmach(?:'|’)?s\s+dir\s+(?:gemütlich|gemuetlich)\b",
-            re.I
-        ),
-    ),
     "goodnight_spooky": (
         re.compile(
             r"\bträum\w*.{0,35}\b(?:grusel|creepy|horror|albtraum)",
@@ -291,17 +226,6 @@ UNFINISHED_END_PATTERN = re.compile(
     r"damit|obwohl|sondern|denn)\s*[,.!?…-]*\s*$",
     re.I
 )
-
-LEADING_PUNCTUATION_PATTERN = re.compile(
-    r"^\s*[!?;,]{1,3}\s+",
-    re.I
-)
-
-BAD_CASE_AFTER_ZU_PATTERN = re.compile(
-    r"\bzu\s+(?:ihre|seine|deine|meine|unsere|eure)\b",
-    re.I
-)
-
 
 REPEATED_WORD_PATTERN = re.compile(
     r"\b([A-Za-zÄÖÜäöüß]{2,})\s+\1\b",
@@ -947,14 +871,6 @@ def analyze_response_quality(
 
         grammar_score += 3
 
-    if LEADING_PUNCTUATION_PATTERN.search(text):
-        issues.append("leading_punctuation_fragment")
-        grammar_score += 3
-
-    if BAD_CASE_AFTER_ZU_PATTERN.search(text):
-        issues.append("bad_case_after_zu")
-        grammar_score += 3
-
     if REPEATED_WORD_PATTERN.search(
         text
     ):
@@ -994,39 +910,6 @@ def analyze_response_quality(
 
         grammar_score += 2
 
-
-    # =====================================================
-    # EXACT SHORT / FULL MESSAGE REPETITION
-    # =====================================================
-
-    normalized_candidate = _normalize(
-        text
-    )
-
-    exact_recent_repeat = bool(
-        normalized_candidate
-        and
-        word_count >= 2
-        and
-        any(
-            _normalize(
-                recent_message
-            )
-            ==
-            normalized_candidate
-
-            for recent_message
-            in recent[-16:]
-        )
-    )
-
-    if exact_recent_repeat:
-
-        issues.append(
-            "exact_recent_message_repeat"
-        )
-
-        repetition_score += 5
 
     # =====================================================
     # EXACT PHRASE REPETITION
@@ -1124,28 +1007,6 @@ def analyze_response_quality(
                 repeated_families
             )
         )
-
-    if (
-        "low_motivation_mood"
-        in repeated_families
-    ):
-
-        issues.append(
-            "repeated_low_motivation_concept"
-        )
-
-        repetition_score += 3
-
-    if (
-        "minimal_shutdown"
-        in repeated_families
-    ):
-
-        issues.append(
-            "repeated_shutdown_concept"
-        )
-
-        repetition_score += 2
 
     if (
         max_recent_similarity
@@ -1551,10 +1412,6 @@ Schreibe denselben zulässigen Inhalt neu.
 - Keine neuen Fakten.
 - Keine kürzlich benutzte Gag-/Phrasenfamilie wiederholen.
 - Keine kaputten Satzfragmente oder Komma-Wortketten.
-- Keine führenden Satzzeichenreste wie "! Ich hab...".
-- Bei mehreren Gute-Nacht-Antworten nicht dieselbe Schlaf-/Traum-Schablone wiederverwenden.
-- Bei semantic/concept repetition NICHT nur Synonyme austauschen. Ändere den tatsächlichen Gedanken/Winkel.
-- Insbesondere "keine Lust" -> "Null Bock" -> "unmotiviert" -> "widerwillig" ist DIESELBE Wiederholung und muss inhaltlich verlassen werden.
 - Die Antwort braucht echten Text mit mindestens einem Wort.
 - Keine Unicode-Emojis oder Discord-Custom-Emotes; der Emote-Layer kommt später.
 - Wenn der Gedanke fertig ist: aufhören.

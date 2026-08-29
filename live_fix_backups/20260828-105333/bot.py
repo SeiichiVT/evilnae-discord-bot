@@ -466,7 +466,7 @@ AUTO_LOG_PATH = _setup_auto_file_logging()
 # VERSION
 # =========================================================
 
-BOT_VERSION = "3.6.1-affect-repetition"
+BOT_VERSION = "3.6.0-emotional-salience"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -2962,10 +2962,7 @@ def has_unsupported_current_fact(
     if not answer:
         return False
 
-    answer_text = str(
-        answer
-        or ""
-    )
+    answer_text = str(answer or "")
 
     suspicious_patterns = [
         r"\b(?:sie|er)\s+ist\s+gerade\b",
@@ -2977,65 +2974,29 @@ def has_unsupported_current_fact(
         r"\b(?:sie|er)\s+arbeitet\s+gerade\b",
         r"\b(?:sie|er)\s+ist\s+jetzt\b",
         r"\b(?:sie|er)\s+macht\s+jetzt\b",
-
-        r"\b(?:hanae|error)\b.{0,45}"
-        r"\b(?:gerade|jetzt|aktuell|momentan)\b",
-
+        r"\b(?:hanae|error)\b.{0,45}\b(?:gerade|jetzt|aktuell|momentan)\b",
         r"\b(?:hanae|error)\s+"
-        r"(?:ist|macht|schaut|guckt|spielt|sitzt|liegt|"
-        r"arbeitet|bereitet|streamt|isst|trinkt)\b"
+        r"(?:ist|macht|schaut|guckt|spielt|sitzt|liegt|arbeitet|bereitet|streamt|isst|trinkt)\b"
         r".{0,55}\b(?:gerade|jetzt|aktuell|momentan)\b",
-
-        # v3.6.1: volatile PRESENT states do not need the word
-        # "gerade" to be current claims.
-        r"\b(?:hanae|error|sie|er)\s+"
-        r"(?:ist|wirkt)\s+(?:auch\s+)?"
-        r"(?:schlecht\s+gelaunt|gut\s+gelaunt|"
-        r"müde|muede|traurig|happy|glücklich|gluecklich|"
-        r"genervt|sauer|krank|hungrig|wach|beschäftigt|beschaeftigt)\b",
     ]
 
     suspicious = any(
-        re.search(
-            pattern,
-            answer_text,
-            flags=re.IGNORECASE,
-        )
-
-        for pattern
-        in suspicious_patterns
+        re.search(pattern, answer_text, flags=re.IGNORECASE)
+        for pattern in suspicious_patterns
     )
 
     if not suspicious:
         return False
 
     knowledge_available = bool(
-        getattr(
-            decision,
-            "knowledge_available",
-            False,
-        )
+        getattr(decision, "knowledge_available", False)
     )
-
     knowledge_source = str(
-        getattr(
-            decision,
-            "knowledge_source",
-            "unknown",
-        )
-        or
-        "unknown"
+        getattr(decision, "knowledge_source", "unknown") or "unknown"
     )
 
-    # Volatile current facts about another person need
-    # explicit Conversation World evidence.
-    if (
-        knowledge_available
-        and
-        knowledge_source
-        ==
-        "conversation_world"
-    ):
+    # Current facts about someone else need explicit Conversation World evidence.
+    if knowledge_available and knowledge_source == "conversation_world":
         return False
 
     return True
@@ -10500,20 +10461,6 @@ Participation-Entscheidung nötig.
                 ),
                 expression_style=(
                     expression_plan.style
-                ),
-                user_text=(
-                    user_text
-                ),
-                current_inner_state=(
-                    current_inner_state
-                ),
-                is_hanae=(
-                    is_hanae
-                ),
-                recent_evilnae_messages=(
-                    channel_evilnae_messages[
-                        -12:
-                    ]
                 ),
             )
         )

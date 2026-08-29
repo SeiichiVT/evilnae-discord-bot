@@ -10,7 +10,7 @@ from character_foundation import search_foundation
 # VERSION
 # =========================================================
 
-UNDERSTANDING_VERSION = "1.3-intent-authority"
+UNDERSTANDING_VERSION = "1.2-social-context"
 
 
 # =========================================================
@@ -1078,49 +1078,6 @@ def is_evilnae_opinion_question(
 
 
 # =========================================================
-# 1.3 EVILNAE OWN INTENT / HYPOTHETICAL
-# =========================================================
-# A person can be mentioned only as context/object of a
-# question about Evilnae herself.
-# =========================================================
-
-EVILNAE_SELF_INTENT_PATTERNS = [
-    re.compile(
-        r"\bhättest\s+du\s+(?:lust|bock)\b"
-        r"|\bhaettest\s+du\s+(?:lust|bock)\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\bhast\s+du\s+(?:lust|bock)\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\b(?:willst|möchtest|moechtest)\s+du\s+"
-        r"(?!(?:wissen|sagen|erzählen|erzaehlen)\b)",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\bwürdest\s+du\b|\bwuerdest\s+du\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\bkönntest\s+du\s+dir\s+vorstellen\b"
-        r"|\bkoenntest\s+du\s+dir\s+vorstellen\b",
-        flags=re.IGNORECASE,
-    ),
-    re.compile(
-        r"\bsollen\s+wir\b",
-        flags=re.IGNORECASE,
-    ),
-]
-
-
-def is_evilnae_self_intent_or_hypothetical(text: str) -> bool:
-    value = str(text or "")
-    return any(pattern.search(value) for pattern in EVILNAE_SELF_INTENT_PATTERNS)
-
-
-# =========================================================
 # 1.2 SOCIAL COMPARISON / PROVOCATION
 # =========================================================
 # Social comparisons with Hanae are banter, not a request for
@@ -1369,35 +1326,6 @@ def build_knowledge_constraint(
             )
         )
 
-    if is_evilnae_self_intent_or_hypothetical(
-        user_text
-    ):
-
-        return KnowledgeConstraint(
-
-            active=False,
-
-            subject_name=(
-                subject_name
-            ),
-
-            subject_id=(
-                subject_id
-            ),
-
-            knowledge_available=(
-                knowledge_available
-            ),
-
-            knowledge_source=(
-                knowledge_source
-            ),
-
-            reason=(
-                "evilnae_self_intent_or_hypothetical"
-            )
-        )
-
     if is_evilnae_opinion_question(
         user_text,
         subject_name
@@ -1490,34 +1418,15 @@ def build_knowledge_constraint(
     if knowledge_available:
 
         # Knowledge availability is SUBJECT-SCOPED.
-        # CURRENT facts are stricter than stable/person facts:
-        # Foundation canon can never prove what another person does RIGHT NOW.
-        requested_scope = (
-            infer_knowledge_scope(
-                user_text
+        # A random Self/Foundation fact about Evilnae must never authorize a
+        # factual claim about Hanae merely because the Brain returned True.
+        subject_authorized = (
+            knowledge_source == "conversation_world"
+            or _foundation_authorizes_subject_fact(
+                user_text,
+                subject_name,
             )
         )
-
-        if requested_scope == "current":
-
-            subject_authorized = (
-                knowledge_source
-                ==
-                "conversation_world"
-            )
-
-        else:
-
-            subject_authorized = (
-                knowledge_source
-                ==
-                "conversation_world"
-                or
-                _foundation_authorizes_subject_fact(
-                    user_text,
-                    subject_name,
-                )
-            )
 
         if subject_authorized:
             return KnowledgeConstraint(
@@ -1533,7 +1442,9 @@ def build_knowledge_constraint(
                 ),
 
                 scope=(
-                    requested_scope
+                    infer_knowledge_scope(
+                        user_text
+                    )
                 ),
 
                 knowledge_available=True,

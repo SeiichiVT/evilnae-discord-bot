@@ -9,14 +9,14 @@ from dataclasses import dataclass
 # VERSION
 # =========================================================
 
-PERFORMANCE_VERSION = "1.1-live-reliability"
+PERFORMANCE_VERSION = "1.0"
 
 
 # =========================================================
 # CONFIG
 # =========================================================
 
-RESPONSE_REPAIR_BUDGET = 3
+RESPONSE_REPAIR_BUDGET = 2
 
 LOCAL_VOICE_FAST_PATH_MAX_WORDS = 10
 
@@ -207,16 +207,6 @@ def format_repair_budget_debug(
 # =========================================================
 
 GENERIC_FAST_PATH_BLOCKERS = [
-
-    re.compile(
-        r"\bfreut\s+mich\s+auch\b"
-        r"|\bimmer\s+schön,?\s+wenn\b"
-        r"|\bwird\s+notiert\b"
-        r"|\bfeierabend\s+klingt\s+verdient\b"
-        r"|\bmach(?:'|’)?s\s+dir\s+gemütlich\b"
-        r"|\bmach(?:'|’)?s\s+dir\s+gemuetlich\b",
-        re.IGNORECASE
-    ),
 
     re.compile(
         r"\bdas\s+klingt\b",

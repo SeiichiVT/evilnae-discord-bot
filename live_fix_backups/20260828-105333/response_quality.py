@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from difflib import SequenceMatcher
 from typing import Iterable, Optional
 
-OUTPUT_QUALITY_VERSION = "2.6-concept-repetition"
+OUTPUT_QUALITY_VERSION = "2.5"
 
 STOPWORDS = {
     "aber","als","am","an","auch","auf","aus","bei","bin","bist","bis","da","das","dass",
@@ -158,31 +158,6 @@ GENERIC_PATTERNS = {
 }
 
 PHRASE_FAMILIES = {
-    "low_motivation_mood": (
-        re.compile(
-            r"\b(?:"
-            r"null\s+bock|kein(?:en)?\s+bock|keine\s+lust|"
-            r"nicht\s+aus\s+lust|unmotiviert|widerwillig|"
-            r"nicht\s+in\s+stimmung|schlecht\s+gelaunt|"
-            r"keine\s+motivation"
-            r")\b",
-            re.I
-        ),
-    ),
-    "minimal_shutdown": (
-        re.compile(
-            r"\bmehr\s+muss\s+nicht\b",
-            re.I
-        ),
-        re.compile(
-            r"\bwochenende\b.{0,35}\bich\s+(?:da|auch)\b",
-            re.I
-        ),
-        re.compile(
-            r"\bich\s+bin\s+wach\b.{0,35}\boptional\b",
-            re.I
-        ),
-    ),
     "goodnight_sleep": (
         re.compile(
             r"\b(?:gute\s+nacht|schlaf\s+(?:gut|schön|schoen))\b",
@@ -996,39 +971,6 @@ def analyze_response_quality(
 
 
     # =====================================================
-    # EXACT SHORT / FULL MESSAGE REPETITION
-    # =====================================================
-
-    normalized_candidate = _normalize(
-        text
-    )
-
-    exact_recent_repeat = bool(
-        normalized_candidate
-        and
-        word_count >= 2
-        and
-        any(
-            _normalize(
-                recent_message
-            )
-            ==
-            normalized_candidate
-
-            for recent_message
-            in recent[-16:]
-        )
-    )
-
-    if exact_recent_repeat:
-
-        issues.append(
-            "exact_recent_message_repeat"
-        )
-
-        repetition_score += 5
-
-    # =====================================================
     # EXACT PHRASE REPETITION
     # =====================================================
 
@@ -1124,28 +1066,6 @@ def analyze_response_quality(
                 repeated_families
             )
         )
-
-    if (
-        "low_motivation_mood"
-        in repeated_families
-    ):
-
-        issues.append(
-            "repeated_low_motivation_concept"
-        )
-
-        repetition_score += 3
-
-    if (
-        "minimal_shutdown"
-        in repeated_families
-    ):
-
-        issues.append(
-            "repeated_shutdown_concept"
-        )
-
-        repetition_score += 2
 
     if (
         max_recent_similarity
@@ -1553,8 +1473,6 @@ Schreibe denselben zulässigen Inhalt neu.
 - Keine kaputten Satzfragmente oder Komma-Wortketten.
 - Keine führenden Satzzeichenreste wie "! Ich hab...".
 - Bei mehreren Gute-Nacht-Antworten nicht dieselbe Schlaf-/Traum-Schablone wiederverwenden.
-- Bei semantic/concept repetition NICHT nur Synonyme austauschen. Ändere den tatsächlichen Gedanken/Winkel.
-- Insbesondere "keine Lust" -> "Null Bock" -> "unmotiviert" -> "widerwillig" ist DIESELBE Wiederholung und muss inhaltlich verlassen werden.
 - Die Antwort braucht echten Text mit mindestens einem Wort.
 - Keine Unicode-Emojis oder Discord-Custom-Emotes; der Emote-Layer kommt später.
 - Wenn der Gedanke fertig ist: aufhören.

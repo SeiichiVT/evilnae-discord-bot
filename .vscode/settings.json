@@ -1,0 +1,33 @@
+{
+  "files.exclude": {
+    "**/.venv": true,
+    "**/venv": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/logs": true,
+    "**/live_fix_backups": true,
+    "**/.git": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true
+  },
+  "search.exclude": {
+    "**/.venv": true,
+    "**/venv": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/logs": true,
+    "**/live_fix_backups": true,
+    "**/.git": true,
+    "**/.pytest_cache": true,
+    "**/.mypy_cache": true,
+    "**/.ruff_cache": true
+  },
+  "files.watcherExclude": {
+    "**/.venv/**": true,
+    "**/venv/**": true,
+    "**/logs/**": true,
+    "**/live_fix_backups/**": true,
+    "**/__pycache__/**": true
+  }
+}

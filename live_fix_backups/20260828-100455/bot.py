@@ -194,15 +194,6 @@ from evilnae_emotes import (
     format_evilnae_emote_debug,
 )
 
-from emotional_salience import (
-    EMOTIONAL_SALIENCE_VERSION,
-    observe_salience_event,
-    sync_closed_episode_salience,
-    format_salience_context,
-    format_salience_debug,
-    format_salience_stats_debug,
-)
-
 from conversation_episodes import (
     CONVERSATION_EPISODES_VERSION,
     observe_episode_message,
@@ -466,7 +457,7 @@ AUTO_LOG_PATH = _setup_auto_file_logging()
 # VERSION
 # =========================================================
 
-BOT_VERSION = "3.6.1-affect-repetition"
+BOT_VERSION = "3.5.0-conversation-episodes"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -2962,10 +2953,7 @@ def has_unsupported_current_fact(
     if not answer:
         return False
 
-    answer_text = str(
-        answer
-        or ""
-    )
+    answer_text = str(answer or "")
 
     suspicious_patterns = [
         r"\b(?:sie|er)\s+ist\s+gerade\b",
@@ -2977,65 +2965,29 @@ def has_unsupported_current_fact(
         r"\b(?:sie|er)\s+arbeitet\s+gerade\b",
         r"\b(?:sie|er)\s+ist\s+jetzt\b",
         r"\b(?:sie|er)\s+macht\s+jetzt\b",
-
-        r"\b(?:hanae|error)\b.{0,45}"
-        r"\b(?:gerade|jetzt|aktuell|momentan)\b",
-
+        r"\b(?:hanae|error)\b.{0,45}\b(?:gerade|jetzt|aktuell|momentan)\b",
         r"\b(?:hanae|error)\s+"
-        r"(?:ist|macht|schaut|guckt|spielt|sitzt|liegt|"
-        r"arbeitet|bereitet|streamt|isst|trinkt)\b"
+        r"(?:ist|macht|schaut|guckt|spielt|sitzt|liegt|arbeitet|bereitet|streamt|isst|trinkt)\b"
         r".{0,55}\b(?:gerade|jetzt|aktuell|momentan)\b",
-
-        # v3.6.1: volatile PRESENT states do not need the word
-        # "gerade" to be current claims.
-        r"\b(?:hanae|error|sie|er)\s+"
-        r"(?:ist|wirkt)\s+(?:auch\s+)?"
-        r"(?:schlecht\s+gelaunt|gut\s+gelaunt|"
-        r"müde|muede|traurig|happy|glücklich|gluecklich|"
-        r"genervt|sauer|krank|hungrig|wach|beschäftigt|beschaeftigt)\b",
     ]
 
     suspicious = any(
-        re.search(
-            pattern,
-            answer_text,
-            flags=re.IGNORECASE,
-        )
-
-        for pattern
-        in suspicious_patterns
+        re.search(pattern, answer_text, flags=re.IGNORECASE)
+        for pattern in suspicious_patterns
     )
 
     if not suspicious:
         return False
 
     knowledge_available = bool(
-        getattr(
-            decision,
-            "knowledge_available",
-            False,
-        )
+        getattr(decision, "knowledge_available", False)
     )
-
     knowledge_source = str(
-        getattr(
-            decision,
-            "knowledge_source",
-            "unknown",
-        )
-        or
-        "unknown"
+        getattr(decision, "knowledge_source", "unknown") or "unknown"
     )
 
-    # Volatile current facts about another person need
-    # explicit Conversation World evidence.
-    if (
-        knowledge_available
-        and
-        knowledge_source
-        ==
-        "conversation_world"
-    ):
+    # Current facts about someone else need explicit Conversation World evidence.
+    if knowledge_available and knowledge_source == "conversation_world":
         return False
 
     return True
@@ -8158,21 +8110,6 @@ async def on_ready():
             f"{stale_episodes_closed}"
         )
 
-    closed_salience_synced = (
-        sync_closed_episode_salience()
-    )
-
-    print(
-        format_salience_stats_debug()
-    )
-
-    if closed_salience_synced:
-        print(
-            "[EMOTIONAL SALIENCE RECOVERY] "
-            f"closed_updated="
-            f"{closed_salience_synced}"
-        )
-
     # -----------------------------------------------------
     # EVILNAE APPLICATION EMOJIS
     # -----------------------------------------------------
@@ -8266,19 +8203,6 @@ async def on_ready():
 
     print(
         "Episode -> Character Learning: DISABLED"
-    )
-
-    print(
-        f"Emotional Salience v"
-        f"{EMOTIONAL_SALIENCE_VERSION}: ACTIVE"
-    )
-
-    print(
-        "Salience -> Character Learning: DISABLED"
-    )
-
-    print(
-        "Retention Candidate != Memory: ACTIVE"
     )
 
     print(
@@ -9061,76 +8985,6 @@ async def on_message(
         )
 
     # =====================================================
-    # EMOTIONAL SALIENCE
-    #
-    # Scores how much this moment may matter.
-    # This does NOT learn or alter the character yet.
-    # =====================================================
-
-    salience_result = (
-        observe_salience_event(
-            episode_id=(
-                episode_observation
-                .episode_id
-            ),
-            channel_id=channel_id,
-            user_id=user_id,
-            username=username,
-            text=(
-                perception.text
-                or perception.raw_content
-                or "[nonverbale Reaktion]"
-            ),
-            message_id=getattr(
-                message,
-                "id",
-                "",
-            ),
-            direct=bool(
-                getattr(
-                    perception,
-                    "directly_addresses_evilnae",
-                    False,
-                )
-                or
-                getattr(
-                    perception,
-                    "is_reply_to_evilnae",
-                    False,
-                )
-            ),
-            is_hanae=(
-                str(user_id)
-                ==
-                str(HANAE_USER_ID)
-            ),
-        )
-    )
-
-    salience_context_text = (
-        format_salience_context(
-            salience_result
-        )
-    )
-
-    closed_salience_synced = (
-        sync_closed_episode_salience()
-    )
-
-    print(
-        format_salience_debug(
-            salience_result
-        )
-    )
-
-    if closed_salience_synced:
-        print(
-            "[EMOTIONAL SALIENCE SYNC] "
-            f"closed_updated="
-            f"{closed_salience_synced}"
-        )
-
-    # =====================================================
     # B3C REFERENCE / EPISODE CONTEXT
     # =====================================================
 
@@ -9892,8 +9746,6 @@ REGELN:
             + b3c_episode_focus_text
             + "\n\n"
             + persistent_episode_context_text
-            + "\n\n"
-            + salience_context_text
         )
 
         # B3F -> BRAIN
@@ -10501,20 +10353,6 @@ Participation-Entscheidung nötig.
                 expression_style=(
                     expression_plan.style
                 ),
-                user_text=(
-                    user_text
-                ),
-                current_inner_state=(
-                    current_inner_state
-                ),
-                is_hanae=(
-                    is_hanae
-                ),
-                recent_evilnae_messages=(
-                    channel_evilnae_messages[
-                        -12:
-                    ]
-                ),
             )
         )
 
@@ -10615,8 +10453,6 @@ Participation-Entscheidung nötig.
             + response_plan_text
             + "\n\n"
             + persistent_episode_context_text
-            + "\n\n"
-            + salience_context_text
         )
 
         # =====================================================
@@ -10724,7 +10560,6 @@ Participation-Entscheidung nötig.
             character_directive_text,
             character_state_text,
             persistent_episode_context_text,
-            salience_context_text,
         ):
 
             surface_piece = str(

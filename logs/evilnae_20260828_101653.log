@@ -1,0 +1,949 @@
+[AUTO FILE LOGGING] v=1.0 path=E:\DC Bot Test\logs\evilnae_20260828_101653.log keep=60
+[30;1m2026-08-28 10:16:53[0m [34;1mINFO    [0m [35mdiscord.client[0m logging in using static token
+[30;1m2026-08-28 10:16:54[0m [34;1mINFO    [0m [35mdiscord.gateway[0m Shard ID None has connected to Gateway (Session ID: 6ff987e36ba95c570318c3be3b0bff92).
+[CONVERSATION EPISODES] v=1.0 active=0 closed=0 gap=1200s max_events=80
+[EMOTIONAL SALIENCE STATE] v=1.0.1-feedback-fix active=0 closed=0 retention_candidates=0 threshold=0.50
+[EVILNAE EMOTES LOADED] count=20 source=discord+fallback
+
+============================================
+Evilnae ist online als Evilnae#4176
+Bot Version: 3.6.0-emotional-salience
+============================================
+Perception v2.0.1: ACTIVE
+Conversation State: ACTIVE
+Brain v2.4-response-planner: ACTIVE
+Response Planner v1.0: ACTIVE
+Structured Core Thought: ACTIVE
+Conversation Episodes v1.0: ACTIVE
+Episode Gap Boundary: 20min default
+Episode -> Character Learning: DISABLED
+Emotional Salience v1.0.1-feedback-fix: ACTIVE
+Salience -> Character Learning: DISABLED
+Retention Candidate != Memory: ACTIVE
+Social Move / Stance Contract: ACTIVE
+Qwen Surface Writer v1.0: PRIMARY
+OpenAI Text Writer: FALLBACK / REPAIR
+Duplicate Qwen Humanizer After Qwen Primary: DISABLED
+[SURFACE WRITER CONFIG] v=1.0 enabled=True model=qwen3:4b-instruct predict=140 temperature=0.72
+Participation Brain v1.2: ACTIVE
+Active Conversation: ACTIVE
+Knowledge Guard: ACTIVE
+Conversation World v1.0: ACTIVE
+Source Authority: ACTIVE
+Self Model v2.1-character-foundation: ACTIVE
+Self Knowledge Guard: ACTIVE
+[SELF MODEL] v=2.1-character-foundation seed=1 learned=0
+Character Foundation v1.1-live-retrieval: ACTIVE
+Foundation Entries: 836
+Excel Character Authority: ACTIVE
+Legacy Character Mismatches: REPLACED
+Physical Reality Canon: ACTIVE
+Character Ownership Canon: ACTIVE
+Character Learning v1.1: ACTIVE
+Fixed Canon Learning Override: DISABLED
+Character Current State v1.2-fresh-activity: ACTIVE
+Canon / Joke Separation: ACTIVE
+[CHARACTER LEARNING] v=1.1 entries=1
+[CHARACTER STATE] v=1.2-fresh-activity active=[]
+Curiosity / Question Policy v1.1: ACTIVE
+Information Gap Questions: ACTIVE
+Anti-Interview Question Pressure: ACTIVE
+Post-Voice Question Guard: ACTIVE
+Single Question Shape Guard: ACTIVE
+Natural Response Guard v1.0: ACTIVE
+React-Don't-Restate Guard: ACTIVE
+Assistant Coaching Guard: ACTIVE
+Human Response Rhythm: ACTIVE
+One-Thought Reply Style: ACTIVE
+No Forced Completion: ACTIVE
+Evilnae Emote Layer v1.2: ACTIVE
+Evilnae Application Emojis Only: ACTIVE
+Maximum One Evilnae Emote Per Reply: ACTIVE
+Discord Actions v1.0: ACTIVE
+Application Emoji Reactions Only: ACTIVE
+Unicode Reaction Fallback: DISABLED
+Thumbs-Up Fallback: DISABLED
+Reaction Cooldowns: ACTIVE
+Text Emote Cooldowns: ACTIVE
+Conversation Understanding v1.1-thread-ownership: ACTIVE
+Direct Address Resolver v2: ACTIVE
+Reference / Ellipsis Resolver: ACTIVE
+Group Thread Continuity v2: ACTIVE
+Question Guard Fail-Safe: ACTIVE
+Garbled Output Guard: ACTIVE
+Response Reliability v1: ACTIVE
+No Lost Harmless Replies: ACTIVE
+Safe Draft Fallback: ACTIVE
+Explicit Silence Diagnostics: ACTIVE
+Output Quality v2.5: ACTIVE
+Qwen Acceptance v2: ACTIVE
+Semantic Repetition v2: ACTIVE
+Grammar / Garbled v2: ACTIVE
+One-Thought Quality Check v2: ACTIVE
+Targeted Quality Repair: ACTIVE
+Performance v1.1-live-reliability: ACTIVE
+Response Repair API Budget: 3
+Writer Validation Repairs: 1
+Response API Retries: 2
+Local Voice Clean-Short Fast Path: ACTIVE
+End-to-End Latency Telemetry: ACTIVE
+Pipeline Consolidation v1.0: ACTIVE
+Legacy Mid-Pipeline API Repairs: DISABLED
+Pre-Voice Critical Gate: CONSOLIDATED
+Post-Voice Critical Gate: CONSOLIDATED
+Pre-Quality Critical Gate: CONSOLIDATED
+Final Send Critical Gate: CONSOLIDATED
+Routing Hardening v1.2: ACTIVE
+Stretched Evil/Evilnae Vocatives: ACTIVE
+Reply-To Priority Routing: ACTIVE
+Reference Resolver v2: ACTIVE
+Parallel Group Thread Scan: ACTIVE (depth=8)
+Participation Routing Boost: ACTIVE
+Response Agency v1.0: ACTIVE
+Continuation reply/react/stay_silent: ACTIVE
+Expression Layer v2.5: ACTIVE
+Coherence v1.0: ACTIVE
+Channel-wide Repetition Guard: ACTIVE
+Expression Final Guard: ACTIVE
+Context Freshness Guard: ACTIVE (base=2, direct>=6, continuation>=3, participation=1)
+Inner State v1.2: ACTIVE
+Autonomy / Initiative v1: ACTIVE
+Reflection / Learning v1: ACTIVE
+Reflection Explicit Feedback Gate: ACTIVE
+Reflection Timeout Learning: DISABLED
+Writer Repair: ACTIVE
+Generic Fallback Replies: DISABLED
+Outer Quote Cleanup: ACTIVE
+Random Mood System: DISABLED
+Permanent FAIR Ban: ACTIVE
+Social Actions: ACTIVE
+Local Voice v1.3.0: ACTIVE
+Voice Memory v1.0: ACTIVE
+[LOCAL VOICE CONFIG] v=1.3.0 enabled=True model=qwen3:4b-instruct url=http://127.0.0.1:11434 timeout=60.0s queue=1.5s ctx=4096 predict=200 repair_predict=120 repair_attempts=1 meaning_min=0.82
+[VOICE MEMORY] v=1.0 good=7 bad=3 learned=0
+Active conversation window: 480s
+Reflection feedback window: 720s
+Active conversations: 0
+Pending reflections: 0
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.65 curiosity=0.55 boredom=0.20 amusement=0.30 warmth=0.45 chaos=0.35 confidence=0.75 events=[]
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+Initiative Channel: UNKNOWN UNTIL FIRST MESSAGE
+============================================
+
+[INITIATIVE LOOP] status=started
+[LOCAL VOICE WARM] model=qwen3:4b-instruct duration=3.40s status=ready
+[INITIATIVE CHANNEL] set=1540713345856970884
+[ROUTING HARDENING] v=1.2 changed=False direct=False reply_to_evilnae=False name_variant=False stretched=False subject_is_evilnae=False references=['demonstrative'] reason=unchanged
+[PERCEPTION] v=2.0.1 user=HANAE id=568096551948255242 text='Ja am Handy sieht man das leider nicht , also no Blame' emojis=['HanaeLove'] emoji_only=False bot_mention=False direct=False name_mention=False address_reason='no_name' trigger=False reply_bot=False reply_to=None should_reply=False
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=True closed_previous=False close_reason='' event_added=True events=1 participants=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.11 level=mundane valence=neutral signals=['hanae_relationship_context'] episode_score=0.12 retention=False duplicate=False
+[TARGET] v=1.3-intent-authority kind=open target_id=None target_name=None explicit=False block_continuation=False participation=True reason=open_conversation
+[API RESPONSE] user=HANAE/participation duration=4.67s attempt=1 active=1
+[PARTICIPATION] v=1.2 action=stay_silent confidence=high relevance=0.20 social_value=0.10 involvement=0.10 goal='' reason='Die Nachricht von Hanae betrifft die Sichtbarkeit auf dem Handy, was nicht direkt relevant für Evilnae ist. Es gibt kein zwingendes Bedürfnis für sie, sich einzumischen.'
+[SILENT FINAL] user=HANAE stage=participation reason=Die Nachricht von Hanae betrifft die Sichtbarkeit auf dem Handy, was nicht direkt relevant für Evilnae ist. Es gibt kein zwingendes Bedürfnis für sie, sich einzumischen.
+[ROUTING HARDENING] v=1.2 changed=False direct=True reply_to_evilnae=False name_variant=True stretched=False subject_is_evilnae=False references=[] reason=already_direct
+[PERCEPTION] v=2.0.1 user=#WeLoveHana FLOCHI id=225324315824881665 text='träumt wohl wieder was tolles' emojis=['HanaeDerpy'] emoji_only=False bot_mention=False direct=True name_mention=True address_reason='start_name_default' trigger=True reply_bot=False reply_to=None should_reply=True
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=2 participants=2
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.08 level=mundane valence=neutral signals=['ordinary_interaction'] episode_score=0.13 retention=False duplicate=False
+[ROUTING FINAL] user=#WeLoveHana FLOCHI mode=direct direct=True continuation=False participation=False
+[ACTIVE CONVERSATION] user_id=225324315824881665 channel=1540713345856970884 source=direct_attempt state=active
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.65 curiosity=0.55 boredom=0.20 amusement=0.30 warmth=0.45 chaos=0.35 confidence=0.75 events=[]
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(293, 8.65), (310, 8.65), (607, 8.65)]
+[STATE] v=1.1 user=#WeLoveHana FLOCHI id=225324315824881665 hanae=False mood=normal recent_evilnae=0 memories=0 emojis=1
+[API RESPONSE] user=#WeLoveHana FLOCHI/brain duration=5.18s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=playful move=answer stance=playful shape=one_liner banter=0.40 question=False correction=False knowledge=False confidence=unknown source=not_applicable ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=direct action=reply reaction=None overridden=False reason=direct_reply
+[EXPRESSION] v=2.5 style=natural slang=light emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=answer stance=playful shape=one_liner banter=0.40 warmth=0.50 question=False target='current_user' thought='User deutet an, dass jemand etwas Schönes träumt, will darauf locker antworten.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=False source=not_applicable reason=no_known_person_subject
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=10.60s plan=1.00 new_facts=False move=answer stance=playful shape=one_liner reason='spielerisch, kurz, kein Roast' output='Träumt jemand was Schönes? Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[WRITER ROUTER] user=#WeLoveHana FLOCHI primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=baseline_capture source=post_knowledge_writer answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[RELIABILITY BASELINE] user=#WeLoveHana FLOCHI answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.00 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_voice/writer_after_critical source=writer_after_critical answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_voice source=writer_after_critical combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_voice/reliability_baseline source=reliability_baseline answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=pre_voice source=writer_after_critical answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE PRE-VOICE READY] user=#WeLoveHana FLOCHI source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.00 severe=False issues=[]
+[LOCAL VOICE SECOND PASS SKIP] user=#WeLoveHana FLOCHI reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=True reason=same_content meaning=1.00 candidate=0 baseline=0 candidate_issues=[]
+[QWEN CANDIDATE ACCEPTED] user=#WeLoveHana FLOCHI reason=same_content
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/voice_or_writer source=voice_or_writer answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=voice_or_writer combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/reliability_baseline source=reliability_baseline answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/writer_before_voice source=writer_before_voice answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=post_voice source=voice_or_writer answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE POST-VOICE READY] user=#WeLoveHana FLOCHI source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/post_expression source=post_expression answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/reliability_baseline source=reliability_baseline answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/writer_before_voice source=writer_before_voice answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=pre_quality source=post_expression answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE PRE-QUALITY READY] user=#WeLoveHana FLOCHI source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.00 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.00 severe=False issues=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/quality_final source=quality_final answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/reliability_baseline source=reliability_baseline answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/writer_before_voice source=writer_before_voice answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=final_send source=quality_final answer='Ich glaube, ich habe schon ein paar Traum-Beispiele aus dem Jahr 2023.'
+[PIPELINE FINAL READY] user=#WeLoveHana FLOCHI source=quality_final repairs=0
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=#WeLoveHana FLOCHI mode=direct total=16.96s repairs=0
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=225324315824881665 channel=1540713345856970884 source=direct state=active
+[REFLECTION PENDING] user=#WeLoveHana FLOCHI discord_message_id=1542810532019699744 window=720s
+[RESPONSE DONE] user=#WeLoveHana FLOCHI mode=direct duration=16.94s brain=5.18s buffer=4/10 inner=neutral expression=natural feedback_previous=False active_conversations=1 pending_reflections=1 reflection_jobs=1 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[ROUTING HARDENING] v=1.2 changed=False direct=True reply_to_evilnae=False name_variant=True stretched=False subject_is_evilnae=False references=[] reason=already_direct
+[PERCEPTION] v=2.0.1 user=#WeLoveHana FLOCHI id=225324315824881665 text='AAAh Guten Morgen, auch mal wach?' emojis=[] emoji_only=False bot_mention=False direct=True name_mention=True address_reason='greeting_vocative' trigger=True reply_bot=False reply_to=None should_reply=True
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=3 participants=2
+[CONVERSATION EPISODE SYNC] user=#WeLoveHana FLOCHI evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.08 level=mundane valence=neutral signals=['ordinary_interaction'] episode_score=0.13 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=#WeLoveHana FLOCHI result=not_feedback
+[ROUTING FINAL] user=#WeLoveHana FLOCHI mode=direct direct=True continuation=False participation=False
+[ACTIVE CONVERSATION] user_id=225324315824881665 channel=1540713345856970884 source=direct_attempt state=active
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.67 curiosity=0.58 boredom=0.18 amusement=0.30 warmth=0.46 chaos=0.35 confidence=0.75 events=['greeting', 'interesting_question']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(299, 8.93), (131, 7.38), (561, 4.65)]
+[STATE] v=1.1 user=#WeLoveHana FLOCHI id=225324315824881665 hanae=False mood=normal recent_evilnae=1 memories=0 emojis=0
+[API RESPONSE] user=#WeLoveHana FLOCHI/brain duration=11.21s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=relaxed move=answer stance=dry shape=one_liner banter=0.00 question=False correction=False knowledge=True confidence=high source=recent_context ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=direct action=reply reaction=None overridden=False reason=direct_reply
+[EXPRESSION] v=2.5 style=natural slang=light emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=answer stance=dry shape=one_liner banter=0.00 warmth=0.60 question=False target='current_user' thought='Der User fragt, ob ich schon wach bin, also antworte ich direkt.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=True source=recent_context reason=no_known_person_subject
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=3.77s plan=1.00 new_facts=False move=answer stance=dry shape=one_liner reason='direkt, trocken, ein wenig smug' output='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[WRITER ROUTER] user=#WeLoveHana FLOCHI primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=baseline_capture source=post_knowledge_writer answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[RELIABILITY BASELINE] user=#WeLoveHana FLOCHI answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.67 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_voice/writer_after_critical source=writer_after_critical answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_voice source=writer_after_critical combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_voice/reliability_baseline source=reliability_baseline answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=pre_voice source=writer_after_critical answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE PRE-VOICE READY] user=#WeLoveHana FLOCHI source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.39 severe=False issues=[]
+[LOCAL VOICE SECOND PASS SKIP] user=#WeLoveHana FLOCHI reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=True reason=same_content meaning=1.00 candidate=0 baseline=0 candidate_issues=[]
+[QWEN CANDIDATE ACCEPTED] user=#WeLoveHana FLOCHI reason=same_content
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/voice_or_writer source=voice_or_writer answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=voice_or_writer combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/reliability_baseline source=reliability_baseline answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/writer_before_voice source=writer_before_voice answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=post_voice source=voice_or_writer answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE POST-VOICE READY] user=#WeLoveHana FLOCHI source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/post_expression source=post_expression answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/reliability_baseline source=reliability_baseline answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/writer_before_voice source=writer_before_voice answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=pre_quality source=post_expression answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE PRE-QUALITY READY] user=#WeLoveHana FLOCHI source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.39 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.39 severe=False issues=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/quality_final source=quality_final answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/reliability_baseline source=reliability_baseline answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/writer_before_voice source=writer_before_voice answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=final_send source=quality_final answer='AAAh, ja, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE FINAL READY] user=#WeLoveHana FLOCHI source=quality_final repairs=0
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=#WeLoveHana FLOCHI mode=direct total=16.50s repairs=0
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=225324315824881665 channel=1540713345856970884 source=direct state=active
+[REFLECTION REPLACED] user=#WeLoveHana FLOCHI reason=no_explicit_feedback learning=no
+[REFLECTION PENDING] user=#WeLoveHana FLOCHI discord_message_id=1542810735623671878 window=720s
+[RESPONSE DONE] user=#WeLoveHana FLOCHI mode=direct duration=16.47s brain=11.21s buffer=5/10 inner=neutral expression=natural feedback_previous=False active_conversations=1 pending_reflections=1 reflection_jobs=2 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[INITIATIVE] v=1.0 allowed=False reason=channel_too_active score=0.00 type=None daily=0/8
+[PERCEPTION] v=2.0.1 user=#WeLoveHana FLOCHI id=225324315824881665 text='Man kennst, aber ey. Bald ist wieder wochenende!' emojis=[] emoji_only=False bot_mention=False direct=False name_mention=False address_reason='no_name' trigger=False reply_bot=False reply_to=None should_reply=False
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=5 participants=2
+[CONVERSATION EPISODE SYNC] user=#WeLoveHana FLOCHI evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.08 level=mundane valence=neutral signals=['ordinary_interaction'] episode_score=0.13 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=#WeLoveHana FLOCHI result=not_feedback
+[TARGET] v=1.3-intent-authority kind=open target_id=None target_name=None explicit=False block_continuation=False participation=True reason=open_conversation
+[ROUTING FINAL] user=#WeLoveHana FLOCHI mode=continuation direct=False continuation=True participation=False
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.65 curiosity=0.56 boredom=0.20 amusement=0.30 warmth=0.45 chaos=0.35 confidence=0.75 events=[]
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(293, 8.47), (310, 8.47), (607, 8.47)]
+[STATE] v=1.1 user=#WeLoveHana FLOCHI id=225324315824881665 hanae=False mood=normal recent_evilnae=2 memories=0 emojis=0
+[API RESPONSE] user=#WeLoveHana FLOCHI/brain duration=6.49s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=relaxed move=answer stance=dry shape=one_liner banter=0.20 question=False correction=False knowledge=False confidence=unknown source=not_applicable ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=continuation action=reply reaction=None overridden=False reason=brain_reply
+[EXPRESSION] v=2.5 style=natural slang=light emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=answer stance=dry shape=one_liner banter=0.20 warmth=0.50 question=False target='current_user' thought='Wahrscheinlich freut sich der User aufs Wochenende, das kann ich lässig bestätigen.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=False source=not_applicable reason=no_known_person_subject
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=3.81s plan=1.00 new_facts=False move=answer stance=dry shape=one_liner reason='dry roast with core thought' output='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[WRITER ROUTER] user=#WeLoveHana FLOCHI primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=baseline_capture source=post_knowledge_writer answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[RELIABILITY BASELINE] user=#WeLoveHana FLOCHI answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.20 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_voice/writer_after_critical source=writer_after_critical answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_voice source=writer_after_critical combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_voice/reliability_baseline source=reliability_baseline answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=pre_voice source=writer_after_critical answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE PRE-VOICE READY] user=#WeLoveHana FLOCHI source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=0.79 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[LOCAL VOICE SECOND PASS SKIP] user=#WeLoveHana FLOCHI reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=False reason=candidate_severe_quality_issue meaning=1.00 candidate=7 baseline=7 candidate_issues=['repeated_4word_phrase', 'high_recent_similarity']
+[QWEN CANDIDATE REJECTED] user=#WeLoveHana FLOCHI reason=candidate_severe_quality_issue
+[LOCAL VOICE REJECTED] user=#WeLoveHana FLOCHI reasons=['empty_answer']
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/voice_or_writer source=voice_or_writer answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=voice_or_writer combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/reliability_baseline source=reliability_baseline answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=post_voice/writer_before_voice source=writer_before_voice answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=post_voice source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=post_voice source=voice_or_writer answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE POST-VOICE READY] user=#WeLoveHana FLOCHI source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/post_expression source=post_expression answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=post_expression combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/reliability_baseline source=reliability_baseline answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=pre_quality/writer_before_voice source=writer_before_voice answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=pre_quality source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=pre_quality source=post_expression answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE PRE-QUALITY READY] user=#WeLoveHana FLOCHI source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=0.79 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[REPAIR BUDGET] v=1.1-live-reliability allowed=True used=1/3 label='output_quality_v2+repeated_4word_phrase+high_recent_similarity'
+[API RESPONSE] user=#WeLoveHana FLOCHI/writer-repair duration=2.09s attempt=1 active=1
+[OUTPUT QUALITY REPAIR ACCEPTED] user=#WeLoveHana FLOCHI before=7 after=0
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.45 severe=False issues=[]
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/quality_final source=quality_final answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/reliability_baseline source=reliability_baseline answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHana FLOCHI stage=final_send/writer_before_voice source=writer_before_voice answer='Aha, ja. Wochenende kommt, ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHana FLOCHI stage=final_send source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHana FLOCHI stage=final_send source=quality_final answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE FINAL READY] user=#WeLoveHana FLOCHI source=quality_final repairs=1
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=#WeLoveHana FLOCHI mode=continuation total=13.48s repairs=1
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=225324315824881665 channel=1540713345856970884 source=continuation state=active
+[REFLECTION REPLACED] user=#WeLoveHana FLOCHI reason=no_explicit_feedback learning=no
+[REFLECTION PENDING] user=#WeLoveHana FLOCHI discord_message_id=1542811152684421140 window=720s
+[RESPONSE DONE] user=#WeLoveHana FLOCHI mode=continuation duration=13.45s brain=6.49s buffer=6/10 inner=neutral expression=natural feedback_previous=False active_conversations=1 pending_reflections=1 reflection_jobs=2 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[INITIATIVE] v=1.0 allowed=False reason=channel_too_active score=0.00 type=None daily=0/8
+[ROUTING HARDENING] v=1.2 changed=False direct=True reply_to_evilnae=False name_variant=True stretched=False subject_is_evilnae=False references=[] reason=already_direct
+[PERCEPTION] v=2.0.1 user=#WeLoveHanae_Kubotic, Sun Killer id=311571123521191939 text="Einen schönen guten Morgen dir. Wie geht's wie steht's?" emojis=[] emoji_only=False bot_mention=False direct=True name_mention=True address_reason='middle_direct_follower' trigger=True reply_bot=False reply_to=None should_reply=True
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=7 participants=3
+[CONVERSATION EPISODE SYNC] user=#WeLoveHanae_Kubotic, Sun Killer evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.08 level=mundane valence=neutral signals=['ordinary_interaction'] episode_score=0.13 retention=False duplicate=False
+[ROUTING FINAL] user=#WeLoveHanae_Kubotic, Sun Killer mode=direct direct=True continuation=False participation=False
+[ACTIVE CONVERSATION] user_id=311571123521191939 channel=1540713345856970884 source=direct_attempt state=active
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.67 curiosity=0.58 boredom=0.18 amusement=0.30 warmth=0.46 chaos=0.35 confidence=0.75 events=['greeting', 'interesting_question', 'normal_social_question']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(299, 8.65), (116, 7.75), (131, 7.1)]
+[STATE] v=1.1 user=#WeLoveHanae_Kubotic, Sun Killer id=311571123521191939 hanae=False mood=normal recent_evilnae=0 memories=0 emojis=0
+[API RESPONSE] user=#WeLoveHanae_Kubotic, Sun Killer/brain duration=7.92s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=relaxed move=answer stance=dry shape=one_liner banter=0.30 question=False correction=False knowledge=False confidence=unknown source=not_applicable ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=direct action=reply reaction=None overridden=False reason=direct_reply
+[EXPRESSION] v=2.5 style=natural slang=light emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=answer stance=dry shape=one_liner banter=0.30 warmth=0.30 question=False target='current_user' thought='Locker und kurz erwidern, dass es okay ist, wach zu sein, auch wenn die Stimmung nicht die beste ist.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=False source=not_applicable reason=no_known_person_subject
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.58s plan=1.00 new_facts=False move=answer stance=dry shape=one_liner reason='direct match to recent reply' output='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[WRITER ROUTER] user=#WeLoveHanae_Kubotic, Sun Killer primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=baseline_capture source=post_knowledge_writer answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[RELIABILITY BASELINE] user=#WeLoveHanae_Kubotic, Sun Killer answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.00 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice/writer_after_critical source=writer_after_critical answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice source=writer_after_critical combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice/reliability_baseline source=reliability_baseline answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice source=writer_after_critical answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE PRE-VOICE READY] user=#WeLoveHanae_Kubotic, Sun Killer source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=1.00 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[LOCAL VOICE SECOND PASS SKIP] user=#WeLoveHanae_Kubotic, Sun Killer reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=False reason=candidate_severe_quality_issue meaning=1.00 candidate=7 baseline=7 candidate_issues=['repeated_4word_phrase', 'high_recent_similarity']
+[QWEN CANDIDATE REJECTED] user=#WeLoveHanae_Kubotic, Sun Killer reason=candidate_severe_quality_issue
+[LOCAL VOICE REJECTED] user=#WeLoveHanae_Kubotic, Sun Killer reasons=['empty_answer']
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice/voice_or_writer source=voice_or_writer answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=voice_or_writer combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice/reliability_baseline source=reliability_baseline answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice/writer_before_voice source=writer_before_voice answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=voice_or_writer answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE POST-VOICE READY] user=#WeLoveHanae_Kubotic, Sun Killer source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=False rewrite=True removed_opener=None removed_emojis=[] before=['semantic_repetition'] after=['semantic_repetition']
+[REPAIR BUDGET] v=1.1-live-reliability allowed=True used=1/3 label='semantic_repetition'
+[API RESPONSE] user=#WeLoveHanae_Kubotic, Sun Killer/writer-repair duration=1.69s attempt=1 active=1
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality/post_expression source=post_expression answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality/reliability_baseline source=reliability_baseline answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality/writer_before_voice source=writer_before_voice answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=post_expression answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE PRE-QUALITY READY] user=#WeLoveHanae_Kubotic, Sun Killer source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.50 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.50 severe=False issues=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send/quality_final source=quality_final answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send/reliability_baseline source=reliability_baseline answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send/writer_before_voice source=writer_before_voice answer='Jo, Wochenende ist am Start. Ich bin wach, aber das bleibt optional.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=quality_final answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE FINAL READY] user=#WeLoveHanae_Kubotic, Sun Killer source=quality_final repairs=1
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=#WeLoveHanae_Kubotic, Sun Killer mode=direct total=12.36s repairs=1
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=311571123521191939 channel=1540713345856970884 source=direct state=active
+[REFLECTION PENDING] user=#WeLoveHanae_Kubotic, Sun Killer discord_message_id=1542812209652957264 window=720s
+[RESPONSE DONE] user=#WeLoveHanae_Kubotic, Sun Killer mode=direct duration=12.34s brain=7.93s buffer=1/10 inner=neutral expression=natural feedback_previous=False active_conversations=2 pending_reflections=2 reflection_jobs=2 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[INITIATIVE] v=1.0 allowed=False reason=channel_too_active score=0.00 type=None daily=0/8
+[ROUTING HARDENING] v=1.2 changed=False direct=True reply_to_evilnae=True name_variant=False stretched=False subject_is_evilnae=False references=['demonstrative'] reason=reply_to_evilnae_priority
+[PERCEPTION] v=2.0.1 user=#WeLoveHanae_Kubotic, Sun Killer id=311571123521191939 text='Hast du Pläne für das Wochenende? Außer Hanae Streams schauen natürlich.' emojis=[] emoji_only=False bot_mention=False direct=True name_mention=False address_reason='b3f_reply_to_evilnae_priority' trigger=True reply_bot=True reply_to='Evilnae' should_reply=True
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=9 participants=3
+[CONVERSATION EPISODE SYNC] user=#WeLoveHanae_Kubotic, Sun Killer evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.08 level=mundane valence=neutral signals=['ordinary_interaction'] episode_score=0.13 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=#WeLoveHanae_Kubotic, Sun Killer result=not_feedback
+[ROUTING FINAL] user=#WeLoveHanae_Kubotic, Sun Killer mode=direct direct=True continuation=False participation=False
+[ACTIVE CONVERSATION] user_id=311571123521191939 channel=1540713345856970884 source=direct_attempt state=active
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.65 curiosity=0.58 boredom=0.18 amusement=0.30 warmth=0.45 chaos=0.35 confidence=0.75 events=['interesting_question']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(517, 41.1), (77, 40.1), (6, 38.05)]
+[STATE] v=1.1 user=#WeLoveHanae_Kubotic, Sun Killer id=311571123521191939 hanae=False mood=normal recent_evilnae=1 memories=0 emojis=0
+[API RESPONSE] user=#WeLoveHanae_Kubotic, Sun Killer/brain duration=6.29s attempt=1 active=1
+[SELF EVIDENCE] v=2.1-character-foundation matched=True type=foundation key='foundation:517' known=True strict_unknown=False specificity_guard=False value='Hanaes Meinung ist EVILNAE extrem wichtig, auch wenn sie das niemals offen zugeben würde. Kritik von Hanae trifft sie stärker, Lob von Hanae bedeutet ihr mehr und bei wichtigen Entscheidungen denkt sie oft darüber nach, was Hanae davon halten würde. Trotzdem will EVILNAE nicht das Gefühl haben, für Hanaes Zustimmung zu leben – deshalb spielt sie ihre Bedeutung nach außen meistens herunter.' reason=foundation_row_517
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=relaxed move=answer stance=dry shape=one_liner banter=0.20 question=False correction=False knowledge=True confidence=high source=self_model ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=direct action=reply reaction=None overridden=False reason=direct_reply
+[EXPRESSION] v=2.5 style=natural slang=light emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=answer stance=dry shape=one_liner banter=0.20 warmth=0.40 question=False target='current_user' thought='Wochenende steht, ich hab keine festen Pläne, das reicht erstmal.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject='Hanae' scope=person_fact available=True source=self_model reason=subject_scoped_knowledge_available
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.84s plan=1.00 new_facts=False move=answer stance=dry shape=one_liner reason='antwortet direkt, trocken, kurz' output='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[WRITER ROUTER] user=#WeLoveHanae_Kubotic, Sun Killer primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=baseline_capture source=post_knowledge_writer answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[RELIABILITY BASELINE] user=#WeLoveHanae_Kubotic, Sun Killer answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.20 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice/writer_after_critical source=writer_after_critical answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice source=writer_after_critical combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice/reliability_baseline source=reliability_baseline answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_voice source=writer_after_critical answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE PRE-VOICE READY] user=#WeLoveHanae_Kubotic, Sun Killer source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=1.00 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[LOCAL VOICE SECOND PASS SKIP] user=#WeLoveHanae_Kubotic, Sun Killer reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=False reason=candidate_severe_quality_issue meaning=1.00 candidate=7 baseline=7 candidate_issues=['repeated_4word_phrase', 'high_recent_similarity']
+[QWEN CANDIDATE REJECTED] user=#WeLoveHanae_Kubotic, Sun Killer reason=candidate_severe_quality_issue
+[LOCAL VOICE REJECTED] user=#WeLoveHanae_Kubotic, Sun Killer reasons=['empty_answer']
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice/voice_or_writer source=voice_or_writer answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=voice_or_writer combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice/reliability_baseline source=reliability_baseline answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice/writer_before_voice source=writer_before_voice answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=post_voice source=voice_or_writer answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE POST-VOICE READY] user=#WeLoveHanae_Kubotic, Sun Killer source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=False rewrite=True removed_opener=None removed_emojis=[] before=['semantic_repetition'] after=['semantic_repetition']
+[REPAIR BUDGET] v=1.1-live-reliability allowed=True used=1/3 label='semantic_repetition'
+[API RESPONSE] user=#WeLoveHanae_Kubotic, Sun Killer/writer-repair duration=1.47s attempt=1 active=1
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality/post_expression source=post_expression answer='Nein. Wochenende da, ich da. Passt.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality/reliability_baseline source=reliability_baseline answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality/writer_before_voice source=writer_before_voice answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=pre_quality source=post_expression answer='Nein. Wochenende da, ich da. Passt.'
+[PIPELINE PRE-QUALITY READY] user=#WeLoveHanae_Kubotic, Sun Killer source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.51 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.51 severe=False issues=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send/quality_final source=quality_final answer='Nein. Wochenende da, ich da. Passt.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send/reliability_baseline source=reliability_baseline answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send/writer_before_voice source=writer_before_voice answer='Wochenende steht, ich auch irgendwie. Mehr muss nicht.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae_Kubotic, Sun Killer stage=final_send source=quality_final answer='Nein. Wochenende da, ich da. Passt.'
+[PIPELINE FINAL READY] user=#WeLoveHanae_Kubotic, Sun Killer source=quality_final repairs=1
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=#WeLoveHanae_Kubotic, Sun Killer mode=direct total=11.56s repairs=1
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=311571123521191939 channel=1540713345856970884 source=direct state=active
+[REFLECTION REPLACED] user=#WeLoveHanae_Kubotic, Sun Killer reason=no_explicit_feedback learning=no
+[REFLECTION PENDING] user=#WeLoveHanae_Kubotic, Sun Killer discord_message_id=1542813123587735572 window=720s
+[RESPONSE DONE] user=#WeLoveHanae_Kubotic, Sun Killer mode=direct duration=11.54s brain=6.29s buffer=2/10 inner=neutral expression=natural feedback_previous=False active_conversations=2 pending_reflections=2 reflection_jobs=3 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[INITIATIVE] v=1.0 allowed=False reason=channel_too_active score=0.00 type=None daily=0/8
+[INITIATIVE] v=1.0 allowed=False reason=channel_too_active score=0.00 type=None daily=0/8
+[ROUTING HARDENING] v=1.2 changed=False direct=True reply_to_evilnae=False name_variant=True stretched=False subject_is_evilnae=False references=[] reason=already_direct
+[PERCEPTION] v=2.0.1 user=HANAE id=568096551948255242 text='Guten morgen' emojis=['HanaeLove'] emoji_only=False bot_mention=False direct=True name_mention=True address_reason='greeting_vocative' trigger=True reply_bot=False reply_to=None should_reply=True
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=11 participants=3
+[CONVERSATION EPISODE SYNC] user=HANAE evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.05 level=mundane valence=neutral signals=['routine_smalltalk'] episode_score=0.14 retention=False duplicate=False
+[ROUTING FINAL] user=HANAE mode=direct direct=True continuation=False participation=False
+[ACTIVE CONVERSATION] user_id=568096551948255242 channel=1540713345856970884 source=direct_attempt state=active
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.07 social=0.67 curiosity=0.55 boredom=0.19 amusement=0.30 warmth=0.46 chaos=0.35 confidence=0.75 events=['greeting', 'hanae_interaction', 'trusted_person']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(299, 10.3), (131, 8.75), (561, 7.4)]
+[STATE] v=1.1 user=HANAE id=568096551948255242 hanae=True mood=normal recent_evilnae=0 memories=1 emojis=1
+[API RESPONSE] user=HANAE/brain duration=5.67s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=relaxed move=answer stance=neutral shape=one_liner banter=0.00 question=False correction=False knowledge=True confidence=high source=recent_context ask_person=False target=HANAE repetition=False
+[AGENCY] v=1.0 mode=direct action=reply reaction=None overridden=False reason=direct_reply
+[EXPRESSION] v=2.5 style=natural slang=medium emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=tease stance=playful shape=one_liner banter=0.52 warmth=0.60 question=False target='current_user' thought='Guten Morgen zurück, locker und kurz antworten.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=True source=recent_context reason=no_known_person_subject
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.68s plan=1.00 new_facts=False move=tease stance=playful shape=one_liner reason='tease with playful neutrality' output='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[WRITER ROUTER] user=HANAE primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=HANAE stage=baseline_capture source=post_knowledge_writer answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[RELIABILITY BASELINE] user=HANAE answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.50 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/writer_after_critical source=writer_after_critical answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=writer_after_critical combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/reliability_baseline source=reliability_baseline answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=pre_voice source=writer_after_critical answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE PRE-VOICE READY] user=HANAE source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=0.80 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[LOCAL VOICE SECOND PASS SKIP] user=HANAE reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=False reason=candidate_severe_quality_issue meaning=1.00 candidate=7 baseline=7 candidate_issues=['repeated_4word_phrase', 'high_recent_similarity']
+[QWEN CANDIDATE REJECTED] user=HANAE reason=candidate_severe_quality_issue
+[LOCAL VOICE REJECTED] user=HANAE reasons=['empty_answer']
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/voice_or_writer source=voice_or_writer answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=voice_or_writer combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/reliability_baseline source=reliability_baseline answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/writer_before_voice source=writer_before_voice answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=post_voice source=voice_or_writer answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE POST-VOICE READY] user=HANAE source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/post_expression source=post_expression answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=post_expression combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/reliability_baseline source=reliability_baseline answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/writer_before_voice source=writer_before_voice answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=pre_quality source=post_expression answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE PRE-QUALITY READY] user=HANAE source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=0.80 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[REPAIR BUDGET] v=1.1-live-reliability allowed=True used=1/3 label='output_quality_v2+repeated_4word_phrase+high_recent_similarity'
+[API RESPONSE] user=HANAE/writer-repair duration=1.39s attempt=1 active=1
+[OUTPUT QUALITY REPAIR ACCEPTED] user=HANAE before=7 after=0
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.36 severe=False issues=[]
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/quality_final source=quality_final answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/reliability_baseline source=reliability_baseline answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/writer_before_voice source=writer_before_voice answer='Guten Morgen, ich bin wach – nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=final_send source=quality_final answer='Bin da, aber mit Null Bock.'
+[PIPELINE FINAL READY] user=HANAE source=quality_final repairs=1
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=HANAE mode=direct total=9.81s repairs=1
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=568096551948255242 channel=1540713345856970884 source=direct state=active
+[REFLECTION PENDING] user=HANAE discord_message_id=1542814165603713145 window=720s
+[RESPONSE DONE] user=HANAE mode=direct duration=9.78s brain=5.67s buffer=3/10 inner=neutral expression=natural feedback_previous=False active_conversations=3 pending_reflections=3 reflection_jobs=3 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[REFLECTION EXPIRED] user=#WeLoveHana FLOCHI reason=no_explicit_feedback learning=no
+[PERCEPTION] v=2.0.1 user=HANAE id=568096551948255242 text='Was los ? Heute nicht so gute Laune v' emojis=[] emoji_only=False bot_mention=False direct=False name_mention=False address_reason='no_name' trigger=False reply_bot=False reply_to=None should_reply=False
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=13 participants=3
+[CONVERSATION EPISODE SYNC] user=HANAE evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.11 level=mundane valence=neutral signals=['hanae_relationship_context'] episode_score=0.14 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=HANAE result=not_feedback
+[TARGET] v=1.3-intent-authority kind=open target_id=None target_name=None explicit=False block_continuation=False participation=True reason=open_conversation
+[ROUTING FINAL] user=HANAE mode=continuation direct=False continuation=True participation=False
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.66 curiosity=0.58 boredom=0.18 amusement=0.30 warmth=0.46 chaos=0.35 confidence=0.75 events=['interesting_question', 'hanae_interaction', 'trusted_person']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(239, 14.9), (694, 11.25), (697, 11.25)]
+[STATE] v=1.1 user=HANAE id=568096551948255242 hanae=True mood=normal recent_evilnae=1 memories=1 emojis=0
+[ROUTING HARDENING] v=1.2 changed=False direct=True reply_to_evilnae=False name_variant=True stretched=False subject_is_evilnae=False references=[] reason=already_direct
+[PERCEPTION] v=2.0.1 user=#WeLoveHanae KR-Floh Pheonae id=418430982866206720 text='guten morgen wie haste geschlafen oder warst du wieder die ganze nacht wach' emojis=[] emoji_only=False bot_mention=False direct=True name_mention=True address_reason='greeting_vocative' trigger=True reply_bot=False reply_to=None should_reply=True
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=15 participants=4
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.08 level=mundane valence=neutral signals=['ordinary_interaction'] episode_score=0.14 retention=False duplicate=False
+[ROUTING FINAL] user=#WeLoveHanae KR-Floh Pheonae mode=direct direct=True continuation=False participation=False
+[ACTIVE CONVERSATION] user_id=418430982866206720 channel=1540713345856970884 source=direct_attempt state=active
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.66 curiosity=0.58 boredom=0.19 amusement=0.30 warmth=0.46 chaos=0.35 confidence=0.75 events=['greeting']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(293, 8.16), (299, 8.16), (310, 8.16)]
+[STATE] v=1.1 user=#WeLoveHanae KR-Floh Pheonae id=418430982866206720 hanae=False mood=normal recent_evilnae=0 memories=0 emojis=0
+[API RESPONSE] user=HANAE/brain duration=5.85s attempt=1 active=2
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=dry move=answer stance=dry shape=one_liner banter=0.20 question=False correction=False knowledge=True confidence=high source=recent_context ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=continuation action=reply reaction=None overridden=False reason=continuation_question
+[EXPRESSION] v=2.5 style=natural slang=medium emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=tease stance=dry shape=one_liner banter=0.52 warmth=0.10 question=False target='current_user' thought='Bin gerade echt nicht in Stimmung, nichts läuft spannend.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=True source=recent_context reason=no_known_person_subject
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.60s plan=1.00 new_facts=False move=tease stance=dry shape=one_liner reason='direct match to recent reply' output='Bin da, aber mit Null Bock.'
+[WRITER ROUTER] user=HANAE primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=HANAE stage=baseline_capture source=post_knowledge_writer answer='Bin da, aber mit Null Bock.'
+[RELIABILITY BASELINE] user=HANAE answer='Bin da, aber mit Null Bock.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.00 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/writer_after_critical source=writer_after_critical answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=writer_after_critical combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/reliability_baseline source=reliability_baseline answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=pre_voice source=writer_after_critical answer='Bin da, aber mit Null Bock.'
+[PIPELINE PRE-VOICE READY] user=HANAE source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=1.00 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[LOCAL VOICE SECOND PASS SKIP] user=HANAE reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=False reason=candidate_severe_quality_issue meaning=1.00 candidate=7 baseline=7 candidate_issues=['repeated_4word_phrase', 'high_recent_similarity']
+[QWEN CANDIDATE REJECTED] user=HANAE reason=candidate_severe_quality_issue
+[LOCAL VOICE REJECTED] user=HANAE reasons=['empty_answer']
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/voice_or_writer source=voice_or_writer answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=voice_or_writer combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/reliability_baseline source=reliability_baseline answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/writer_before_voice source=writer_before_voice answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=post_voice source=voice_or_writer answer='Bin da, aber mit Null Bock.'
+[PIPELINE POST-VOICE READY] user=HANAE source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=False rewrite=True removed_opener=None removed_emojis=[] before=['semantic_repetition'] after=['semantic_repetition']
+[REPAIR BUDGET] v=1.1-live-reliability allowed=True used=1/3 label='semantic_repetition'
+[API RESPONSE] user=#WeLoveHanae KR-Floh Pheonae/brain duration=5.32s attempt=1 active=2
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=relaxed move=answer stance=dry shape=one_liner banter=0.30 question=False correction=False knowledge=True confidence=high source=current_context ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=direct action=reply reaction=None overridden=False reason=direct_reply
+[EXPRESSION] v=2.5 style=natural slang=light emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=answer stance=dry shape=one_liner banter=0.30 warmth=0.30 question=False target='current_user' thought='User fragt, ob ich durchgeschlafen habe oder die Nacht wach war.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=True source=current_context reason=no_known_person_subject
+[API RESPONSE] user=HANAE/writer-repair duration=1.45s attempt=1 active=1
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/post_expression source=post_expression answer='Bin da, aber komplett unmotiviert.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/reliability_baseline source=reliability_baseline answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/writer_before_voice source=writer_before_voice answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=pre_quality source=post_expression answer='Bin da, aber komplett unmotiviert.'
+[PIPELINE PRE-QUALITY READY] user=HANAE source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.60 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.60 severe=False issues=[]
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/quality_final source=quality_final answer='Bin da, aber komplett unmotiviert.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/reliability_baseline source=reliability_baseline answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/writer_before_voice source=writer_before_voice answer='Bin da, aber mit Null Bock.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=HANAE stage=final_send source=quality_final answer='Bin da, aber komplett unmotiviert.'
+[PIPELINE FINAL READY] user=HANAE source=quality_final repairs=1
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.35s plan=1.00 new_facts=False move=answer stance=dry shape=one_liner reason='dry roast on sleep motivation' output='Ich bin wach. Nur nicht aus Lust.'
+[WRITER ROUTER] user=#WeLoveHanae KR-Floh Pheonae primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=baseline_capture source=post_knowledge_writer answer='Ich bin wach. Nur nicht aus Lust.'
+[RELIABILITY BASELINE] user=#WeLoveHanae KR-Floh Pheonae answer='Ich bin wach. Nur nicht aus Lust.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.50 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=pre_voice/writer_after_critical source=writer_after_critical answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=pre_voice source=writer_after_critical combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=pre_voice/reliability_baseline source=reliability_baseline answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=pre_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae KR-Floh Pheonae stage=pre_voice source=writer_after_critical answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE PRE-VOICE READY] user=#WeLoveHanae KR-Floh Pheonae source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=0.89 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[LOCAL VOICE SECOND PASS SKIP] user=#WeLoveHanae KR-Floh Pheonae reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=False reason=candidate_severe_quality_issue meaning=1.00 candidate=7 baseline=7 candidate_issues=['repeated_4word_phrase', 'high_recent_similarity']
+[QWEN CANDIDATE REJECTED] user=#WeLoveHanae KR-Floh Pheonae reason=candidate_severe_quality_issue
+[LOCAL VOICE REJECTED] user=#WeLoveHanae KR-Floh Pheonae reasons=['empty_answer']
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=post_voice/voice_or_writer source=voice_or_writer answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=post_voice source=voice_or_writer combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=post_voice/reliability_baseline source=reliability_baseline answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=post_voice source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=post_voice/writer_before_voice source=writer_before_voice answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=post_voice source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae KR-Floh Pheonae stage=post_voice source=voice_or_writer answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE POST-VOICE READY] user=#WeLoveHanae KR-Floh Pheonae source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=pre_quality/post_expression source=post_expression answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=pre_quality source=post_expression combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=pre_quality/reliability_baseline source=reliability_baseline answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=pre_quality source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=pre_quality/writer_before_voice source=writer_before_voice answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=pre_quality source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae KR-Floh Pheonae stage=pre_quality source=post_expression answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE PRE-QUALITY READY] user=#WeLoveHanae KR-Floh Pheonae source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=7 generic=0 grammar=0 repeat=7 rhythm=0 echo=0 similarity=0.89 severe=True issues=['repeated_4word_phrase', 'high_recent_similarity']
+[REPAIR BUDGET] v=1.1-live-reliability allowed=True used=1/3 label='output_quality_v2+repeated_4word_phrase+high_recent_similarity'
+[RESPONSE LATENCY] user=HANAE mode=continuation total=9.95s repairs=1
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=568096551948255242 channel=1540713345856970884 source=continuation state=active
+[REFLECTION REPLACED] user=HANAE reason=no_explicit_feedback learning=no
+[REFLECTION PENDING] user=HANAE discord_message_id=1542814297015582781 window=720s
+[RESPONSE DONE] user=HANAE mode=continuation duration=9.93s brain=5.85s buffer=4/10 inner=neutral expression=natural feedback_previous=False active_conversations=4 pending_reflections=2 reflection_jobs=3 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[API RESPONSE] user=#WeLoveHanae KR-Floh Pheonae/writer-repair duration=1.03s attempt=1 active=1
+[OUTPUT QUALITY REPAIR ACCEPTED] user=#WeLoveHanae KR-Floh Pheonae before=7 after=0
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.51 severe=False issues=[]
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=final_send/quality_final source=quality_final answer='Bin wach, aber eher widerwillig.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=final_send/reliability_baseline source=reliability_baseline answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=final_send source=reliability_baseline combined=7 quality=7 natural=0 grammar=0 repeat=7
+[RELIABILITY FALLBACK] user=#WeLoveHanae KR-Floh Pheonae stage=final_send/writer_before_voice source=writer_before_voice answer='Ich bin wach. Nur nicht aus Lust.'
+[PIPELINE CANDIDATE SAFE] user=#WeLoveHanae KR-Floh Pheonae stage=final_send source=writer_before_voice combined=7 quality=7 natural=0 grammar=0 repeat=7
+[PIPELINE CHOICE] user=#WeLoveHanae KR-Floh Pheonae stage=final_send source=quality_final answer='Bin wach, aber eher widerwillig.'
+[PIPELINE FINAL READY] user=#WeLoveHanae KR-Floh Pheonae source=quality_final repairs=1
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=#WeLoveHanae KR-Floh Pheonae mode=direct total=8.75s repairs=1
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=418430982866206720 channel=1540713345856970884 source=direct state=active
+[REFLECTION PENDING] user=#WeLoveHanae KR-Floh Pheonae discord_message_id=1542814302497538150 window=720s
+[RESPONSE DONE] user=#WeLoveHanae KR-Floh Pheonae mode=direct duration=8.73s brain=5.32s buffer=6/10 inner=neutral expression=natural feedback_previous=False active_conversations=4 pending_reflections=3 reflection_jobs=3 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[ROUTING HARDENING] v=1.2 changed=False direct=True reply_to_evilnae=False name_variant=True stretched=False subject_is_evilnae=False references=[] reason=already_direct
+[PERCEPTION] v=2.0.1 user=HANAE id=568096551948255242 text='heute Schlecht gelaunt' emojis=['HanaeHug'] emoji_only=False bot_mention=False direct=True name_mention=True address_reason='start_name_default' trigger=True reply_bot=False reply_to=None should_reply=True
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=16 participants=4
+[CONVERSATION EPISODE SYNC] user=HANAE evilnae_events_added=2
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.11 level=mundane valence=neutral signals=['hanae_relationship_context'] episode_score=0.14 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=HANAE result=not_feedback
+[ROUTING FINAL] user=HANAE mode=direct direct=True continuation=False participation=False
+[ACTIVE CONVERSATION] user_id=568096551948255242 channel=1540713345856970884 source=direct_attempt state=active
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.66 curiosity=0.57 boredom=0.20 amusement=0.30 warmth=0.45 chaos=0.35 confidence=0.75 events=['hanae_interaction', 'trusted_person']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(165, 8.48), (168, 8.48), (172, 8.48)]
+[STATE] v=1.1 user=HANAE id=568096551948255242 hanae=True mood=normal recent_evilnae=2 memories=1 emojis=1
+[API RESPONSE] user=HANAE/brain duration=8.92s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=relaxed move=answer stance=dry shape=one_liner banter=0.20 question=False correction=False knowledge=False confidence=unknown source=not_applicable ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=direct action=reply reaction=None overridden=False reason=direct_reply
+[EXPRESSION] v=2.5 style=natural slang=medium emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=tease stance=dry shape=one_liner banter=0.52 warmth=0.30 question=False target='current_user' thought='Hanae ist auch schlecht gelaunt, passt zur Stimmung hier, keine großen Erklärungen nötig.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=False source=not_applicable reason=no_known_person_subject
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.79s plan=1.00 new_facts=False move=tease stance=dry shape=one_liner reason='tease mit dry-Neutral' output='Hanae ist auch schlecht gelaunt. Passt.'
+[WRITER ROUTER] user=HANAE primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=HANAE stage=baseline_capture source=post_knowledge_writer answer='Hanae ist auch schlecht gelaunt. Passt.'
+[RELIABILITY BASELINE] user=HANAE answer='Hanae ist auch schlecht gelaunt. Passt.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.50 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/writer_after_critical source=writer_after_critical answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=writer_after_critical combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/reliability_baseline source=reliability_baseline answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=pre_voice source=writer_after_critical answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE PRE-VOICE READY] user=HANAE source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.44 severe=False issues=[]
+[LOCAL VOICE SECOND PASS SKIP] user=HANAE reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=True reason=same_content meaning=1.00 candidate=0 baseline=0 candidate_issues=[]
+[QWEN CANDIDATE ACCEPTED] user=HANAE reason=same_content
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/voice_or_writer source=voice_or_writer answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=voice_or_writer combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/reliability_baseline source=reliability_baseline answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/writer_before_voice source=writer_before_voice answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=post_voice source=voice_or_writer answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE POST-VOICE READY] user=HANAE source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/post_expression source=post_expression answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/reliability_baseline source=reliability_baseline answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/writer_before_voice source=writer_before_voice answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=pre_quality source=post_expression answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE PRE-QUALITY READY] user=HANAE source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.44 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.44 severe=False issues=[]
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/quality_final source=quality_final answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/reliability_baseline source=reliability_baseline answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/writer_before_voice source=writer_before_voice answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=final_send source=quality_final answer='Hanae ist auch schlecht gelaunt. Passt.'
+[PIPELINE FINAL READY] user=HANAE source=quality_final repairs=0
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=HANAE mode=direct total=11.83s repairs=0
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=568096551948255242 channel=1540713345856970884 source=direct state=active
+[REFLECTION REPLACED] user=HANAE reason=no_explicit_feedback learning=no
+[REFLECTION PENDING] user=HANAE discord_message_id=1542814470848520212 window=720s
+[RESPONSE DONE] user=HANAE mode=direct duration=11.79s brain=8.92s buffer=5/10 inner=neutral expression=natural feedback_previous=False active_conversations=4 pending_reflections=3 reflection_jobs=4 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[PERCEPTION] v=2.0.1 user=HANAE id=568096551948255242 text='NÖ' emojis=[] emoji_only=False bot_mention=False direct=False name_mention=False address_reason='no_name' trigger=False reply_bot=False reply_to=None should_reply=False
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=19 participants=4
+[CONVERSATION EPISODE SYNC] user=HANAE evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.11 level=mundane valence=neutral signals=['hanae_relationship_context'] episode_score=0.14 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=HANAE result=not_feedback
+[TARGET] v=1.3-intent-authority kind=open target_id=None target_name=None explicit=False block_continuation=False participation=True reason=open_conversation
+[ROUTING FINAL] user=HANAE mode=continuation direct=False continuation=True participation=False
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.65 curiosity=0.56 boredom=0.20 amusement=0.30 warmth=0.45 chaos=0.35 confidence=0.75 events=['short_message', 'hanae_interaction', 'trusted_person']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(638, 13.05), (487, 7.65), (639, 7.65)]
+[STATE] v=1.1 user=HANAE id=568096551948255242 hanae=True mood=normal recent_evilnae=3 memories=1 emojis=0
+[API RESPONSE] user=HANAE/brain duration=6.01s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=dry move=answer stance=dry shape=one_liner banter=0.20 question=False correction=False knowledge=False confidence=unknown source=not_applicable ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=continuation action=reply reaction=None overridden=False reason=brain_reply
+[EXPRESSION] v=2.5 style=natural slang=medium emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=tease stance=dry shape=one_liner banter=0.52 warmth=0.10 question=False target='current_user' thought='Bestätige kurz, dass ich genauso wenig Bock hab, ohne weiter drauf einzugehen.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=False source=not_applicable reason=no_known_person_subject
+[ROUTING HARDENING] v=1.2 changed=False direct=False reply_to_evilnae=False name_variant=True stretched=False subject_is_evilnae=True references=[] reason=evilnae_subject_not_direct
+[PERCEPTION] v=2.0.1 user=HANAE id=568096551948255242 text='bin ich gar nicht evil!' emojis=[] emoji_only=False bot_mention=False direct=False name_mention=True address_reason='end_name_mention' trigger=False reply_bot=False reply_to=None should_reply=False
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=21 participants=4
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.11 level=mundane valence=neutral signals=['hanae_relationship_context'] episode_score=0.14 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=HANAE result=not_feedback
+[TARGET] v=1.3-intent-authority kind=third_person_evilnae target_id=None target_name='Evilnae' explicit=False block_continuation=True participation=True reason=third_person_evilnae_mention
+[ACTIVE CONVERSATION BLOCKED] user=HANAE target=third_person_evilnae reason=third_person_evilnae_mention
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.53s plan=1.00 new_facts=False move=tease stance=dry shape=one_liner reason='Tease, dry, one_liner' output='NÖ. Genau so.'
+[WRITER ROUTER] user=HANAE primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=HANAE stage=baseline_capture source=post_knowledge_writer answer='NÖ. Genau so.'
+[RELIABILITY BASELINE] user=HANAE answer='NÖ. Genau so.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.00 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/writer_after_critical source=writer_after_critical answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=writer_after_critical combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=pre_voice source=writer_after_critical answer='NÖ. Genau so.'
+[PIPELINE PRE-VOICE READY] user=HANAE source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.39 severe=False issues=[]
+[LOCAL VOICE SECOND PASS SKIP] user=HANAE reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=True reason=same_content meaning=1.00 candidate=0 baseline=0 candidate_issues=[]
+[QWEN CANDIDATE ACCEPTED] user=HANAE reason=same_content
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/voice_or_writer source=voice_or_writer answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=voice_or_writer combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/writer_before_voice source=writer_before_voice answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=post_voice source=voice_or_writer answer='NÖ. Genau so.'
+[PIPELINE POST-VOICE READY] user=HANAE source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/post_expression source=post_expression answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/writer_before_voice source=writer_before_voice answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=pre_quality source=post_expression answer='NÖ. Genau so.'
+[PIPELINE PRE-QUALITY READY] user=HANAE source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.39 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=0.39 severe=False issues=[]
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/quality_final source=quality_final answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/writer_before_voice source=writer_before_voice answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=final_send source=quality_final answer='NÖ. Genau so.'
+[PIPELINE FINAL READY] user=HANAE source=quality_final repairs=0
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=HANAE mode=continuation total=8.83s repairs=0
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=568096551948255242 channel=1540713345856970884 source=continuation state=active
+[REFLECTION REPLACED] user=HANAE reason=no_explicit_feedback learning=no
+[REFLECTION PENDING] user=HANAE discord_message_id=1542814543179288596 window=720s
+[RESPONSE DONE] user=HANAE mode=continuation duration=8.81s brain=6.01s buffer=6/10 inner=neutral expression=natural feedback_previous=False active_conversations=4 pending_reflections=3 reflection_jobs=4 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[API RESPONSE] user=HANAE/participation duration=2.80s attempt=1 active=1
+[PARTICIPATION] v=1.2 action=stay_silent confidence=high relevance=0.20 social_value=0.10 involvement=0.10 goal='' reason='Evilnae hat nichts Relevantes zu Hanaes Aussagen zu sagen.'
+[PARTICIPATION ROUTING BOOST] v=1.2 changed=True action=stay_silent->stay_silent relevance=0.20->0.70 involvement=0.10->0.68 reason=evilnae_is_subject+recent_thread
+[SILENT FINAL] user=HANAE stage=participation reason=Evilnae hat nichts Relevantes zu Hanaes Aussagen zu sagen.
+[PERCEPTION] v=2.0.1 user=HANAE id=568096551948255242 text='Ich bin gut gelaunt sis' emojis=[] emoji_only=False bot_mention=False direct=False name_mention=False address_reason='no_name' trigger=False reply_bot=False reply_to=None should_reply=False
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=22 participants=4
+[CONVERSATION EPISODE SYNC] user=HANAE evilnae_events_added=1
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.11 level=mundane valence=neutral signals=['hanae_relationship_context'] episode_score=0.14 retention=False duplicate=False
+[REFLECTION FEEDBACK GATE] user=HANAE result=not_feedback
+[TARGET] v=1.3-intent-authority kind=open target_id=None target_name=None explicit=False block_continuation=False participation=True reason=open_conversation
+[ROUTING FINAL] user=HANAE mode=continuation direct=False continuation=True participation=False
+[INNER STATE] v=1.2 feeling=neutral strength=0.00 valence=0.20 energy=0.55 irritation=0.08 social=0.65 curiosity=0.55 boredom=0.20 amusement=0.30 warmth=0.45 chaos=0.35 confidence=0.75 events=['hanae_interaction', 'trusted_person']
+[CHARACTER FOUNDATION] v=1.1-live-retrieval hits=[(276, 10.4), (580, 10.4), (153, 8.65)]
+[STATE] v=1.1 user=HANAE id=568096551948255242 hanae=True mood=normal recent_evilnae=4 memories=1 emojis=0
+[API RESPONSE] user=HANAE/brain duration=6.99s attempt=1 active=1
+[CURIOSITY] v=1.1 requested=False allowed=False type=none curiosity=0.00 gap=none interest=medium pressure=0.00 recent_questions=0 recent_two=0 goal='' reason=brain_did_not_want_question
+[BRAIN] v=2.4-response-planner intent=casual_chat action=reply length=short tone=playful move=tease stance=smug shape=one_liner banter=0.50 question=False correction=False knowledge=True confidence=high source=recent_context ask_person=False target=None repetition=False
+[AGENCY] v=1.0 mode=continuation action=reply reaction=None overridden=False reason=brain_reply
+[EXPRESSION] v=2.5 style=natural slang=medium emoji=natural shape=casual avoid_words=['fair'] avoid_openers=[] avoid_emojis=[] avoid_concepts=[] hard_concepts=[] assistant_pressure=False filler_pressure=False
+[RESPONSE PLAN] v=1.0 move=tease stance=smug shape=one_liner banter=0.52 warmth=0.40 question=False target='HANAE' thought='Hanae behauptet gut gelaunt zu sein, das passt nicht so ganz zu meiner Einschätzung.'
+[KNOWLEDGE CONSTRAINT] v=1.3-intent-authority active=False subject=None scope=none available=True source=recent_context reason=no_known_person_subject
+[PERCEPTION] v=2.0.1 user=RAY_THE_FOX_PHON92 id=1312372252762705954 text='Bei mir regnet es enklich gestern 32 Grad aber es ist trotzdem warm 😞' emojis=[] emoji_only=False bot_mention=False direct=False name_mention=False address_reason='no_name' trigger=False reply_bot=False reply_to=None should_reply=False
+[CONVERSATION EPISODE] v=1.0 id='ep_1540713345856970884_1787905020985' new=False closed_previous=False close_reason='' event_added=True events=24 participants=5
+[EMOTIONAL SALIENCE] v=1.0.1-feedback-fix episode='ep_1540713345856970884_1787905020985' event=0.08 level=mundane valence=neutral signals=['ordinary_interaction'] episode_score=0.14 retention=False duplicate=False
+[TARGET] v=1.3-intent-authority kind=open target_id=None target_name=None explicit=False block_continuation=False participation=True reason=open_conversation
+[SURFACE WRITER] v=1.0 model=qwen3:4b-instruct duration=1.46s plan=1.00 new_facts=False move=tease stance=smug shape=one_liner reason='teases her good mood claim' output='NÖ. Genau so.'
+[WRITER ROUTER] user=HANAE primary=qwen_surface openai_writer=skipped
+[RELIABILITY FALLBACK] user=HANAE stage=baseline_capture source=post_knowledge_writer answer='NÖ. Genau so.'
+[RELIABILITY BASELINE] user=HANAE answer='NÖ. Genau so.'
+[NATURAL RESPONSE] v=1.0 score=0 rewrite=False overlap=0.00 low_value=False matches=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/writer_after_critical source=writer_after_critical answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=writer_after_critical combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_voice/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=pre_voice source=writer_after_critical answer='NÖ. Genau so.'
+[PIPELINE PRE-VOICE READY] user=HANAE source=writer_after_critical
+[WRITER QUALITY] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=1.00 severe=False issues=[]
+[LOCAL VOICE SECOND PASS SKIP] user=HANAE reason=qwen_already_primary
+[QWEN QUALITY] v=2.5 accepted=True reason=same_content meaning=1.00 candidate=0 baseline=0 candidate_issues=[]
+[QWEN CANDIDATE ACCEPTED] user=HANAE reason=same_content
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/voice_or_writer source=voice_or_writer answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=voice_or_writer combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=post_voice/writer_before_voice source=writer_before_voice answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=post_voice source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=post_voice source=voice_or_writer answer='NÖ. Genau so.'
+[PIPELINE POST-VOICE READY] user=HANAE source=voice_or_writer
+[EXPRESSION FINAL] changed=False send_allowed=True rewrite=False removed_opener=None removed_emojis=[] before=[] after=[]
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/post_expression source=post_expression answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=post_expression combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=pre_quality/writer_before_voice source=writer_before_voice answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=pre_quality source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=pre_quality source=post_expression answer='NÖ. Genau so.'
+[PIPELINE PRE-QUALITY READY] user=HANAE source=post_expression
+[OUTPUT QUALITY PRE-FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=1.00 severe=False issues=[]
+[OUTPUT QUALITY FINAL] v=2.5 penalty=0 generic=0 grammar=0 repeat=0 rhythm=0 echo=0 similarity=1.00 severe=False issues=[]
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/quality_final source=quality_final answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=quality_final combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/reliability_baseline source=reliability_baseline answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=reliability_baseline combined=0 quality=0 natural=0 grammar=0 repeat=0
+[RELIABILITY FALLBACK] user=HANAE stage=final_send/writer_before_voice source=writer_before_voice answer='NÖ. Genau so.'
+[PIPELINE CANDIDATE SAFE] user=HANAE stage=final_send source=writer_before_voice combined=0 quality=0 natural=0 grammar=0 repeat=0
+[PIPELINE CHOICE] user=HANAE stage=final_send source=quality_final answer='NÖ. Genau so.'
+[PIPELINE FINAL READY] user=HANAE source=quality_final repairs=0
+[TEXT EMOTE COOLDOWN] v=1.0 semantic=None allowed=True suppressed=False reason=no_emote_added cooldown=0.0s
+[EVILNAE EMOTE] v=1.2 semantic=None name=None confidence=0.00 added=False stripped_unicode=0 stripped_custom=0 reason=no_strong_emote_signal
+[RESPONSE LATENCY] user=HANAE mode=continuation total=9.74s repairs=0
+[CHARACTER STATE] v=1.2-fresh-activity active=[] saved=0 observations=[]
+[CHARACTER LEARNING] v=1.1 entries=1 saved=False reason=no_preference topic=None sentiment=None status=None confirmations=0
+[ACTIVE CONVERSATION] user_id=568096551948255242 channel=1540713345856970884 source=continuation state=active
+[REFLECTION REPLACED] user=HANAE reason=no_explicit_feedback learning=no
+[REFLECTION PENDING] user=HANAE discord_message_id=1542814692261494846 window=720s
+[RESPONSE DONE] user=HANAE mode=continuation duration=9.72s brain=6.99s buffer=7/10 inner=neutral expression=natural feedback_previous=False active_conversations=4 pending_reflections=3 reflection_jobs=4 social=False
+[REFLECTION] v=1.0 brevity=0.50 teasing=0.50 warmth=0.50 slang=0.45 emoji=0.35 question=0.25 initiative=0.35
+[API RESPONSE] user=RAY_THE_FOX_PHON92/participation duration=1.43s attempt=1 active=1
+[PARTICIPATION] v=1.2 action=stay_silent confidence=high relevance=0.20 social_value=0.10 involvement=0.10 goal='' reason='Die Nachricht von RAY_THE_FOX_PHON92 betrifft Wetter und persönliche Emotionen, aber es gibt keinen klaren Bezug zu Evilnae oder der laufenden Diskussion.'
+[SILENT FINAL] user=RAY_THE_FOX_PHON92 stage=participation reason=Die Nachricht von RAY_THE_FOX_PHON92 betrifft Wetter und persönliche Emotionen, aber es gibt keinen klaren Bezug zu Evilnae oder der laufenden Diskussion.
+[INITIATIVE LOOP] status=cancelled
