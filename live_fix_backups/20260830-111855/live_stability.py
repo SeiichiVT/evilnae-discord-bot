@@ -44,8 +44,8 @@ from self_development import (
 )
 
 
-LIVE_STABILITY_VERSION = "1.5-turn-console-latency"
-CONSOLE_OUTPUT_VERSION = "1.1-turn-summary"
+LIVE_STABILITY_VERSION = "1.4-agency-server-awareness"
+CONSOLE_OUTPUT_VERSION = "1.0"
 
 _CURRENT_USER_TEXT = contextvars.ContextVar(
     "evilnae_live_user_text",
@@ -119,9 +119,7 @@ class ConsoleOutputFilter:
         if stripped.startswith(
             (
                 "[LIVE IN]",
-                "[TURN]",
-                "[SILENT FINAL]",
-                "[AGENCY APPLICATION REACTION]",
+                "[LIVE OUT]",
                 "[LIVE GUARD]",
                 "[LIVE WARN]",
                 "[AUTO FILE LOGGING]",
@@ -147,7 +145,6 @@ class ConsoleOutputFilter:
             "Server Awareness v",
             "Agency / Initiative v",
             "Response Agency v",
-            "Turn Runtime v",
             "Qwen Surface Writer v",
             "Output Quality v",
             "Routing Hardening v",

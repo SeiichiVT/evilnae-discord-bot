@@ -1,0 +1,2757 @@
+{
+  "version": "1.0.1-sensitive-language",
+  "events": [
+    {
+      "event_key": "1543539913058680843",
+      "timestamp": 1788078992.858,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "c037ed0b7dce2ccd63b700c1dd55327025c6dc48",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 47
+    },
+    {
+      "event_key": "1543540111336284240",
+      "timestamp": 1788079040.131,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "2b80d185e4cda1be1b3dbdf98dd583c171a7212e",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 92
+    },
+    {
+      "event_key": "1543540137110011936",
+      "timestamp": 1788079046.276,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "c037ed0b7dce2ccd63b700c1dd55327025c6dc48",
+      "flags": [],
+      "message_size": 38
+    },
+    {
+      "event_key": "bot:0e45d6fd559f9b82c77bed4d47b1097f0259d764",
+      "timestamp": 1788079061.4440293,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543540265065652224",
+      "timestamp": 1788079076.783,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "c037ed0b7dce2ccd63b700c1dd55327025c6dc48",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 27
+    },
+    {
+      "event_key": "bot:c7bf0ea39653faef6bbd79607cdc9a61db2e9b4a",
+      "timestamp": 1788079097.2705345,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543540534805790760",
+      "timestamp": 1788079141.094,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 50
+    },
+    {
+      "event_key": "bot:22a46825e46507c42694be3e7e56453d5a30f6de",
+      "timestamp": 1788079224.4757187,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543540983046611006",
+      "timestamp": 1788079247.963,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "2b80d185e4cda1be1b3dbdf98dd583c171a7212e",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 35
+    },
+    {
+      "event_key": "bot:d87e5f0bf7251a3e90be763fa89f8f656fbe261d",
+      "timestamp": 1788079307.1665845,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543541224613355605",
+      "timestamp": 1788079305.557,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "876170894492467311",
+      "channel_name": "♡‧₊🎐𝑵𝒆𝒖𝒆-𝑭𝒍𝒖𝒇𝒇𝒔",
+      "user_hash": "70ff9a205ce9f10a36202c4ddcfdd9dc28f48880",
+      "flags": [],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543541242443468882",
+      "timestamp": 1788079309.808,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "direct",
+        "evilnae_reference"
+      ],
+      "message_size": 71
+    },
+    {
+      "event_key": "1543541270042124388",
+      "timestamp": 1788079316.388,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "70ff9a205ce9f10a36202c4ddcfdd9dc28f48880",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 17
+    },
+    {
+      "event_key": "bot:d6b3c6725f992d1f1fa6e37eb7be63f93ce06545",
+      "timestamp": 1788079331.5779324,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:f1716e3583a97264c33da6687412e87ea758f4c1",
+      "timestamp": 1788079394.5413527,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543541868900655124",
+      "timestamp": 1788079459.167,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "evilnae_reference",
+        "substantial_message"
+      ],
+      "message_size": 124
+    },
+    {
+      "event_key": "bot:71a8f77685ac91d32e6db0ff1b5d44028aeba579",
+      "timestamp": 1788079499.588333,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543542379867545661",
+      "timestamp": 1788079580.991,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "question"
+      ],
+      "message_size": 67
+    },
+    {
+      "event_key": "1543542380349755483",
+      "timestamp": 1788079581.106,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "4ba89f9405e32e1fac7c3dd7738073000e232051",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 20
+    },
+    {
+      "event_key": "bot:90b6f1402bef825aee6fec4f3dc8ada32f3c5318",
+      "timestamp": 1788079613.287839,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543542619815284796",
+      "timestamp": 1788079638.199,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 60
+    },
+    {
+      "event_key": "bot:64601796a3c024c92223a1b1afefb9f9fc6b7d9e",
+      "timestamp": 1788079653.8844051,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:0868575c8a0a2e76d7e5c5d04695f006b7cbcf0b",
+      "timestamp": 1788079707.4639332,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543543028407468063",
+      "timestamp": 1788079735.615,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 88
+    },
+    {
+      "event_key": "1543543042148139078",
+      "timestamp": 1788079738.891,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "question"
+      ],
+      "message_size": 46
+    },
+    {
+      "event_key": "1543543208414412810",
+      "timestamp": 1788079778.532,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 48
+    },
+    {
+      "event_key": "bot:291e144500bcfa3ff7634715ea77a71944eb3d22",
+      "timestamp": 1788079784.2378664,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543543809781137448",
+      "timestamp": 1788079921.909,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "question"
+      ],
+      "message_size": 46
+    },
+    {
+      "event_key": "bot:f03104e06d9e15ddc141b0867398e5e5c73571e1",
+      "timestamp": 1788080026.7862709,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543544455812878448",
+      "timestamp": 1788080075.935,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 39
+    },
+    {
+      "event_key": "1543544686566969394",
+      "timestamp": 1788080130.951,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 64
+    },
+    {
+      "event_key": "1543544849083666474",
+      "timestamp": 1788080169.698,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "5d885672021c84a14ae73493978b6dfe9d2f472f",
+      "flags": [
+        "direct",
+        "evilnae_reference"
+      ],
+      "message_size": 7
+    },
+    {
+      "event_key": "bot:b21e0c5d28280c2e08603e561b8ffd6df17eb470",
+      "timestamp": 1788080178.415081,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543544999482892388",
+      "timestamp": 1788080205.556,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 44
+    },
+    {
+      "event_key": "1543545000841715722",
+      "timestamp": 1788080205.88,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "question"
+      ],
+      "message_size": 36
+    },
+    {
+      "event_key": "bot:9579e9ededa96a68bf56e3a2f37f269e7c97d2a8",
+      "timestamp": 1788080226.2242284,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:145d0c9913376b616cf316888bf05af1c557496e",
+      "timestamp": 1788080228.7932508,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:e4ed6e449fad59a609cb53694c5793893a816d5f",
+      "timestamp": 1788080241.2010202,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543545558986260570",
+      "timestamp": 1788080338.952,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "evilnae_reference"
+      ],
+      "message_size": 120
+    },
+    {
+      "event_key": "1543545632466149397",
+      "timestamp": 1788080356.471,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "question",
+        "substantial_message"
+      ],
+      "message_size": 159
+    },
+    {
+      "event_key": "bot:70342743eb7d60b5cac4bc8e7ce5ec34f9463c99",
+      "timestamp": 1788080406.2157521,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543546165553930390",
+      "timestamp": 1788080483.569,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "substantial_message"
+      ],
+      "message_size": 121
+    },
+    {
+      "event_key": "bot:404eaea8aa89dd36ce1629aef35f8a1eb807dddb",
+      "timestamp": 1788080524.8704474,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543546502360600577",
+      "timestamp": 1788080563.87,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "evilnae_reference"
+      ],
+      "message_size": 94
+    },
+    {
+      "event_key": "1543546508014653501",
+      "timestamp": 1788080565.218,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 56
+    },
+    {
+      "event_key": "bot:a0cbff3ff2fddef16b1849766003a30e0c13c3e8",
+      "timestamp": 1788080580.0318894,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543546632845660170",
+      "timestamp": 1788080594.98,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 11
+    },
+    {
+      "event_key": "bot:12b509ff4d34a05f565ed7da4950f6e274d0a95d",
+      "timestamp": 1788080607.8545618,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543546847573057536",
+      "timestamp": 1788080646.175,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 35
+    },
+    {
+      "event_key": "bot:e2effb9d966ec2cc1e934ec715a537ff13f865de",
+      "timestamp": 1788080652.379463,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543546948756181095",
+      "timestamp": 1788080670.299,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "emoji_only"
+      ],
+      "message_size": 65
+    },
+    {
+      "event_key": "1543546967135879238",
+      "timestamp": 1788080674.681,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 26
+    },
+    {
+      "event_key": "1543547056738672690",
+      "timestamp": 1788080696.044,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 27
+    },
+    {
+      "event_key": "bot:09bb16a14c5131a3b578eba7f476dda04dcca5af",
+      "timestamp": 1788080710.3951347,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543547278470684702",
+      "timestamp": 1788080748.909,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 34
+    },
+    {
+      "event_key": "bot:e4d3cdbe2411d981e2155dfa72b096a2171c0219",
+      "timestamp": 1788080759.592354,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543547326000271520",
+      "timestamp": 1788080760.241,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "c037ed0b7dce2ccd63b700c1dd55327025c6dc48",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 33
+    },
+    {
+      "event_key": "1543547381386182656",
+      "timestamp": 1788080773.446,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 39
+    },
+    {
+      "event_key": "1543547387916714084",
+      "timestamp": 1788080775.003,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 45
+    },
+    {
+      "event_key": "1543547526999838721",
+      "timestamp": 1788080808.163,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "substantial_message"
+      ],
+      "message_size": 184
+    },
+    {
+      "event_key": "bot:51eb0db0fdd9e25589281459e2611bc1d82277f9",
+      "timestamp": 1788080812.4275808,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:eb1b38924f7304301cfff4fc26f3f28e6e96f9ec",
+      "timestamp": 1788080869.8592992,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543547825575563274",
+      "timestamp": 1788080879.349,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 87
+    },
+    {
+      "event_key": "1543547997844152421",
+      "timestamp": 1788080920.421,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 93
+    },
+    {
+      "event_key": "1543548057856245810",
+      "timestamp": 1788080934.729,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [
+        "direct",
+        "evilnae_reference"
+      ],
+      "message_size": 46
+    },
+    {
+      "event_key": "1543548110217678858",
+      "timestamp": 1788080947.213,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 75
+    },
+    {
+      "event_key": "bot:c038b2dccd0c657b13fceba85923c9ee1a58590f",
+      "timestamp": 1788080952.347993,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:9bb97f60b964bb0ccfb46ebe81fbdb2dddbd8184",
+      "timestamp": 1788080992.4691646,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543548360034750557",
+      "timestamp": 1788081006.774,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [],
+      "message_size": 103
+    },
+    {
+      "event_key": "1543548364048826418",
+      "timestamp": 1788081007.731,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [],
+      "message_size": 55
+    },
+    {
+      "event_key": "1543548437960855572",
+      "timestamp": 1788081025.353,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 47
+    },
+    {
+      "event_key": "bot:53f06c011f2c6dc496c484f61357cf5a63502994",
+      "timestamp": 1788081089.630197,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543548797899116586",
+      "timestamp": 1788081111.169,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 17
+    },
+    {
+      "event_key": "1543548825413623869",
+      "timestamp": 1788081117.729,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 27
+    },
+    {
+      "event_key": "bot:57e75c1ffced3d0124a5a3171e95b81203f19f3f",
+      "timestamp": 1788081128.9572613,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543548889951637504",
+      "timestamp": 1788081133.116,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 51
+    },
+    {
+      "event_key": "bot:1499813edd86b96c7c0a26104b9b7509b2fc63e2",
+      "timestamp": 1788081147.0734475,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543549144080326717",
+      "timestamp": 1788081193.705,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 69
+    },
+    {
+      "event_key": "1543549171024265257",
+      "timestamp": 1788081200.129,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 45
+    },
+    {
+      "event_key": "bot:5bc63500f2f5f1486caf6644909ea8885e744e3c",
+      "timestamp": 1788081215.2887766,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:958c3d4037db57fbb86c88073d67462e72d29d78",
+      "timestamp": 1788081255.6613176,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543549558385021018",
+      "timestamp": 1788081292.483,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 39
+    },
+    {
+      "event_key": "1543549566144614400",
+      "timestamp": 1788081294.333,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "question"
+      ],
+      "message_size": 73
+    },
+    {
+      "event_key": "1543549622914392116",
+      "timestamp": 1788081307.868,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 8
+    },
+    {
+      "event_key": "bot:ec74de2d6b148dd5582f150e2be88cb858902b04",
+      "timestamp": 1788081321.963784,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:73c1433e04c501c7dc9b6f0a6a7b8b77da518bb7",
+      "timestamp": 1788081363.4485302,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543549904163708948",
+      "timestamp": 1788081374.923,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 43
+    },
+    {
+      "event_key": "1543549996488597534",
+      "timestamp": 1788081396.935,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5a6034b2bcc864b54150a1fe237d8a08f3cfce4",
+      "flags": [],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543550031104053248",
+      "timestamp": 1788081405.188,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 44
+    },
+    {
+      "event_key": "1543550042424614933",
+      "timestamp": 1788081407.887,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 87
+    },
+    {
+      "event_key": "1543550095583354911",
+      "timestamp": 1788081420.561,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [],
+      "message_size": 35
+    },
+    {
+      "event_key": "1543550103049076816",
+      "timestamp": 1788081422.341,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5a6034b2bcc864b54150a1fe237d8a08f3cfce4",
+      "flags": [],
+      "message_size": 48
+    },
+    {
+      "event_key": "bot:6e98c4359941e908a2f67af31617cbb9a0ada4ff",
+      "timestamp": 1788081425.68629,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543550625357500468",
+      "timestamp": 1788081546.869,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 20
+    },
+    {
+      "event_key": "1543550724309520385",
+      "timestamp": 1788081570.461,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 49
+    },
+    {
+      "event_key": "bot:b5a4933f2eba1a82b764180f5ea140775bf27e41",
+      "timestamp": 1788081644.7758782,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543551081362227281",
+      "timestamp": 1788081655.589,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 26
+    },
+    {
+      "event_key": "1543551085397155900",
+      "timestamp": 1788081656.551,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [],
+      "message_size": 8
+    },
+    {
+      "event_key": "1543551090287579196",
+      "timestamp": 1788081657.717,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 2
+    },
+    {
+      "event_key": "1543551095794704434",
+      "timestamp": 1788081659.03,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [],
+      "message_size": 3
+    },
+    {
+      "event_key": "1543551111095517264",
+      "timestamp": 1788081662.678,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 6
+    },
+    {
+      "event_key": "1543551162098131055",
+      "timestamp": 1788081674.838,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 48
+    },
+    {
+      "event_key": "1543551170034012170",
+      "timestamp": 1788081676.73,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [
+        "question"
+      ],
+      "message_size": 47
+    },
+    {
+      "event_key": "1543551320731164742",
+      "timestamp": 1788081712.659,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 29
+    },
+    {
+      "event_key": "1543551492726718484",
+      "timestamp": 1788081753.666,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [],
+      "message_size": 73
+    },
+    {
+      "event_key": "1543551623668703307",
+      "timestamp": 1788081784.885,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [
+        "question"
+      ],
+      "message_size": 61
+    },
+    {
+      "event_key": "1543551678672797697",
+      "timestamp": 1788081797.999,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 26
+    },
+    {
+      "event_key": "1543551690458800199",
+      "timestamp": 1788081800.809,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 50
+    },
+    {
+      "event_key": "bot:3e56ca39f6d2c721dc2f26d293149eb74bf18f79",
+      "timestamp": 1788081816.5604503,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543551831878402109",
+      "timestamp": 1788081834.526,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 33
+    },
+    {
+      "event_key": "1543551877256585308",
+      "timestamp": 1788081845.345,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [],
+      "message_size": 14
+    },
+    {
+      "event_key": "1543551885854642266",
+      "timestamp": 1788081847.395,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 83
+    },
+    {
+      "event_key": "1543552036841455626",
+      "timestamp": 1788081883.393,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [],
+      "message_size": 128
+    },
+    {
+      "event_key": "1543552070940893265",
+      "timestamp": 1788081891.523,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 78
+    },
+    {
+      "event_key": "bot:edb7177f1c14c5c3d53d4a5dadf5b9c08bf3c654",
+      "timestamp": 1788081913.9617445,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543552619468034048",
+      "timestamp": 1788082022.302,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 30
+    },
+    {
+      "event_key": "bot:e94fe5b5f17448de37896579cc27a3f63f61660f",
+      "timestamp": 1788082647.7121868,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543555957890752533",
+      "timestamp": 1788082818.244,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 12
+    },
+    {
+      "event_key": "1543555963921899672",
+      "timestamp": 1788082819.682,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 36
+    },
+    {
+      "event_key": "bot:16498c005fa4dbb27d4522c0190607b7b84f45d1",
+      "timestamp": 1788082883.4674509,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543556334274871346",
+      "timestamp": 1788082907.981,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "emoji_only"
+      ],
+      "message_size": 33
+    },
+    {
+      "event_key": "bot:bf160c67ccf90718b6ba05566f378526789da7e3",
+      "timestamp": 1788083006.2258706,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543556816561111050",
+      "timestamp": 1788083022.967,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "evilnae_reference"
+      ],
+      "message_size": 14
+    },
+    {
+      "event_key": "bot:b62509c6e1e83de529bfb5583f15a2c80af645a5",
+      "timestamp": 1788083093.1208913,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543557215443746936",
+      "timestamp": 1788083118.068,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 57
+    },
+    {
+      "event_key": "bot:092454de2746e176561125857a73ec94cff25920",
+      "timestamp": 1788083213.581974,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543557883428474990",
+      "timestamp": 1788083277.328,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "evilnae_reference"
+      ],
+      "message_size": 74
+    },
+    {
+      "event_key": "bot:a582ac1e3ce7b9669421f19c440b96e824de012d",
+      "timestamp": 1788083382.7238846,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543558430227304521",
+      "timestamp": 1788083407.695,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "laughter"
+      ],
+      "message_size": 31
+    },
+    {
+      "event_key": "1543558920738578492",
+      "timestamp": 1788083524.642,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "substantial_message"
+      ],
+      "message_size": 140
+    },
+    {
+      "event_key": "1543559311790178404",
+      "timestamp": 1788083617.876,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "substantial_message"
+      ],
+      "message_size": 150
+    },
+    {
+      "event_key": "bot:a9e34e5f6cbcc8e198f48bd81d7863dbc133f14c",
+      "timestamp": 1788086251.5043821,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:4009631ca9a4de52555e9b97c12c3f36ba5bc5ce",
+      "timestamp": 1788088954.8352566,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543589934839894088",
+      "timestamp": 1788090918.98,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "c037ed0b7dce2ccd63b700c1dd55327025c6dc48",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 31
+    },
+    {
+      "event_key": "1543590061667520652",
+      "timestamp": 1788090949.218,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 10
+    },
+    {
+      "event_key": "1543590232568365067",
+      "timestamp": 1788090989.964,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "545805930e436065113ae905a1978f77fea654cf",
+      "flags": [
+        "evilnae_reference",
+        "hanae_reference"
+      ],
+      "message_size": 79
+    },
+    {
+      "event_key": "bot:485671f735311b83959d44c247f65115b5ea6a2e",
+      "timestamp": 1788091066.727687,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543590634038890567",
+      "timestamp": 1788091085.682,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 49
+    },
+    {
+      "event_key": "1543590783045730425",
+      "timestamp": 1788091121.208,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "545805930e436065113ae905a1978f77fea654cf",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 86
+    },
+    {
+      "event_key": "bot:ae319dd3f9a2ae27409e3f66dee2b2cdc8a46de5",
+      "timestamp": 1788091131.8348408,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:326051c024f94171db54c4e434230540bb95c04e",
+      "timestamp": 1788092198.6496058,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543595338084913224",
+      "timestamp": 1788092207.214,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "c037ed0b7dce2ccd63b700c1dd55327025c6dc48",
+      "flags": [
+        "direct",
+        "evilnae_reference"
+      ],
+      "message_size": 34
+    },
+    {
+      "event_key": "bot:f4b5bbe7daf6f4392d4d3202f1200aa38393499f",
+      "timestamp": 1788092284.390281,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543600573251719169",
+      "timestamp": 1788093455.375,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "4d2435c04d83fb3cc705fae13a5e787f0910783a",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 43
+    },
+    {
+      "event_key": "bot:f71df7b83f9b9cb5e5a33ba6d5c1fe0a4fa428e8",
+      "timestamp": 1788093474.8929613,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:6b6ba793f970c6e17be75772ca1f4850c7b8e14c",
+      "timestamp": 1788094901.3801832,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543610988782297201",
+      "timestamp": 1788095938.631,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "2b80d185e4cda1be1b3dbdf98dd583c171a7212e",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "hanae_reference",
+        "question"
+      ],
+      "message_size": 45
+    },
+    {
+      "event_key": "bot:aa0a41664ed077647e7f3545f0dd790e08bca4d2",
+      "timestamp": 1788096009.3725631,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543612377533124768",
+      "timestamp": 1788096269.735,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 43
+    },
+    {
+      "event_key": "1543616468157988975",
+      "timestamp": 1788097245.016,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "substantial_message"
+      ],
+      "message_size": 500
+    },
+    {
+      "event_key": "1543616835965034516",
+      "timestamp": 1788097332.708,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [],
+      "message_size": 29
+    },
+    {
+      "event_key": "1543617043285147648",
+      "timestamp": 1788097382.137,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 62
+    },
+    {
+      "event_key": "1543617199586021461",
+      "timestamp": 1788097419.402,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [
+        "substantial_message"
+      ],
+      "message_size": 119
+    },
+    {
+      "event_key": "bot:83d931ae1fdf6808826f92651b3582f849fadd20",
+      "timestamp": 1788097963.7945418,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543620403333955635",
+      "timestamp": 1788098183.235,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "laughter"
+      ],
+      "message_size": 47
+    },
+    {
+      "event_key": "1543620610851209308",
+      "timestamp": 1788098232.711,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "question"
+      ],
+      "message_size": 75
+    },
+    {
+      "event_key": "bot:50f571cc6b19a60e7bbf0bf308d77cd48d40b486",
+      "timestamp": 1788098260.7982047,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543621000359448666",
+      "timestamp": 1788098325.577,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "question"
+      ],
+      "message_size": 75
+    },
+    {
+      "event_key": "1543623380966707210",
+      "timestamp": 1788098893.158,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 63
+    },
+    {
+      "event_key": "bot:75c1694bb783b58dbe822a60c714b091ae906bfa",
+      "timestamp": 1788098964.906306,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543624949107924992",
+      "timestamp": 1788099267.032,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [
+        "evilnae_reference",
+        "hanae_reference"
+      ],
+      "message_size": 52
+    },
+    {
+      "event_key": "1543625642065797171",
+      "timestamp": 1788099432.246,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 103
+    },
+    {
+      "event_key": "bot:4ab52b397f2be796b8a7a4be883d3e2e42bbf80e",
+      "timestamp": 1788099492.6244166,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543626025282445343",
+      "timestamp": 1788099523.612,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 63
+    },
+    {
+      "event_key": "bot:6036c766b42dfb9115c8fb2e4ae8e6c30a65b471",
+      "timestamp": 1788099624.8487394,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:2a87737223d12730103014cbf61397f5312a9ae9",
+      "timestamp": 1788100849.4446003,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543631960767864883",
+      "timestamp": 1788100938.742,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 22
+    },
+    {
+      "event_key": "1543632976712171530",
+      "timestamp": 1788101180.962,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "reply_to_evilnae",
+        "evilnae_reference"
+      ],
+      "message_size": 81
+    },
+    {
+      "event_key": "bot:bfc53f6999a4d86a1284b06e6fffc2f0e3bbdc07",
+      "timestamp": 1788101206.1933174,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543633119230304367",
+      "timestamp": 1788101214.941,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 7
+    },
+    {
+      "event_key": "1543636691762544711",
+      "timestamp": 1788102066.699,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [
+        "direct",
+        "evilnae_reference"
+      ],
+      "message_size": 52
+    },
+    {
+      "event_key": "bot:b1839c282de5acbc4c69b576dd9163bb3d799995",
+      "timestamp": 1788102181.8862405,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543637407654477854",
+      "timestamp": 1788102237.381,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "0f724a3ed399fdf6d78bf8d350aaf2d4708001f9",
+      "flags": [],
+      "message_size": 17
+    },
+    {
+      "event_key": "bot:b5c1497731b4ac4e9205745758e5e7c50ce7a624",
+      "timestamp": 1788102309.9614651,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543644051931144222",
+      "timestamp": 1788103821.5,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "545805930e436065113ae905a1978f77fea654cf",
+      "flags": [],
+      "message_size": 78
+    },
+    {
+      "event_key": "1543644608502702100",
+      "timestamp": 1788103954.197,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "hanae_reference",
+        "substantial_message"
+      ],
+      "message_size": 217
+    },
+    {
+      "event_key": "1543644690849595533",
+      "timestamp": 1788103973.83,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [
+        "emoji_only"
+      ],
+      "message_size": 34
+    },
+    {
+      "event_key": "1543644756742242334",
+      "timestamp": 1788103989.54,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [],
+      "message_size": 72
+    },
+    {
+      "event_key": "1543644886232997928",
+      "timestamp": 1788104020.413,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [],
+      "message_size": 26
+    },
+    {
+      "event_key": "1543645603622293615",
+      "timestamp": 1788104191.452,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 40
+    },
+    {
+      "event_key": "1543645831259885729",
+      "timestamp": 1788104245.725,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "user_hash": "8ed3e0844ff1e555e0d00ffb6468c7ac150e0d9a",
+      "flags": [],
+      "message_size": 20
+    },
+    {
+      "event_key": "bot:c4071d4e4fa2e66bae6fe24aa309901ad287ce56",
+      "timestamp": 1788104993.1673508,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "initiative"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543664147491856498",
+      "timestamp": 1788108612.655,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "4ba89f9405e32e1fac7c3dd7738073000e232051",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "hanae_reference",
+        "question"
+      ],
+      "message_size": 49
+    },
+    {
+      "event_key": "bot:1717de6647fb6d8af7da3053bf1e128dd63edf84",
+      "timestamp": 1788108722.2702398,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543665888283336734",
+      "timestamp": 1788109027.692,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 43
+    },
+    {
+      "event_key": "1543665971661635674",
+      "timestamp": 1788109047.571,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 98
+    },
+    {
+      "event_key": "bot:7ead921cffd42db49fab89c252896e3f4430cdec",
+      "timestamp": 1788109111.0561328,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543666388097568960",
+      "timestamp": 1788109146.857,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 98
+    },
+    {
+      "event_key": "bot:f877e9c43364de411c2b6e8001f3cb302a579702",
+      "timestamp": 1788109188.006229,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543666599788023820",
+      "timestamp": 1788109197.328,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 54
+    },
+    {
+      "event_key": "bot:ff7d83fb1f0baabf5535b1b7fc5ad7fc3da12226",
+      "timestamp": 1788109206.7917163,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543679031101104158",
+      "timestamp": 1788112161.184,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 87
+    },
+    {
+      "event_key": "1543679040878026792",
+      "timestamp": 1788112163.515,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "2b80d185e4cda1be1b3dbdf98dd583c171a7212e",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 18
+    },
+    {
+      "event_key": "bot:0a15e9c1452cf2d8b22a26e942e690a842f34981",
+      "timestamp": 1788112178.2501469,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "bot:f173394f6ece8dc1d4a294eec7ddf144af779dfd",
+      "timestamp": 1788112275.930429,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543679541854076948",
+      "timestamp": 1788112282.957,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "a5f522305900d746df151e4bff8200fc46de357b",
+      "flags": [],
+      "message_size": 132
+    },
+    {
+      "event_key": "bot:c48dcb4c358c80fce5d18db5d0e5c5ca0f094137",
+      "timestamp": 1788112352.7660265,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543690924150759524",
+      "timestamp": 1788114996.708,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "4ba89f9405e32e1fac7c3dd7738073000e232051",
+      "flags": [
+        "evilnae_reference",
+        "question"
+      ],
+      "message_size": 41
+    },
+    {
+      "event_key": "bot:a10e5eb3e021e96186307d464221c8c3f0253ff9",
+      "timestamp": 1788115056.8567088,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543691278858850427",
+      "timestamp": 1788115081.277,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "4ba89f9405e32e1fac7c3dd7738073000e232051",
+      "flags": [
+        "direct",
+        "reply_to_evilnae"
+      ],
+      "message_size": 20
+    },
+    {
+      "event_key": "bot:3878efff60897a1f4026c987b681a4cb4b751e90",
+      "timestamp": 1788115152.143274,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543691700180877462",
+      "timestamp": 1788115181.728,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [
+        "direct",
+        "evilnae_reference",
+        "question",
+        "care_sensitive"
+      ],
+      "message_size": 32
+    },
+    {
+      "event_key": "bot:f16d926307af0e9e6fcdd6eb6444e6390a87086f",
+      "timestamp": 1788115270.8509302,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543692209931550820",
+      "timestamp": 1788115303.262,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "8728af6e5c79a9ec1aafc13b429486aea5409b66",
+      "flags": [],
+      "message_size": 24
+    },
+    {
+      "event_key": "bot:60b46007351855fa33aadad9b881bb29d6f2aff2",
+      "timestamp": 1788115389.6133661,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "continuation"
+      ],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543694755026702367",
+      "timestamp": 1788115910.06,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "871025502616453135",
+      "channel_name": "𝑪𝒉𝒂𝒕𝒕𝒊𝒏𝒈",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543694795262795776",
+      "timestamp": 1788115919.653,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "871025502616453135",
+      "channel_name": "𝑪𝒉𝒂𝒕𝒕𝒊𝒏𝒈",
+      "user_hash": "8b70e31b3f23acc7a03afa798ac4914ffb9e2016",
+      "flags": [],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543697115891376158",
+      "timestamp": 1788116472.934,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "871025502616453135",
+      "channel_name": "𝑪𝒉𝒂𝒕𝒕𝒊𝒏𝒈",
+      "user_hash": "c1ffffc9ebf3fc53d4b68765d01b0c0673ac3722",
+      "flags": [],
+      "message_size": 0
+    },
+    {
+      "event_key": "1543698531120840714",
+      "timestamp": 1788116810.351,
+      "kind": "user",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "4ba89f9405e32e1fac7c3dd7738073000e232051",
+      "flags": [
+        "evilnae_reference"
+      ],
+      "message_size": 43
+    },
+    {
+      "event_key": "bot:bc72eaa35e1187b21c73d50b0d40e5cb3d46ef9e",
+      "timestamp": 1788120028.254487,
+      "kind": "bot",
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "user_hash": "EVILNAE",
+      "flags": [
+        "reply"
+      ],
+      "message_size": 0
+    }
+  ],
+  "channels": {
+    "1540713345856970884": {
+      "guild_id": "871025502616453131",
+      "channel_id": "1540713345856970884",
+      "channel_name": "💔│𝐄𝐯𝐢𝐥𝐓𝐚𝐥𝐤",
+      "last_user_message_at": 1788116810.351,
+      "last_event_at": 1788120028.254487,
+      "last_bot_message_at": 1788120028.254487
+    },
+    "876170894492467311": {
+      "guild_id": "871025502616453131",
+      "channel_id": "876170894492467311",
+      "channel_name": "♡‧₊🎐𝑵𝒆𝒖𝒆-𝑭𝒍𝒖𝒇𝒇𝒔",
+      "last_user_message_at": 1788079305.557,
+      "last_event_at": 1788079305.557
+    },
+    "877574306920546314": {
+      "guild_id": "871025502616453131",
+      "channel_id": "877574306920546314",
+      "channel_name": "𝑴𝒐𝒅-𝑪𝒉𝒂𝒕",
+      "last_user_message_at": 1788104245.725,
+      "last_event_at": 1788104245.725
+    },
+    "871025502616453135": {
+      "guild_id": "871025502616453131",
+      "channel_id": "871025502616453135",
+      "channel_name": "𝑪𝒉𝒂𝒕𝒕𝒊𝒏𝒈",
+      "last_user_message_at": 1788116472.934,
+      "last_event_at": 1788116472.934
+    }
+  }
+}

@@ -1,0 +1,278 @@
+{
+  "version": "1.0",
+  "users": {
+    "225324315824881665": {
+      "user_id": "225324315824881665",
+      "username": "#WeLoveHana FLOCHI",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.1285,
+      "updated_at": 1788092216.4756613,
+      "last_interaction_at": 1788092208.721764,
+      "last_event_id": "1543595338084913224",
+      "events": [
+        "direct_engagement",
+        "direct_engagement"
+      ]
+    },
+    "311571123521191939": {
+      "user_id": "311571123521191939",
+      "username": "#WeLoveHanae_Kubotic, Sun Killer",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.1321,
+      "updated_at": 1788112170.6963654,
+      "last_interaction_at": 1788112164.2764528,
+      "last_event_id": "1543679040878026792",
+      "events": [
+        "direct_engagement",
+        "reply_engagement",
+        "direct_engagement",
+        "reply_engagement"
+      ]
+    },
+    "568096551948255242": {
+      "user_id": "568096551948255242",
+      "username": "HANAE",
+      "closeness": 0.3378,
+      "trust": 0.1693,
+      "warmth": 0.8617,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.5175,
+      "updated_at": 1788112290.3246808,
+      "last_interaction_at": 1788112283.7072225,
+      "last_event_id": "1543679541854076948",
+      "events": [
+        "mention_engagement",
+        "positive",
+        "direct_engagement",
+        "affection",
+        "reply_engagement",
+        "affection",
+        "direct_engagement",
+        "direct_engagement",
+        "direct_engagement",
+        "positive",
+        "direct_engagement",
+        "reply_engagement",
+        "positive",
+        "affection",
+        "direct_engagement",
+        "affection"
+      ]
+    },
+    "801026758664781824": {
+      "user_id": "801026758664781824",
+      "username": "Nightflyer",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.09,
+      "updated_at": 1788079324.607414,
+      "last_interaction_at": 1788079318.4312544,
+      "last_event_id": "1543541270042124388",
+      "events": [
+        "direct_engagement"
+      ]
+    },
+    "248163234199240705": {
+      "user_id": "248163234199240705",
+      "username": "#WeLoveMogelnae Der_ChrisHD",
+      "closeness": 0.0539,
+      "trust": 0.0247,
+      "warmth": 0.0919,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0714,
+      "updated_at": 1788115920.310004,
+      "last_interaction_at": 1788115920.2525692,
+      "last_event_id": "1543694795262795776",
+      "events": [
+        "direct_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "mention_engagement",
+        "direct_engagement",
+        "affection",
+        "mention_engagement"
+      ]
+    },
+    "418430982866206720": {
+      "user_id": "418430982866206720",
+      "username": "#WeLoveHanae KR-Floh Pheonae",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0164,
+      "updated_at": 1788104247.1022751,
+      "last_interaction_at": 1788104246.7533386,
+      "last_event_id": "1543645831259885729",
+      "events": [
+        "reply_engagement"
+      ]
+    },
+    "703957199520792657": {
+      "user_id": "703957199520792657",
+      "username": "Don Tackolade",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.303,
+      "updated_at": 1788116817.6210635,
+      "last_interaction_at": 1788116811.004114,
+      "last_event_id": "1543698531120840714",
+      "events": [
+        "direct_engagement",
+        "direct_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "direct_engagement"
+      ]
+    },
+    "1522477079491248226": {
+      "user_id": "1522477079491248226",
+      "username": "Mauricenae",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.2026,
+      "updated_at": 1788115309.149658,
+      "last_interaction_at": 1788115303.8922968,
+      "last_event_id": "1543692209931550820",
+      "events": [
+        "mention_engagement",
+        "mention_engagement",
+        "mention_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "mention_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "direct_engagement"
+      ]
+    },
+    "1242025336695422976": {
+      "user_id": "1242025336695422976",
+      "username": "Jacksonhicks173YT",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0899,
+      "updated_at": 1788080183.0155597,
+      "last_interaction_at": 1788080171.6713936,
+      "last_event_id": "1543544849083666474",
+      "events": [
+        "direct_engagement"
+      ]
+    },
+    "868112608958504961": {
+      "user_id": "868112608958504961",
+      "username": "#WeLoveHanae Kuriovakuma",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.1991,
+      "updated_at": 1788102247.0830057,
+      "last_interaction_at": 1788102238.5343442,
+      "last_event_id": "1543637407654477854",
+      "events": [
+        "direct_engagement",
+        "direct_engagement",
+        "mention_engagement",
+        "mention_engagement",
+        "mention_engagement",
+        "mention_engagement",
+        "direct_engagement"
+      ]
+    },
+    "662625256007008256": {
+      "user_id": "662625256007008256",
+      "username": "#WeLoveMogelnae_KR_GeistGando",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0,
+      "updated_at": 1788081424.8013787,
+      "last_interaction_at": 1788081424.3458078,
+      "last_event_id": "1543550103049076816",
+      "events": []
+    },
+    "422400787503644672": {
+      "user_id": "422400787503644672",
+      "username": "#WeLoveHanae_flohminus5",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0749,
+      "updated_at": 1788103822.8798077,
+      "last_interaction_at": 1788103822.6409311,
+      "last_event_id": "1543644051931144222",
+      "events": [
+        "direct_engagement",
+        "reply_engagement"
+      ]
+    },
+    "1105003371787726899": {
+      "user_id": "1105003371787726899",
+      "username": "#WeLoveHanae043 Kainae_87",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.09,
+      "updated_at": 1788093463.4655955,
+      "last_interaction_at": 1788093456.925768,
+      "last_event_id": "1543600573251719169",
+      "events": [
+        "direct_engagement"
+      ]
+    },
+    "981262425724702780": {
+      "user_id": "981262425724702780",
+      "username": "#WeLoveMogelnae Mr.Bierchen 🍺",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0,
+      "updated_at": 1788116473.6593437,
+      "last_interaction_at": 1788116473.6009054,
+      "last_event_id": "1543697115891376158",
+      "events": []
+    }
+  }
+}

@@ -182,11 +182,6 @@ from agency_initiative_v2 import (
     wrap_initiative_prompt_v2,
 )
 
-from turn_runtime import (
-    TURN_RUNTIME_VERSION,
-    format_turn_summary,
-)
-
 from self_model import (
     SELF_MODEL_VERSION,
     resolve_self_query,
@@ -660,7 +655,7 @@ AUTO_LOG_PATH = _setup_auto_file_logging()
 # VERSION
 # =========================================================
 
-BOT_VERSION = "4.0.1-turn-console-latency"
+BOT_VERSION = "4.0.0-agency-server-awareness"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -8784,11 +8779,6 @@ async def on_ready():
         f"{get_console_mode()} "
         "(full file log unchanged)"
     )
-    print(
-        f"Turn Runtime v"
-        f"{TURN_RUNTIME_VERSION}: ACTIVE "
-        "(feelings + text changes + stage timing)"
-    )
 
     print(
         "Qwen Acceptance v2: ACTIVE"
@@ -9886,7 +9876,7 @@ async def on_message(
         )
     )
 
-    async with user_lock, message.channel.typing():
+    async with user_lock:
 
         total_start = (
             time.perf_counter()
@@ -11286,10 +11276,6 @@ Participation-Entscheidung nötig.
         # 10. WRITER
         # =================================================
 
-        writer_started_at = (
-            time.perf_counter()
-        )
-
         try:
 
             async with (
@@ -11378,25 +11364,6 @@ Participation-Entscheidung nötig.
             )
 
             return
-
-        writer_finished_at = (
-            time.perf_counter()
-        )
-
-        writer_duration = (
-            writer_finished_at
-            -
-            writer_started_at
-        )
-
-        raw_surface_answer = str(
-            getattr(
-                response,
-                "output_text",
-                "",
-            )
-            or ""
-        ).strip()
 
         # =================================================
         # 11. VALIDATE + REPAIR
@@ -14154,73 +14121,6 @@ Keine Unicode-Emojis oder Custom-Emotes.
         print(
             format_character_learning_debug(
                 character_learning_result
-            )
-        )
-        turn_post_seconds = max(
-            0.0,
-            float(
-                response_total_duration
-            )
-            -
-            float(
-                brain_duration
-            )
-            -
-            float(
-                writer_duration
-            ),
-        )
-
-        print(
-            format_turn_summary(
-                username=username,
-                user_id=user_id,
-                mode=voice_conversation_mode,
-                delivery_seconds=(
-                    response_total_duration
-                ),
-                brain_seconds=(
-                    brain_duration
-                ),
-                writer_seconds=(
-                    writer_duration
-                ),
-                post_seconds=(
-                    turn_post_seconds
-                ),
-                dominant_feeling=(
-                    get_dominant_feeling(
-                        current_inner_state
-                    )
-                ),
-                inner_state=(
-                    current_inner_state
-                ),
-                response_plan=(
-                    response_plan
-                ),
-                surface_writer_used=(
-                    surface_writer_used
-                ),
-                surface_writer_result=(
-                    surface_writer_result
-                ),
-                raw_surface_answer=(
-                    raw_surface_answer
-                ),
-                final_answer=answer,
-                repair_count=(
-                    get_response_repair_count()
-                ),
-                emote_result=(
-                    evilnae_emote_result
-                ),
-                learning_result=(
-                    character_learning_result
-                ),
-                salience_result=(
-                    salience_result
-                ),
             )
         )
 
