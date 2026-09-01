@@ -32,7 +32,7 @@ from coherence import (
 # VERSION
 # =========================================================
 
-LOCAL_VOICE_VERSION = "1.3.1-timeout-control"
+LOCAL_VOICE_VERSION = "1.3.0"
 
 
 # =========================================================
@@ -1505,17 +1505,8 @@ def is_trivial_collapse(
 # =========================================================
 
 def _ollama_chat_sync(
-    payload,
-    timeout=None,
+    payload
 ):
-    request_timeout = max(
-        0.5,
-        float(
-            timeout
-            if timeout is not None
-            else LOCAL_VOICE_TIMEOUT
-        ),
-    )
 
     url = (
         LOCAL_VOICE_URL
@@ -1545,8 +1536,9 @@ def _ollama_chat_sync(
 
     with urllib.request.urlopen(
         request,
-        timeout=request_timeout
+        timeout=LOCAL_VOICE_TIMEOUT
     ) as response:
+
         raw = (
             response
             .read()
@@ -1561,28 +1553,20 @@ def _ollama_chat_sync(
 
 
 async def ollama_chat(
-    payload,
-    timeout=None,
+    payload
 ):
-    request_timeout = max(
-        0.5,
-        float(
-            timeout
-            if timeout is not None
-            else LOCAL_VOICE_TIMEOUT
-        ),
-    )
 
     return await asyncio.wait_for(
+
         asyncio.to_thread(
             _ollama_chat_sync,
-            payload,
-            request_timeout,
+            payload
         ),
+
         timeout=(
-            request_timeout
+            LOCAL_VOICE_TIMEOUT
             +
-            0.75
+            1.0
         )
     )
 
@@ -1592,10 +1576,11 @@ async def run_local_model(
     system_prompt,
     user_prompt,
     temperature,
-    num_predict,
-    timeout=None,
+    num_predict
 ):
+
     payload = {
+
         "model":
             LOCAL_VOICE_MODEL,
 
@@ -1609,6 +1594,7 @@ async def run_local_model(
             LOCAL_VOICE_KEEP_ALIVE,
 
         "messages": [
+
             {
                 "role":
                     "system",
@@ -1616,6 +1602,7 @@ async def run_local_model(
                 "content":
                     system_prompt
             },
+
             {
                 "role":
                     "user",
@@ -1626,6 +1613,7 @@ async def run_local_model(
         ],
 
         "options": {
+
             "temperature":
                 temperature,
 
@@ -1638,11 +1626,11 @@ async def run_local_model(
     }
 
     response = await ollama_chat(
-        payload,
-        timeout=timeout,
+        payload
     )
 
     try:
+
         return (
             response[
                 "message"
@@ -1655,6 +1643,7 @@ async def run_local_model(
         KeyError,
         TypeError
     ):
+
         return None
 
 

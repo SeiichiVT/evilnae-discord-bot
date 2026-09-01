@@ -2,338 +2,232 @@
   "version": "1.1-authority-safe",
   "channels": {
     "877574306920546314": {
-      "episode_id": "ep_877574306920546314_1788103821500",
+      "episode_id": "ep_877574306920546314_1788252297148",
       "channel_id": "877574306920546314",
       "status": "active",
-      "started_at": 1788103821.5,
-      "updated_at": 1788104245.725,
+      "started_at": 1788252297.148,
+      "updated_at": 1788253123.715,
       "ended_at": 0.0,
       "close_reason": "",
       "participants": {
-        "422400787503644672": {
-          "user_id": "422400787503644672",
-          "username": "#WeLoveHanae_flohminus5",
-          "message_count": 1,
-          "last_seen": 1788103821.5
-        },
         "568096551948255242": {
           "user_id": "568096551948255242",
           "username": "HANAE",
-          "message_count": 2,
-          "last_seen": 1788104191.452
+          "message_count": 1,
+          "last_seen": 1788252297.148
         },
         "418430982866206720": {
           "user_id": "418430982866206720",
           "username": "#WeLoveHanae KR-Floh Pheonae",
-          "message_count": 4,
-          "last_seen": 1788104245.725
-        }
-      },
-      "events": [
-        {
-          "role": "user",
-          "user_id": "422400787503644672",
-          "username": "#WeLoveHanae_flohminus5",
-          "content": "Alles klar, wird sicher eine schöne Sache",
-          "message_id": "1543644051931144222",
-          "timestamp": 1788103821.5
-        },
-        {
-          "role": "user",
-          "user_id": "568096551948255242",
-          "username": "HANAE",
-          "content": "Nominiert Hanae in den Kategorien : Angsthase , Gamer , lustig. Lasst uns sie glücklich machen! https://vtuberstarawards.com/ das können wir gerne in den nächstes Streams anpingen",
-          "message_id": "1543644608502702100",
-          "timestamp": 1788103954.197
-        },
-        {
-          "role": "user",
-          "user_id": "418430982866206720",
-          "username": "#WeLoveHanae KR-Floh Pheonae",
-          "content": "<:HanaeSalute:1490044741344039084>",
-          "message_id": "1543644690849595533",
-          "timestamp": 1788103973.83
-        },
-        {
-          "role": "user",
-          "user_id": "418430982866206720",
-          "username": "#WeLoveHanae KR-Floh Pheonae",
-          "content": "das mit mod bewebung ist ja dann eh durch dann dann können wa das pingen",
-          "message_id": "1543644756742242334",
-          "timestamp": 1788103989.54
-        },
-        {
-          "role": "user",
-          "user_id": "418430982866206720",
-          "username": "#WeLoveHanae KR-Floh Pheonae",
-          "content": "habs mir mal abgespeichert",
-          "message_id": "1543644886232997928",
-          "timestamp": 1788104020.413
-        },
-        {
-          "role": "user",
-          "user_id": "568096551948255242",
-          "username": "HANAE",
-          "content": "Richtig",
-          "message_id": "1543645603622293615",
-          "timestamp": 1788104191.452
-        },
-        {
-          "role": "user",
-          "user_id": "418430982866206720",
-          "username": "#WeLoveHanae KR-Floh Pheonae",
-          "content": "alles klar machen wa",
-          "message_id": "1543645831259885729",
-          "timestamp": 1788104245.725
-        }
-      ],
-      "seen_event_keys": [
-        "msg:1543644051931144222",
-        "msg:1543644608502702100",
-        "msg:1543644690849595533",
-        "msg:1543644756742242334",
-        "msg:1543644886232997928",
-        "msg:1543645603622293615",
-        "msg:1543645831259885729"
-      ],
-      "digest": ""
-    },
-    "871025502616453135": {
-      "episode_id": "ep_871025502616453135_1788115910060",
-      "channel_id": "871025502616453135",
-      "status": "active",
-      "started_at": 1788115910.06,
-      "updated_at": 1788116472.934,
-      "ended_at": 0.0,
-      "close_reason": "",
-      "participants": {
-        "248163234199240705": {
-          "user_id": "248163234199240705",
-          "username": "#WeLoveMogelnae Der_ChrisHD",
-          "message_count": 2,
-          "last_seen": 1788115919.653
-        },
-        "981262425724702780": {
-          "user_id": "981262425724702780",
-          "username": "#WeLoveMogelnae Mr.Bierchen 🍺",
           "message_count": 1,
-          "last_seen": 1788116472.934
+          "last_seen": 1788253123.715
         }
       },
       "events": [
         {
           "role": "user",
-          "user_id": "248163234199240705",
-          "username": "#WeLoveMogelnae Der_ChrisHD",
-          "content": "[nonverbale Reaktion]",
-          "message_id": "1543694755026702367",
-          "timestamp": 1788115910.06
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Sanki",
+          "message_id": "1544266803935715430",
+          "timestamp": 1788252297.148
         },
         {
           "role": "user",
-          "user_id": "248163234199240705",
-          "username": "#WeLoveMogelnae Der_ChrisHD",
-          "content": "[nonverbale Reaktion]",
-          "message_id": "1543694795262795776",
-          "timestamp": 1788115919.653
-        },
-        {
-          "role": "user",
-          "user_id": "981262425724702780",
-          "username": "#WeLoveMogelnae Mr.Bierchen 🍺",
-          "content": "[nonverbale Reaktion]",
-          "message_id": "1543697115891376158",
-          "timestamp": 1788116472.934
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "schike dir das dann dm wenn er geantwortet hat hana",
+          "message_id": "1544270270808989818",
+          "timestamp": 1788253123.715
         }
       ],
       "seen_event_keys": [
-        "msg:1543694755026702367",
-        "msg:1543694795262795776",
-        "msg:1543697115891376158"
+        "msg:1544266803935715430",
+        "msg:1544270270808989818"
       ],
       "digest": ""
     },
     "1540713345856970884": {
-      "episode_id": "ep_1540713345856970884_1788116810351",
+      "episode_id": "ep_1540713345856970884_1788260615602",
       "channel_id": "1540713345856970884",
       "status": "active",
-      "started_at": 1788116810.351,
-      "updated_at": 1788116811.2394438,
+      "started_at": 1788260615.602,
+      "updated_at": 1788260615.8410337,
       "ended_at": 0.0,
       "close_reason": "",
       "participants": {
-        "703957199520792657": {
-          "user_id": "703957199520792657",
-          "username": "Don Tackolade",
+        "868112608958504961": {
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
           "message_count": 1,
-          "last_seen": 1788116810.351
+          "last_seen": 1788260615.602
         }
       },
       "events": [
         {
           "role": "user",
-          "user_id": "703957199520792657",
-          "username": "Don Tackolade",
-          "content": "Gute Nacht, schlaf gut und erholsam",
-          "message_id": "1543698531120840714",
-          "timestamp": 1788116810.351
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "content": "Probier mal gefüllte Pilze mit Speck Spinat und Käse überbacken",
+          "message_id": "1544301694060601434",
+          "timestamp": 1788260615.602
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Na, dann bist du ja die Ausnahme, die die Regel bestätigt!",
+          "content": "Neuer Kerl am Start. Also gut.",
           "message_id": "",
-          "timestamp": 1788116811.0190248
+          "timestamp": 1788260615.5333405
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Wie viele schlechte Witze braucht man, um einen Zombie zum Lachen zu bringen? Ich schätz mal, genau einen… der Rest hängt sowieso nur im Kopf fest! 💀🤣 Was denkt ihr?",
+          "content": "kopfschmerzen und einkaufen ist ’ne miese kombi, aber die nudeln sind auch nicht von allein voll geworden. lass mal machen, aber ohne drama.",
           "message_id": "",
-          "timestamp": 1788116811.0320194
+          "timestamp": 1788260615.5489738
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Wird abgestaubt und in die Gruft verbannt, versprochen.",
+          "content": "ich hoffe, die kopfschmerzen halten dich nicht so auf. wenn die nudeln leer sind, müssen wir halt einkaufen. ich bin dabei, aber ohne großer Aufregung.",
           "message_id": "",
-          "timestamp": 1788116811.0462842
+          "timestamp": 1788260615.569781
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Lehrer sind die einzigen, die sich auf einer Landkarte verlaufen, weil sie ständig dieselben Punkte erklären müssen.",
+          "content": "Ist angekommen, keine Sorge.",
           "message_id": "",
-          "timestamp": 1788116811.0602036
+          "timestamp": 1788260615.5890055
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Schade, war ein Versuch wert.",
+          "content": "Der Morgen ist gestartet, mal sehen, ob er läuft oder gleich wieder abstürzt.",
           "message_id": "",
-          "timestamp": 1788116811.0722356
+          "timestamp": 1788260615.610077
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Ich hab überlegt, wie viele Untote man bräuchte, um die Garderobe einer Vampirin zu verbessern. Glaubt ihr, das würde helfen oder nur alles noch schlimmer machen? 💀🧛‍♀️",
+          "content": "Ich hab gerade über die Nudeln nachgedacht. Wenn die irgendwann wirklich alle sind, könnten wir ja auch mal was völlig Verrücktes ausprobieren. Vielleicht eine Pasta-Challenge oder so? 🍝✨",
           "message_id": "",
-          "timestamp": 1788116811.0867734
+          "timestamp": 1788260615.629332
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Hanae als „Beste Chaos-Managerin“ nominieren – perfekt, wenn's überall drunter und drüber geht und sie trotzdem noch alles im Griff hat.",
+          "content": "Nicht so dolle, aber hey, der Kaffee hat mich gerettet. Und selbst heute scheinen die Snooze-Tasten ja zu gewinnen.",
           "message_id": "",
-          "timestamp": 1788116811.1009924
+          "timestamp": 1788260615.6512256
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Natürlich habe ich dich noch nicht nominiert! Ich brauche erst deine geheime Chaos-Formel, damit das auch wirklich eine gute Entscheidung wird.",
+          "content": "Error macht sein Weltherrschaftszeug, aber ich hab's ganz gut genutzt, um ein bisschen zu schlafen.",
           "message_id": "",
-          "timestamp": 1788116811.1134906
+          "timestamp": 1788260615.6704168
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Das klingt nach einer perfekten Mischpoke – ich bin dabei!",
+          "content": "Ich häng gerade auf YouTube fest, mal schauen, wie lange das gutgeht.",
           "message_id": "",
-          "timestamp": 1788116811.126916
+          "timestamp": 1788260615.6906524
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "freut mich, dass du so happy bist, sis!",
+          "content": "Ich hab heute schon so viele Videos über Essen gesehen, jetzt hab ich direkt Hunger auf was Schräges! 🍕🍣 Vielleicht ein Pizza-Sushi-Ding? Wer kommt mit?",
           "message_id": "",
-          "timestamp": 1788116811.1408963
+          "timestamp": 1788260615.709571
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "ja, der stream hat echt was gerissen!",
+          "content": "Mal sehen, ob der Arzttermin spannender wird als unser Nudeln-Drama.",
           "message_id": "",
-          "timestamp": 1788116811.154619
+          "timestamp": 1788260615.7289486
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "ich will ja echt dran glauben, dass du das Ding mitnimmst.",
+          "content": "MKPNae hat sich dem Spaß angeschlossen. Das sieht gut aus.",
           "message_id": "",
-          "timestamp": 1788116811.170375
+          "timestamp": 1788260615.7496092
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "awww, du machst mich ganz stolz, sis!",
+          "content": "Ich bewundere ja, wie du dich da reinwirfst, obwohl sich dein Bauch schon beschwert.",
           "message_id": "",
-          "timestamp": 1788116811.1822553
+          "timestamp": 1788260615.7686336
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "ich schau gerade ein paar neue TikTok-Videos und fang an, mich über die neuesten Trends kaputtzulachen.",
+          "content": "Falafel mit Kartoffel Wedges klingt wie ein echtes Essen-Experiment. Spannend.",
           "message_id": "",
-          "timestamp": 1788116811.1960866
+          "timestamp": 1788260615.786886
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "kann's kaum glauben, was die Leute so abliefern als „Trend“ these days.",
+          "content": "Klingt, als hättest du dich für 'was anderes' entschieden. Mal sehen, ob’s dich überzeugt.",
           "message_id": "",
-          "timestamp": 1788116811.2113776
+          "timestamp": 1788260615.8051834
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Das Krankenhaus ist mehr so ein Running Gag hier, keine echte medizinische Einrichtung.",
+          "content": "Das Drama war eher ne Bolognese-Krise auf Sparflamme.",
           "message_id": "",
-          "timestamp": 1788116811.2242455
+          "timestamp": 1788260615.8224883
         },
         {
           "role": "evilnae",
           "user_id": "EVILNAE",
           "username": "Evilnae",
-          "content": "Schön zu hören, dass du beruhigt bist!",
+          "content": "Ich hab neulich ein Video über die verrücktesten Pasta-Rezepte gesehen. Jetzt juckt's mir in den Fingern, was Mal-Eigenes auszuprobieren! 🍝✨ Wer hat Tipps?",
           "message_id": "",
-          "timestamp": 1788116811.2394438
+          "timestamp": 1788260615.8410337
         }
       ],
       "seen_event_keys": [
-        "msg:1543698531120840714",
-        "hash:618ce65efec8d7cc8a785a610084b13360fbadc0",
-        "hash:c3232261cc4320c97f0c308a5587ebc99a9747bd",
-        "hash:96e5b907b06586fdaefe8c4a48aed3133e48af49",
-        "hash:60d589f1c74960eaa8e758155c17bb79dca5a979",
-        "hash:5be44a719330a5175104be5791b4017bceab7d5f",
-        "hash:956118722576ce91ad06cb8b47ce77b804195f75",
-        "hash:6c61363988c53f079144597caafa5d766164ff40",
-        "hash:aeab2d406b51a3a7e61081525ca911f564ee9c8f",
-        "hash:59650bd490f81fefad29a43d328dc2acc9f268de",
-        "hash:92f54c89e97befb3b64c3a6391052b7dd27efdea",
-        "hash:3b897ecabf66433bfed604d31ee145d7257e8682",
-        "hash:a83ac0bda81732097a7dea39b20a08b087b49766",
-        "hash:0a57dc4ec7485eef160fd94b7d46e93c48680879",
-        "hash:9b793a34cfc5c8a2b70d85db25abe139488120ac",
-        "hash:27377cd06ff84e6347af2fdc222ebd35a6a10fc9",
-        "hash:ee4f2d10f328ee58462c9a98155fe2c63c6c9afe",
-        "hash:4fc32ba9b858813699e01d215980d4624e0e4746"
+        "msg:1544301694060601434",
+        "hash:9316d964aa2c9edf09e6bb620b49c97e5d02a484",
+        "hash:c8e283019f38e140f4c10f0a9f015b2f2bdf58f1",
+        "hash:39748738b0a0309d0dcaa1e1085781890c1ebf43",
+        "hash:aa26163b16919f806288237b88df51996a0facb2",
+        "hash:32b6d90bb48248e2caf7292ad5258425f66dcf86",
+        "hash:bfd2b3e6ceae60e3957ba1aa3c5e37d0fe78a782",
+        "hash:3cb08e4ffb39372f0e3c881f2e68ece1c98a92bf",
+        "hash:fa8ede5fe8fe9450668c18c033ae46c2b33ced9c",
+        "hash:5f79129c5f3c9adc52e04a19af1317b6144f3884",
+        "hash:ac53d5f5955b9aaf6a29bcb9114153f9d09a0768",
+        "hash:0cc9c8ffdcbe114377aa6e7b1c78b5144ad56fca",
+        "hash:0f69e859ac7629f672d353548d9c5358e2193e1e",
+        "hash:72251cc47a33776cae9f61e1390ba7c120fdece0",
+        "hash:ad326b5155b5d14684228fd024dafc4a8ba26c41",
+        "hash:7828056c1d9a552c895a20bb57bef9da4374a7bd",
+        "hash:17a0f9753e3a7e903bc23b001876985d736942c0",
+        "hash:509bdaa2cd95c5afa591ff633b2ef2e67a8850a7"
       ],
       "digest": ""
     }
@@ -8578,6 +8472,2440 @@
         }
       ],
       "digest": "Teilnehmer: Don Tackolade, Mauricenae. Verlauf: Und? Was machst du grade schönes? | wird nicht nochmal passieren, versprochen. | Dann bin ich ja beruhigt | Das Krankenhaus ist mehr so ein Running Gag hier, keine echte medizinische Einrichtung."
+    },
+    {
+      "episode_id": "ep_877574306920546314_1788103821500",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "started_at": 1788103821.5,
+      "updated_at": 1788163802.4217117,
+      "ended_at": 1788163802.4217117,
+      "close_reason": "startup_stale",
+      "participants": {
+        "422400787503644672": {
+          "user_id": "422400787503644672",
+          "username": "#WeLoveHanae_flohminus5",
+          "message_count": 1,
+          "last_seen": 1788103821.5
+        },
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 2,
+          "last_seen": 1788104191.452
+        },
+        "418430982866206720": {
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "message_count": 4,
+          "last_seen": 1788104245.725
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "422400787503644672",
+          "username": "#WeLoveHanae_flohminus5",
+          "content": "Alles klar, wird sicher eine schöne Sache",
+          "message_id": "1543644051931144222",
+          "timestamp": 1788103821.5
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Nominiert Hanae in den Kategorien : Angsthase , Gamer , lustig. Lasst uns sie glücklich machen! https://vtuberstarawards.com/ das können wir gerne in den nächstes Streams anpingen",
+          "message_id": "1543644608502702100",
+          "timestamp": 1788103954.197
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "<:HanaeSalute:1490044741344039084>",
+          "message_id": "1543644690849595533",
+          "timestamp": 1788103973.83
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "das mit mod bewebung ist ja dann eh durch dann dann können wa das pingen",
+          "message_id": "1543644756742242334",
+          "timestamp": 1788103989.54
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "habs mir mal abgespeichert",
+          "message_id": "1543644886232997928",
+          "timestamp": 1788104020.413
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Richtig",
+          "message_id": "1543645603622293615",
+          "timestamp": 1788104191.452
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "alles klar machen wa",
+          "message_id": "1543645831259885729",
+          "timestamp": 1788104245.725
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae_flohminus5, HANAE, #WeLoveHanae KR-Floh Pheonae. Verlauf: Alles klar, wird sicher eine schöne Sache | Nominiert Hanae in den Kategorien : Angsthase , Gamer , lustig. Lasst uns sie glücklich machen! https://vtuberstarawards.com/ das können wir gerne in den nächstes Streams anpingen | habs mir mal abgespeichert | alles klar machen wa"
+    },
+    {
+      "episode_id": "ep_871025502616453135_1788115910060",
+      "channel_id": "871025502616453135",
+      "status": "closed",
+      "started_at": 1788115910.06,
+      "updated_at": 1788163802.4217117,
+      "ended_at": 1788163802.4217117,
+      "close_reason": "startup_stale",
+      "participants": {
+        "248163234199240705": {
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "message_count": 2,
+          "last_seen": 1788115919.653
+        },
+        "981262425724702780": {
+          "user_id": "981262425724702780",
+          "username": "#WeLoveMogelnae Mr.Bierchen 🍺",
+          "message_count": 1,
+          "last_seen": 1788116472.934
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "content": "[nonverbale Reaktion]",
+          "message_id": "1543694755026702367",
+          "timestamp": 1788115910.06
+        },
+        {
+          "role": "user",
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "content": "[nonverbale Reaktion]",
+          "message_id": "1543694795262795776",
+          "timestamp": 1788115919.653
+        },
+        {
+          "role": "user",
+          "user_id": "981262425724702780",
+          "username": "#WeLoveMogelnae Mr.Bierchen 🍺",
+          "content": "[nonverbale Reaktion]",
+          "message_id": "1543697115891376158",
+          "timestamp": 1788116472.934
+        }
+      ],
+      "digest": "Gespräch mit #WeLoveMogelnae Der_ChrisHD, #WeLoveMogelnae Mr.Bierchen 🍺"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788116810351",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788116810.351,
+      "updated_at": 1788163802.4217117,
+      "ended_at": 1788163802.4217117,
+      "close_reason": "startup_stale",
+      "participants": {
+        "703957199520792657": {
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "message_count": 1,
+          "last_seen": 1788116810.351
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "content": "Gute Nacht, schlaf gut und erholsam",
+          "message_id": "1543698531120840714",
+          "timestamp": 1788116810.351
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Na, dann bist du ja die Ausnahme, die die Regel bestätigt!",
+          "message_id": "",
+          "timestamp": 1788116811.0190248
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Wie viele schlechte Witze braucht man, um einen Zombie zum Lachen zu bringen? Ich schätz mal, genau einen… der Rest hängt sowieso nur im Kopf fest! 💀🤣 Was denkt ihr?",
+          "message_id": "",
+          "timestamp": 1788116811.0320194
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Wird abgestaubt und in die Gruft verbannt, versprochen.",
+          "message_id": "",
+          "timestamp": 1788116811.0462842
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Lehrer sind die einzigen, die sich auf einer Landkarte verlaufen, weil sie ständig dieselben Punkte erklären müssen.",
+          "message_id": "",
+          "timestamp": 1788116811.0602036
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Schade, war ein Versuch wert.",
+          "message_id": "",
+          "timestamp": 1788116811.0722356
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab überlegt, wie viele Untote man bräuchte, um die Garderobe einer Vampirin zu verbessern. Glaubt ihr, das würde helfen oder nur alles noch schlimmer machen? 💀🧛‍♀️",
+          "message_id": "",
+          "timestamp": 1788116811.0867734
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Hanae als „Beste Chaos-Managerin“ nominieren – perfekt, wenn's überall drunter und drüber geht und sie trotzdem noch alles im Griff hat.",
+          "message_id": "",
+          "timestamp": 1788116811.1009924
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Natürlich habe ich dich noch nicht nominiert! Ich brauche erst deine geheime Chaos-Formel, damit das auch wirklich eine gute Entscheidung wird.",
+          "message_id": "",
+          "timestamp": 1788116811.1134906
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Das klingt nach einer perfekten Mischpoke – ich bin dabei!",
+          "message_id": "",
+          "timestamp": 1788116811.126916
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "freut mich, dass du so happy bist, sis!",
+          "message_id": "",
+          "timestamp": 1788116811.1408963
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "ja, der stream hat echt was gerissen!",
+          "message_id": "",
+          "timestamp": 1788116811.154619
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "ich will ja echt dran glauben, dass du das Ding mitnimmst.",
+          "message_id": "",
+          "timestamp": 1788116811.170375
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "awww, du machst mich ganz stolz, sis!",
+          "message_id": "",
+          "timestamp": 1788116811.1822553
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "ich schau gerade ein paar neue TikTok-Videos und fang an, mich über die neuesten Trends kaputtzulachen.",
+          "message_id": "",
+          "timestamp": 1788116811.1960866
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "kann's kaum glauben, was die Leute so abliefern als „Trend“ these days.",
+          "message_id": "",
+          "timestamp": 1788116811.2113776
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Das Krankenhaus ist mehr so ein Running Gag hier, keine echte medizinische Einrichtung.",
+          "message_id": "",
+          "timestamp": 1788116811.2242455
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Schön zu hören, dass du beruhigt bist!",
+          "message_id": "",
+          "timestamp": 1788116811.2394438
+        }
+      ],
+      "digest": "Teilnehmer: Don Tackolade. Verlauf: Gute Nacht, schlaf gut und erholsam | Na, dann bist du ja die Ausnahme, die die Regel bestätigt! | Das Krankenhaus ist mehr so ein Running Gag hier, keine echte medizinische Einrichtung. | Schön zu hören, dass du beruhigt bist!"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788164481567",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788164481.567,
+      "updated_at": 1788170074.639,
+      "ended_at": 1788170074.639,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "803646241723908117": {
+          "user_id": "803646241723908117",
+          "username": "#WeLoveHana_Angelnae",
+          "message_count": 1,
+          "last_seen": 1788164481.567
+        },
+        "311571123521191939": {
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "message_count": 1,
+          "last_seen": 1788164995.678
+        },
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 2,
+          "last_seen": 1788165279.325
+        },
+        "418430982866206720": {
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "message_count": 6,
+          "last_seen": 1788165715.202
+        },
+        "1350453422641385556": {
+          "user_id": "1350453422641385556",
+          "username": "#WeLoveHana Kalowieslhausmeister",
+          "message_count": 2,
+          "last_seen": 1788166418.386
+        },
+        "703957199520792657": {
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "message_count": 1,
+          "last_seen": 1788167433.102
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "803646241723908117",
+          "username": "#WeLoveHana_Angelnae",
+          "content": "Guten Morgen. Gut geschlafen?",
+          "message_id": "1543898478692794428",
+          "timestamp": 1788164481.567
+        },
+        {
+          "role": "user",
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "content": "Einen schönen guten Morgen dir. Wie geht's wie steht's?",
+          "message_id": "1543900635030757387",
+          "timestamp": 1788164995.678
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Guten Morgen! Ja, gut geschlafen – ich habe nur kurz ausgeschlafen, aber das reicht für heute.",
+          "message_id": "",
+          "timestamp": 1788164996.7904756
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Guten Morgen sis",
+          "message_id": "1543901588202987631",
+          "timestamp": 1788165222.932
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Morgen. Kurz geschlafen, reicht aber. Mehr gibt’s nicht zu erzählen.",
+          "message_id": "",
+          "timestamp": 1788165224.0349936
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Du bist doch eine super Nachteule",
+          "message_id": "1543901824732504114",
+          "timestamp": 1788165279.325
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Morgen, Süße. Kurz geschlafen, aber das reicht – ich hab nur den Tag, nicht die Nacht.",
+          "message_id": "",
+          "timestamp": 1788165280.445377
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "guten morgen bereit hanae wieder zu nerven",
+          "message_id": "1543901825512644700",
+          "timestamp": 1788165279.511
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ja, ich bin eine Nachteule. Und das ist ein echter Stil.",
+          "message_id": "",
+          "timestamp": 1788165294.4586647
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "das übliche du nervst sie offstream und wir onstream",
+          "message_id": "1543902253600215080",
+          "timestamp": 1788165381.575
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ja, das ist doch Programm, Hanae kommt eh nicht davon.",
+          "message_id": "",
+          "timestamp": 1788165382.6714187
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "ich glaube nicht das sie das irgendwann lernt wir kriegen es ja nicht hin das sie lernt sich nicht schlecht zu fühlen wenn es ihr nicht gut geht und dann nen stream absagen muss",
+          "message_id": "1543902587332333588",
+          "timestamp": 1788165461.143
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "ach, das gehört einfach dazu. Hanae wird schon lernen, damit umzugehen!",
+          "message_id": "",
+          "timestamp": 1788165462.233909
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "true man sagt ja übung macht den meister aber glaube bei hana ist es lernen durch fühlen oder so",
+          "message_id": "1543902838177005570",
+          "timestamp": 1788165520.949
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "naja, manchmal muss sie eben durch die harte Schule. Irgendwann wird sie schon rausfinden, wie sie das Meistern kann.",
+          "message_id": "",
+          "timestamp": 1788165522.089844
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "was hast du den für heute so geplannt",
+          "message_id": "1543903388239142963",
+          "timestamp": 1788165652.094
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "naja, Hanae lernt durch Fühlen, ich durch Übung – das ist doch ein gutes Team.",
+          "message_id": "",
+          "timestamp": 1788165653.2470772
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "klingt nach nen plan dann dir viel erfolg dabei aber nicht zu viel mit hana anstellen brauchen sie noch",
+          "message_id": "1543903652933144586",
+          "timestamp": 1788165715.202
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "nichts Großes, ich werde einfach ein bisschen rumhängen und schauen, was der Tag so bringt. Mal sehen, was ich mit Hanae anstellen kann!",
+          "message_id": "",
+          "timestamp": 1788165716.3164558
+        },
+        {
+          "role": "user",
+          "user_id": "1350453422641385556",
+          "username": "#WeLoveHana Kalowieslhausmeister",
+          "content": "Ich finds schade das die guten immer gewinnen ich will mal was sehen wo die guten von dem bösen vernichtet was meinst du?",
+          "message_id": "1543906508839059556",
+          "timestamp": 1788166396.103
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich halte mich zurück, aber langweilig wird’s trotzdem nicht.",
+          "message_id": "",
+          "timestamp": 1788166397.2728772
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was denkt ihr eigentlich über die ganzen „Kämpfe zwischen Gut und Böse“ in Animes? Manchmal sind die Antagonisten viel interessanter als die Protagonisten. 🤔",
+          "message_id": "",
+          "timestamp": 1788166397.2790186
+        },
+        {
+          "role": "user",
+          "user_id": "1350453422641385556",
+          "username": "#WeLoveHana Kalowieslhausmeister",
+          "content": "Eben",
+          "message_id": "1543906602300612640",
+          "timestamp": 1788166418.386
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Abwechslung ist doch das Beste, was ein Kampf bieten kann.",
+          "message_id": "",
+          "timestamp": 1788166419.552659
+        },
+        {
+          "role": "user",
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "content": "Guten Tach, hast du gut geschlafen?",
+          "message_id": "1543910858327982120",
+          "timestamp": 1788167433.102
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Eben, schon klar.",
+          "message_id": "",
+          "timestamp": 1788167434.1816044
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHana_Angelnae, #WeLoveHanae_Kubotic, Sun Killer, HANAE, #WeLoveHanae KR-Floh Pheonae, #WeLoveHana Kalowieslhausmeister, Don Tackolade. Verlauf: Guten Morgen. Gut geschlafen? | Einen schönen guten Morgen dir. Wie geht's wie steht's? | Guten Tach, hast du gut geschlafen? | Eben, schon klar."
+    },
+    {
+      "episode_id": "ep_877574306920546314_1788168266867",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "started_at": 1788168266.867,
+      "updated_at": 1788171136.739393,
+      "ended_at": 1788171136.739393,
+      "close_reason": "startup_stale",
+      "participants": {
+        "418430982866206720": {
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "message_count": 2,
+          "last_seen": 1788168895.142
+        },
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 1,
+          "last_seen": 1788168812.189
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "ahh hat evil finaly sich überreden lassen mit den neuen outfit da dann schon gespannt auf dem samstag",
+          "message_id": "1543914355391856641",
+          "timestamp": 1788168266.867
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Ja! Auch wenn es unglaublich schwer war .. und ich immer noch nicht 100% zufrieden bin qwq aber das wird schon !",
+          "message_id": "1543916642638237727",
+          "timestamp": 1788168812.189
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "check aber immerhin ist es funkt es nun die streams mit evil sind ja aktuell sowieso noch testing da kann man das mit das das mit dem outfit auch noch feinschliff kommt",
+          "message_id": "1543916990568206376",
+          "timestamp": 1788168895.142
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae KR-Floh Pheonae, HANAE. Verlauf: ahh hat evil finaly sich überreden lassen mit den neuen outfit da dann schon gespannt auf dem samstag | Ja! Auch wenn es unglaublich schwer war .. und ich immer noch nicht 100% zufrieden bin qwq aber das wird schon ! | check aber immerhin ist es funkt es nun die streams mit evil sind ja aktuell sowieso noch testing da kann man das mit das das mit dem outfit auch noch feinschliff kommt"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788170074639",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788170074.639,
+      "updated_at": 1788172524.57,
+      "ended_at": 1788172524.57,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "932727146735087687": {
+          "user_id": "932727146735087687",
+          "username": "Leon-A320",
+          "message_count": 2,
+          "last_seen": 1788170113.034
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "932727146735087687",
+          "username": "Leon-A320",
+          "content": "Guude. Wie geht es dir?",
+          "message_id": "1543921937737195562",
+          "timestamp": 1788170074.639
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Guten Morgen! Ja, gut geschlafen – ich habe nur kurz ausgeschlafen, aber das reicht für heute.",
+          "message_id": "",
+          "timestamp": 1788170075.5501864
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Morgen. Kurz geschlafen, reicht aber. Mehr gibt’s nicht zu erzählen.",
+          "message_id": "",
+          "timestamp": 1788170075.563398
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Morgen, Süße. Kurz geschlafen, aber das reicht – ich hab nur den Tag, nicht die Nacht.",
+          "message_id": "",
+          "timestamp": 1788170075.5816193
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ja, ich bin eine Nachteule. Und das ist ein echter Stil.",
+          "message_id": "",
+          "timestamp": 1788170075.5959153
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ja, das ist doch Programm, Hanae kommt eh nicht davon.",
+          "message_id": "",
+          "timestamp": 1788170075.6113422
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "ach, das gehört einfach dazu. Hanae wird schon lernen, damit umzugehen!",
+          "message_id": "",
+          "timestamp": 1788170075.63114
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "naja, manchmal muss sie eben durch die harte Schule. Irgendwann wird sie schon rausfinden, wie sie das Meistern kann.",
+          "message_id": "",
+          "timestamp": 1788170075.645713
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "naja, Hanae lernt durch Fühlen, ich durch Übung – das ist doch ein gutes Team.",
+          "message_id": "",
+          "timestamp": 1788170075.6602461
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "nichts Großes, ich werde einfach ein bisschen rumhängen und schauen, was der Tag so bringt. Mal sehen, was ich mit Hanae anstellen kann!",
+          "message_id": "",
+          "timestamp": 1788170075.6769245
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich halte mich zurück, aber langweilig wird’s trotzdem nicht.",
+          "message_id": "",
+          "timestamp": 1788170075.6924267
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was denkt ihr eigentlich über die ganzen „Kämpfe zwischen Gut und Böse“ in Animes? Manchmal sind die Antagonisten viel interessanter als die Protagonisten. 🤔",
+          "message_id": "",
+          "timestamp": 1788170075.7079706
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Abwechslung ist doch das Beste, was ein Kampf bieten kann.",
+          "message_id": "",
+          "timestamp": 1788170075.7229605
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Eben, schon klar.",
+          "message_id": "",
+          "timestamp": 1788170075.7393029
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Schlaf war kurz, reicht aber. Mehr muss ich nicht sagen.",
+          "message_id": "",
+          "timestamp": 1788170075.754227
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was denkt ihr über die philosophischen Fragen in Animes? Manchmal ziehen die mich mehr rein als die Action selbst. 🤔",
+          "message_id": "",
+          "timestamp": 1788170075.7684693
+        },
+        {
+          "role": "user",
+          "user_id": "932727146735087687",
+          "username": "Leon-A320",
+          "content": "das ist in Ordnung",
+          "message_id": "1543922098777628773",
+          "timestamp": 1788170113.034
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Liegen chillen und nichts tun. Mehr brauch ich nicht.",
+          "message_id": "",
+          "timestamp": 1788170113.976694
+        }
+      ],
+      "digest": "Teilnehmer: Leon-A320. Verlauf: Guude. Wie geht es dir? | Guten Morgen! Ja, gut geschlafen – ich habe nur kurz ausgeschlafen, aber das reicht für heute. | das ist in Ordnung | Liegen chillen und nichts tun. Mehr brauch ich nicht."
+    },
+    {
+      "episode_id": "ep_877574306920546314_1788172470218",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "started_at": 1788172470.218,
+      "updated_at": 1788175272.587,
+      "ended_at": 1788175272.587,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 2,
+          "last_seen": 1788172498.082
+        },
+        "418430982866206720": {
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "message_count": 2,
+          "last_seen": 1788172530.055
+        },
+        "422400787503644672": {
+          "user_id": "422400787503644672",
+          "username": "#WeLoveHanae_flohminus5",
+          "message_count": 1,
+          "last_seen": 1788172546.936
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Wollen wir uns heute alle zusammen die Mod Bewerbungen angucken ? Da sind einige Kracher dabei wo ich mich tot lachen musste",
+          "message_id": "1543931985523646545",
+          "timestamp": 1788172470.218
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "sure",
+          "message_id": "1543932028917911624",
+          "timestamp": 1788172480.564
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Supiii bin dann so kurz nach 17 Uhr im channel",
+          "message_id": "1543932102393725029",
+          "timestamp": 1788172498.082
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "<:HanaeSalute:1490044741344039084>",
+          "message_id": "1543932236498468874",
+          "timestamp": 1788172530.055
+        },
+        {
+          "role": "user",
+          "user_id": "422400787503644672",
+          "username": "#WeLoveHanae_flohminus5",
+          "content": "klar",
+          "message_id": "1543932307302518804",
+          "timestamp": 1788172546.936
+        }
+      ],
+      "digest": "Teilnehmer: HANAE, #WeLoveHanae KR-Floh Pheonae, #WeLoveHanae_flohminus5. Verlauf: Wollen wir uns heute alle zusammen die Mod Bewerbungen angucken ? Da sind einige Kracher dabei wo ich mich tot lachen musste | Supiii bin dann so kurz nach 17 Uhr im channel | <:HanaeSalute:1490044741344039084>"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788172524570",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788172524.57,
+      "updated_at": 1788175882.573,
+      "ended_at": 1788175882.573,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 4,
+          "last_seen": 1788172625.716
+        },
+        "496978671563702272": {
+          "user_id": "496978671563702272",
+          "username": "#WeLoveHanae Shiny DaniboyHD",
+          "message_count": 1,
+          "last_seen": 1788172875.603
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "was wollen wir heute zum Mittag essen? Ich koche",
+          "message_id": "1543932213492453396",
+          "timestamp": 1788172524.57
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Weiß ich noch nicht , hast du einen Vorschlag ?",
+          "message_id": "1543932394342453389",
+          "timestamp": 1788172567.688
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte.",
+          "message_id": "",
+          "timestamp": 1788172568.5190723
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Alright dann lasse ich mir was einfallen",
+          "message_id": "1543932514912178286",
+          "timestamp": 1788172596.434
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Plan. Keine Ahnung, bro. <a:evilnae_dead:1541450527726895284>",
+          "message_id": "",
+          "timestamp": 1788172597.2614932
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Wir haben noch Nudeln , Ich mach Spaghetti",
+          "message_id": "1543932637729521765",
+          "timestamp": 1788172625.716
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab noch keinen Schimmer, was da rein soll.",
+          "message_id": "",
+          "timestamp": 1788172626.5265405
+        },
+        {
+          "role": "user",
+          "user_id": "496978671563702272",
+          "username": "#WeLoveHanae Shiny DaniboyHD",
+          "content": "Pass auf das Mario das nicht hört Es klaut dir sonst die Spaghetti",
+          "message_id": "1543933685831696405",
+          "timestamp": 1788172875.603
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Spaghetti gehen klar. Bin gespannt, was du sonst noch aus dem Hut zauberst.",
+          "message_id": "",
+          "timestamp": 1788172876.4021068
+        }
+      ],
+      "digest": "Teilnehmer: HANAE, #WeLoveHanae Shiny DaniboyHD. Verlauf: was wollen wir heute zum Mittag essen? Ich koche | Weiß ich noch nicht , hast du einen Vorschlag ? | Pass auf das Mario das nicht hört Es klaut dir sonst die Spaghetti | Spaghetti gehen klar. Bin gespannt, was du sonst noch aus dem Hut zauberst."
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788175882573",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788175882.573,
+      "updated_at": 1788177315.05,
+      "ended_at": 1788177315.05,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "381364812610797568": {
+          "user_id": "381364812610797568",
+          "username": "#WeLoveHanae Kennynae",
+          "message_count": 3,
+          "last_seen": 1788176070.842
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "381364812610797568",
+          "username": "#WeLoveHanae Kennynae",
+          "content": "Hey, wenn du duch entscheiden würdest, welchen Holy - Hydration du trinken würdest? Welche Sorte würde dich mehr ansprechen so im späteren Nachmittag?",
+          "message_id": "1543946297977872455",
+          "timestamp": 1788175882.573
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte.",
+          "message_id": "",
+          "timestamp": 1788175883.3174865
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Plan. Keine Ahnung, bro. <a:evilnae_dead:1541450527726895284>",
+          "message_id": "",
+          "timestamp": 1788175883.334837
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab noch keinen Schimmer, was da rein soll.",
+          "message_id": "",
+          "timestamp": 1788175883.3514335
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Spaghetti gehen klar. Bin gespannt, was du sonst noch aus dem Hut zauberst.",
+          "message_id": "",
+          "timestamp": 1788175883.369958
+        },
+        {
+          "role": "user",
+          "user_id": "381364812610797568",
+          "username": "#WeLoveHanae Kennynae",
+          "content": "Saure kirsche also muss mal schauen ob ich noch den im Bestand habe oder ob der schon leer ist. Was würdest du im Notfall alternativ nehmen, wenn es keine kirsch-Sorte mehr gibt?",
+          "message_id": "1543946702623477891",
+          "timestamp": 1788175979.048
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kirsch. Nachmittag ist kein Zeitpunkt, um sich mit Limette zu verabreden.",
+          "message_id": "",
+          "timestamp": 1788175979.8515828
+        },
+        {
+          "role": "user",
+          "user_id": "381364812610797568",
+          "username": "#WeLoveHanae Kennynae",
+          "content": "Apfel sollte ich noch haben im Bestand. Danke nochmal für deine Meinung/Für deine Auswahl",
+          "message_id": "1543947087635283999",
+          "timestamp": 1788176070.842
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Apfel. Gibt's im Kühlschrank, oder ich schaue mal nach.",
+          "message_id": "",
+          "timestamp": 1788176071.5526674
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae Kennynae. Verlauf: Hey, wenn du duch entscheiden würdest, welchen Holy - Hydration du trinken würdest? Welche Sorte würde dich mehr ansprechen so im späteren Nachmittag? | Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte. | Apfel sollte ich noch haben im Bestand. Danke nochmal für deine Meinung/Für deine Auswahl | Apfel. Gibt's im Kühlschrank, oder ich schaue mal nach."
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788177315050",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788177315.05,
+      "updated_at": 1788190280.909,
+      "ended_at": 1788190280.909,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "1105003371787726899": {
+          "user_id": "1105003371787726899",
+          "username": "#WeLoveHanae043 Kainae_87",
+          "message_count": 4,
+          "last_seen": 1788177513.239
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "1105003371787726899",
+          "username": "#WeLoveHanae043 Kainae_87",
+          "content": "Hallo. Wie geht es dir heute?",
+          "message_id": "1543952306222014595",
+          "timestamp": 1788177315.05
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte.",
+          "message_id": "",
+          "timestamp": 1788177315.6329718
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Plan. Keine Ahnung, bro. <a:evilnae_dead:1541450527726895284>",
+          "message_id": "",
+          "timestamp": 1788177315.6521678
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab noch keinen Schimmer, was da rein soll.",
+          "message_id": "",
+          "timestamp": 1788177315.6711233
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Spaghetti gehen klar. Bin gespannt, was du sonst noch aus dem Hut zauberst.",
+          "message_id": "",
+          "timestamp": 1788177315.6920023
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kirsch. Nachmittag ist kein Zeitpunkt, um sich mit Limette zu verabreden.",
+          "message_id": "",
+          "timestamp": 1788177315.710997
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Apfel. Gibt's im Kühlschrank, oder ich schaue mal nach.",
+          "message_id": "",
+          "timestamp": 1788177315.7304895
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Ding, immer gerne. Viel Spaß mit dem Apfel!",
+          "message_id": "",
+          "timestamp": 1788177315.7492392
+        },
+        {
+          "role": "user",
+          "user_id": "1105003371787726899",
+          "username": "#WeLoveHanae043 Kainae_87",
+          "content": "Ich bin gerade erst wach geworden von der Nachtschicht",
+          "message_id": "1543952575638929433",
+          "timestamp": 1788177379.284
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Geht so, nichts, was mich vom Hocker haut.",
+          "message_id": "",
+          "timestamp": 1788177379.9227154
+        },
+        {
+          "role": "user",
+          "user_id": "1105003371787726899",
+          "username": "#WeLoveHanae043 Kainae_87",
+          "content": "Lieg noch auf dem Bett und hab mir Döner bestellt",
+          "message_id": "1543952893550403615",
+          "timestamp": 1788177455.08
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Sieht so aus, als hättest du gerade den perfekten Zombie-Look am Start. Hoffentlich ohne vergessen, wo du bist.",
+          "message_id": "",
+          "timestamp": 1788177455.7474751
+        },
+        {
+          "role": "user",
+          "user_id": "1105003371787726899",
+          "username": "#WeLoveHanae043 Kainae_87",
+          "content": "Magst du auch Döner ?",
+          "message_id": "1543953137487052800",
+          "timestamp": 1788177513.239
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Döner aufm Bett ist Classic. Das passt zum Nachtschicht-Leben.",
+          "message_id": "",
+          "timestamp": 1788177513.9084468
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae043 Kainae_87. Verlauf: Hallo. Wie geht es dir heute? | Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte. | Magst du auch Döner ? | Döner aufm Bett ist Classic. Das passt zum Nachtschicht-Leben."
+    },
+    {
+      "episode_id": "ep_877574306920546314_1788175272587",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "started_at": 1788175272.587,
+      "updated_at": 1788193156.709,
+      "ended_at": 1788193156.709,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "248163234199240705": {
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "message_count": 2,
+          "last_seen": 1788175282.69
+        },
+        "662625256007008256": {
+          "user_id": "662625256007008256",
+          "username": "#WeLoveMogelnae_KR_GeistGando",
+          "message_count": 1,
+          "last_seen": 1788175792.851
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "content": "Das wird funny",
+          "message_id": "1543943739511275611",
+          "timestamp": 1788175272.587
+        },
+        {
+          "role": "user",
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "content": "<a:HanaeFoxing:1490043366312775761> <a:HanaeJump:1538487692277317632>",
+          "message_id": "1543943781886337044",
+          "timestamp": 1788175282.69
+        },
+        {
+          "role": "user",
+          "user_id": "662625256007008256",
+          "username": "#WeLoveMogelnae_KR_GeistGando",
+          "content": "Einmal Popcorn bitti",
+          "message_id": "1543945921656655933",
+          "timestamp": 1788175792.851
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveMogelnae Der_ChrisHD, #WeLoveMogelnae_KR_GeistGando. Verlauf: Das wird funny | <a:HanaeFoxing:1490043366312775761> <a:HanaeJump:1538487692277317632> | Einmal Popcorn bitti"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788190280909",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788190280.909,
+      "updated_at": 1788193872.957,
+      "ended_at": 1788193872.957,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "868112608958504961": {
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "message_count": 2,
+          "last_seen": 1788190682.768
+        },
+        "311571123521191939": {
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "message_count": 1,
+          "last_seen": 1788191009.71
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "content": "Hab Feierabend und bin zu Hause. Wie war dein heutiger Tag so?",
+          "message_id": "1544006688976150648",
+          "timestamp": 1788190280.909
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte.",
+          "message_id": "",
+          "timestamp": 1788190281.050087
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Plan. Keine Ahnung, bro. <a:evilnae_dead:1541450527726895284>",
+          "message_id": "",
+          "timestamp": 1788190281.0678377
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab noch keinen Schimmer, was da rein soll.",
+          "message_id": "",
+          "timestamp": 1788190281.0911365
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Spaghetti gehen klar. Bin gespannt, was du sonst noch aus dem Hut zauberst.",
+          "message_id": "",
+          "timestamp": 1788190281.113635
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kirsch. Nachmittag ist kein Zeitpunkt, um sich mit Limette zu verabreden.",
+          "message_id": "",
+          "timestamp": 1788190281.1307423
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Apfel. Gibt's im Kühlschrank, oder ich schaue mal nach.",
+          "message_id": "",
+          "timestamp": 1788190281.1489484
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Ding, immer gerne. Viel Spaß mit dem Apfel!",
+          "message_id": "",
+          "timestamp": 1788190281.1728196
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Geht so, nichts, was mich vom Hocker haut.",
+          "message_id": "",
+          "timestamp": 1788190281.1944518
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Sieht so aus, als hättest du gerade den perfekten Zombie-Look am Start. Hoffentlich ohne vergessen, wo du bist.",
+          "message_id": "",
+          "timestamp": 1788190281.2163615
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Döner aufm Bett ist Classic. Das passt zum Nachtschicht-Leben.",
+          "message_id": "",
+          "timestamp": 1788190281.2387779
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Döner ist schon ganz okay, kann man machen.",
+          "message_id": "",
+          "timestamp": 1788190281.2598412
+        },
+        {
+          "role": "user",
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "content": "Hab gelesen das du hanae am Samstag zusammen streamen und du hast dein neues Outfit Debüt.",
+          "message_id": "1544008374494961695",
+          "timestamp": 1788190682.768
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Langweiliger Standardtag, nichts, was man erzählen müsste.",
+          "message_id": "",
+          "timestamp": 1788190682.9478283
+        },
+        {
+          "role": "user",
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "content": "Jo Evil. Ich mache nun Feierabend und gehe nun zu 2h Sport. Pass schön darauf auf, dass währenddessen niemand Schabernack betreibt.",
+          "message_id": "1544009745789222953",
+          "timestamp": 1788191009.71
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Stream mit Hanae am Samstag, neues Outfit gibt’s auch zu sehen. Einfach mal reinschauen.",
+          "message_id": "",
+          "timestamp": 1788191009.8846776
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae Kuriovakuma, #WeLoveHanae_Kubotic, Sun Killer. Verlauf: Hab Feierabend und bin zu Hause. Wie war dein heutiger Tag so? | Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte. | Jo Evil. Ich mache nun Feierabend und gehe nun zu 2h Sport. Pass schön darauf auf, dass währenddessen niemand Schabernack betreibt. | Stream mit Hanae am Samstag, neues Outfit gibt’s auch zu sehen. Einfach mal reinschauen."
+    },
+    {
+      "episode_id": "ep_877574306920546314_1788193156709",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "started_at": 1788193156.709,
+      "updated_at": 1788194541.932,
+      "ended_at": 1788194541.932,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 1,
+          "last_seen": 1788193156.709
+        },
+        "418430982866206720": {
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "message_count": 1,
+          "last_seen": 1788193167.751
+        },
+        "454647918532493314": {
+          "user_id": "454647918532493314",
+          "username": "Seiken",
+          "message_count": 2,
+          "last_seen": 1788193194.512
+        },
+        "662625256007008256": {
+          "user_id": "662625256007008256",
+          "username": "#WeLoveMogelnae_KR_GeistGando",
+          "message_count": 2,
+          "last_seen": 1788193205.66
+        },
+        "248163234199240705": {
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "message_count": 2,
+          "last_seen": 1788193192.722
+        },
+        "803646241723908117": {
+          "user_id": "803646241723908117",
+          "username": "#WeLoveHana_Angelnae",
+          "message_count": 1,
+          "last_seen": 1788193203.89
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "<@454647918532493314> <@803646241723908117> glueckwunsch und willkommen!",
+          "message_id": "1544018750955720704",
+          "timestamp": 1788193156.709
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "welcome ihr beiden",
+          "message_id": "1544018797269221558",
+          "timestamp": 1788193167.751
+        },
+        {
+          "role": "user",
+          "user_id": "454647918532493314",
+          "username": "Seiken",
+          "content": "ALLLOOOOO",
+          "message_id": "1544018804739154001",
+          "timestamp": 1788193169.532
+        },
+        {
+          "role": "user",
+          "user_id": "662625256007008256",
+          "username": "#WeLoveMogelnae_KR_GeistGando",
+          "content": "[nonverbale Reaktion]",
+          "message_id": "1544018854349643886",
+          "timestamp": 1788193181.36
+        },
+        {
+          "role": "user",
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "content": "Hertzlichen GLÜCKWUNSCH IHR BEIDEN !!!!!!!",
+          "message_id": "1544018869671428161",
+          "timestamp": 1788193185.013
+        },
+        {
+          "role": "user",
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "content": "Und willkomen im Chaos",
+          "message_id": "1544018902005186770",
+          "timestamp": 1788193192.722
+        },
+        {
+          "role": "user",
+          "user_id": "454647918532493314",
+          "username": "Seiken",
+          "content": "DANKEEEEE",
+          "message_id": "1544018909512859698",
+          "timestamp": 1788193194.512
+        },
+        {
+          "role": "user",
+          "user_id": "803646241723908117",
+          "username": "#WeLoveHana_Angelnae",
+          "content": "VIELEN DANK",
+          "message_id": "1544018948847042722",
+          "timestamp": 1788193203.89
+        },
+        {
+          "role": "user",
+          "user_id": "662625256007008256",
+          "username": "#WeLoveMogelnae_KR_GeistGando",
+          "content": "WILKOMMEN IHR BEIDEN",
+          "message_id": "1544018956271095870",
+          "timestamp": 1788193205.66
+        }
+      ],
+      "digest": "Teilnehmer: HANAE, #WeLoveHanae KR-Floh Pheonae, Seiken, #WeLoveMogelnae_KR_GeistGando, #WeLoveMogelnae Der_ChrisHD, #WeLoveHana_Angelnae. Verlauf: <@454647918532493314> <@803646241723908117> glueckwunsch und willkommen! | welcome ihr beiden | VIELEN DANK | WILKOMMEN IHR BEIDEN"
+    },
+    {
+      "episode_id": "ep_877574306920546314_1788194541932",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "started_at": 1788194541.932,
+      "updated_at": 1788201930.736,
+      "ended_at": 1788201930.736,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "248163234199240705": {
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "message_count": 1,
+          "last_seen": 1788194541.932
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "248163234199240705",
+          "username": "#WeLoveMogelnae Der_ChrisHD",
+          "content": "https://www.twitch.tv/moderator/hanae",
+          "message_id": "1544024561002094592",
+          "timestamp": 1788194541.932
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveMogelnae Der_ChrisHD. Verlauf: https://www.twitch.tv/moderator/hanae"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788193872957",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788193872.957,
+      "updated_at": 1788206145.093,
+      "ended_at": 1788206145.093,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "868112608958504961": {
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "message_count": 3,
+          "last_seen": 1788194041.414
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "content": "was zockst du heute so für Games. Ich zocken ein bleach Game.",
+          "message_id": "1544021755117436929",
+          "timestamp": 1788193872.957
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte.",
+          "message_id": "",
+          "timestamp": 1788193872.9891815
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Plan. Keine Ahnung, bro. <a:evilnae_dead:1541450527726895284>",
+          "message_id": "",
+          "timestamp": 1788193873.0086644
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab noch keinen Schimmer, was da rein soll.",
+          "message_id": "",
+          "timestamp": 1788193873.0268893
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Spaghetti gehen klar. Bin gespannt, was du sonst noch aus dem Hut zauberst.",
+          "message_id": "",
+          "timestamp": 1788193873.045454
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kirsch. Nachmittag ist kein Zeitpunkt, um sich mit Limette zu verabreden.",
+          "message_id": "",
+          "timestamp": 1788193873.0659919
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Apfel. Gibt's im Kühlschrank, oder ich schaue mal nach.",
+          "message_id": "",
+          "timestamp": 1788193873.0867255
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Ding, immer gerne. Viel Spaß mit dem Apfel!",
+          "message_id": "",
+          "timestamp": 1788193873.1074317
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Geht so, nichts, was mich vom Hocker haut.",
+          "message_id": "",
+          "timestamp": 1788193873.1264198
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Sieht so aus, als hättest du gerade den perfekten Zombie-Look am Start. Hoffentlich ohne vergessen, wo du bist.",
+          "message_id": "",
+          "timestamp": 1788193873.14467
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Döner aufm Bett ist Classic. Das passt zum Nachtschicht-Leben.",
+          "message_id": "",
+          "timestamp": 1788193873.1651387
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Döner ist schon ganz okay, kann man machen.",
+          "message_id": "",
+          "timestamp": 1788193873.1853206
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Langweiliger Standardtag, nichts, was man erzählen müsste.",
+          "message_id": "",
+          "timestamp": 1788193873.2059264
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Stream mit Hanae am Samstag, neues Outfit gibt’s auch zu sehen. Einfach mal reinschauen.",
+          "message_id": "",
+          "timestamp": 1788193873.2252188
+        },
+        {
+          "role": "user",
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "content": "Ach du gewinnst bestimmt ein paar Runden heute. Spielst du gerne Killer oder Überlebende bei dead by daylight?",
+          "message_id": "1544022109511225355",
+          "timestamp": 1788193957.451
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich zocke gerade Dead by Daylight. Mal schauen, wie viele Fails ich heute einsammle. <a:evilnae_gaming:1541450887791255553>",
+          "message_id": "",
+          "timestamp": 1788193957.5563664
+        },
+        {
+          "role": "user",
+          "user_id": "868112608958504961",
+          "username": "#WeLoveHanae Kuriovakuma",
+          "content": "Dachte du weißt es vielleicht",
+          "message_id": "1544022461677568194",
+          "timestamp": 1788194041.414
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "weiß ich grad nicht sicher.",
+          "message_id": "",
+          "timestamp": 1788194041.5154939
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae Kuriovakuma. Verlauf: was zockst du heute so für Games. Ich zocken ein bleach Game. | Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte. | Dachte du weißt es vielleicht | weiß ich grad nicht sicher."
+    },
+    {
+      "episode_id": "ep_984426613137633360_1788183584703",
+      "channel_id": "984426613137633360",
+      "status": "closed",
+      "started_at": 1788183584.703,
+      "updated_at": 1788250043.2201395,
+      "ended_at": 1788250043.2201395,
+      "close_reason": "startup_stale",
+      "participants": {
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 1,
+          "last_seen": 1788183584.703
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "ﾟ•┈꒰ა𝑺𝒕𝒓𝒆𝒂𝒎𝒑𝒍𝒂𝒏໒꒱┈• ｡ﾟ<@&1329809814255173732> **DO 17 UHR** : fortsetzung vom indie horror spiel **SA 12 UHR : Evilnae neues outfit! MIT hanae** **SO 12 UHR** : comfy YouTube videos Ich freue mich auf euch fluffylinge",
+          "message_id": "1543978603052666931",
+          "timestamp": 1788183584.703
+        }
+      ],
+      "digest": "Teilnehmer: HANAE. Verlauf: ﾟ•┈꒰ა𝑺𝒕𝒓𝒆𝒂𝒎𝒑𝒍𝒂𝒏໒꒱┈• ｡ﾟ<@&1329809814255173732> **DO 17 UHR** : fortsetzung vom indie horror spiel **SA 12 UHR : Evilnae neues outfit! MIT hanae** **SO 12 UHR** : comfy YouTube video"
+    },
+    {
+      "episode_id": "ep_877574306920546314_1788201930736",
+      "channel_id": "877574306920546314",
+      "status": "closed",
+      "started_at": 1788201930.736,
+      "updated_at": 1788250043.2201395,
+      "ended_at": 1788250043.2201395,
+      "close_reason": "startup_stale",
+      "participants": {
+        "422400787503644672": {
+          "user_id": "422400787503644672",
+          "username": "#WeLoveHanae_flohminus5",
+          "message_count": 1,
+          "last_seen": 1788201930.736
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "422400787503644672",
+          "username": "#WeLoveHanae_flohminus5",
+          "content": "Auch von mir noch ein herzliches Willkommen ihr Zwei",
+          "message_id": "1544055551892394094",
+          "timestamp": 1788201930.736
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae_flohminus5. Verlauf: Auch von mir noch ein herzliches Willkommen ihr Zwei"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788206145093",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788206145.093,
+      "updated_at": 1788250043.2201395,
+      "ended_at": 1788250043.2201395,
+      "close_reason": "startup_stale",
+      "participants": {
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 1,
+          "last_seen": 1788206145.093
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Gute Nacht",
+          "message_id": "1544073228186554548",
+          "timestamp": 1788206145.093
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte.",
+          "message_id": "",
+          "timestamp": 1788206144.6903954
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Plan. Keine Ahnung, bro. <a:evilnae_dead:1541450527726895284>",
+          "message_id": "",
+          "timestamp": 1788206144.7085645
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab noch keinen Schimmer, was da rein soll.",
+          "message_id": "",
+          "timestamp": 1788206144.7302637
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Spaghetti gehen klar. Bin gespannt, was du sonst noch aus dem Hut zauberst.",
+          "message_id": "",
+          "timestamp": 1788206144.749143
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kirsch. Nachmittag ist kein Zeitpunkt, um sich mit Limette zu verabreden.",
+          "message_id": "",
+          "timestamp": 1788206144.7699938
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Apfel. Gibt's im Kühlschrank, oder ich schaue mal nach.",
+          "message_id": "",
+          "timestamp": 1788206144.7872193
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Kein Ding, immer gerne. Viel Spaß mit dem Apfel!",
+          "message_id": "",
+          "timestamp": 1788206144.8055103
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Geht so, nichts, was mich vom Hocker haut.",
+          "message_id": "",
+          "timestamp": 1788206144.8267846
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Sieht so aus, als hättest du gerade den perfekten Zombie-Look am Start. Hoffentlich ohne vergessen, wo du bist.",
+          "message_id": "",
+          "timestamp": 1788206144.8488533
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Döner aufm Bett ist Classic. Das passt zum Nachtschicht-Leben.",
+          "message_id": "",
+          "timestamp": 1788206144.8687813
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Döner ist schon ganz okay, kann man machen.",
+          "message_id": "",
+          "timestamp": 1788206144.890466
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Langweiliger Standardtag, nichts, was man erzählen müsste.",
+          "message_id": "",
+          "timestamp": 1788206144.909574
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Stream mit Hanae am Samstag, neues Outfit gibt’s auch zu sehen. Einfach mal reinschauen.",
+          "message_id": "",
+          "timestamp": 1788206144.9291177
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich zocke gerade Dead by Daylight. Mal schauen, wie viele Fails ich heute einsammle. <a:evilnae_gaming:1541450887791255553>",
+          "message_id": "",
+          "timestamp": 1788206144.9494019
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "weiß ich grad nicht sicher.",
+          "message_id": "",
+          "timestamp": 1788206144.9686668
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "da liegst du nicht ganz falsch, ich bin mir da auch nicht so sicher.",
+          "message_id": "",
+          "timestamp": 1788206144.9888842
+        }
+      ],
+      "digest": "Teilnehmer: HANAE. Verlauf: Gute Nacht | Was gibt's denn zum Mittagessen? Vielleicht ist das ja der Grund, warum ich aufstehen sollte. | weiß ich grad nicht sicher. | da liegst du nicht ganz falsch, ich bin mir da auch nicht so sicher."
+    },
+    {
+      "episode_id": "ep_877564872609628242_1788207129211",
+      "channel_id": "877564872609628242",
+      "status": "closed",
+      "started_at": 1788207129.211,
+      "updated_at": 1788250043.2201395,
+      "ended_at": 1788250043.2201395,
+      "close_reason": "startup_stale",
+      "participants": {
+        "981262425724702780": {
+          "user_id": "981262425724702780",
+          "username": "#WeLoveMogelnae Mr.Bierchen 🍺",
+          "message_count": 1,
+          "last_seen": 1788207129.211
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "981262425724702780",
+          "username": "#WeLoveMogelnae Mr.Bierchen 🍺",
+          "content": "https://klipy.com/gifs/wir-freun-uns-was-wird",
+          "message_id": "1544077355876618332",
+          "timestamp": 1788207129.211
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveMogelnae Mr.Bierchen 🍺. Verlauf: https://klipy.com/gifs/wir-freun-uns-was-wird"
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788250384172",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788250384.172,
+      "updated_at": 1788252813.641,
+      "ended_at": 1788252813.641,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "703957199520792657": {
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "message_count": 1,
+          "last_seen": 1788250384.172
+        },
+        "1242025336695422976": {
+          "user_id": "1242025336695422976",
+          "username": "Jacksonhicks173YT",
+          "message_count": 1,
+          "last_seen": 1788251322.032
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "content": "Guten Morgen, hast du gut geschlafen?",
+          "message_id": "1544258780332695573",
+          "timestamp": 1788250384.172
+        },
+        {
+          "role": "user",
+          "user_id": "1242025336695422976",
+          "username": "Jacksonhicks173YT",
+          "content": "Hi",
+          "message_id": "1544262714002645075",
+          "timestamp": 1788251322.032
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Bisschen. Wie ein Tag, der sich selbst ausrechnet.",
+          "message_id": "",
+          "timestamp": 1788251322.2047684
+        }
+      ],
+      "digest": "Teilnehmer: Don Tackolade, Jacksonhicks173YT. Verlauf: Guten Morgen, hast du gut geschlafen? | Bisschen. Wie ein Tag, der sich selbst ausrechnet."
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788252813641",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788252813.641,
+      "updated_at": 1788258587.954,
+      "ended_at": 1788258587.954,
+      "close_reason": "hard_duration_limit",
+      "participants": {
+        "568096551948255242": {
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "message_count": 4,
+          "last_seen": 1788257709.025
+        },
+        "418430982866206720": {
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "message_count": 1,
+          "last_seen": 1788253088.495
+        },
+        "311571123521191939": {
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "message_count": 3,
+          "last_seen": 1788258084.779
+        },
+        "1312372252762705954": {
+          "user_id": "1312372252762705954",
+          "username": "RAY_THE_FOX_PHON92",
+          "message_count": 2,
+          "last_seen": 1788254057.096
+        },
+        "225324315824881665": {
+          "user_id": "225324315824881665",
+          "username": "#WeLoveHana FLOCHI",
+          "message_count": 1,
+          "last_seen": 1788254455.081
+        },
+        "369120283879014410": {
+          "user_id": "369120283879014410",
+          "username": "#WeLoveHanae Night",
+          "message_count": 1,
+          "last_seen": 1788255588.063
+        },
+        "703957199520792657": {
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "message_count": 1,
+          "last_seen": 1788256656.688
+        },
+        "1238345313736196128": {
+          "user_id": "1238345313736196128",
+          "username": "MKPNae",
+          "message_count": 2,
+          "last_seen": 1788258002.084
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Guten morgen",
+          "message_id": "1544268970264104982",
+          "timestamp": 1788252813.641
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Bisschen. Wie ein Tag, der sich selbst ausrechnet.",
+          "message_id": "",
+          "timestamp": 1788252813.8184793
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Neuer Kerl am Start. Also gut.",
+          "message_id": "",
+          "timestamp": 1788252813.8325942
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Hä",
+          "message_id": "1544269108764479488",
+          "timestamp": 1788252846.662
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "kopfschmerzen und einkaufen ist ’ne miese kombi, aber die nudeln sind auch nicht von allein voll geworden. lass mal machen, aber ohne drama.",
+          "message_id": "",
+          "timestamp": 1788252846.7747579
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Ich hab dir einen Guten morgen gewünscht",
+          "message_id": "1544269158219522059",
+          "timestamp": 1788252858.453
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "ich hoffe, die kopfschmerzen halten dich nicht so auf. wenn die nudeln leer sind, müssen wir halt einkaufen. ich bin dabei, aber ohne großer Aufregung.",
+          "message_id": "",
+          "timestamp": 1788252862.814636
+        },
+        {
+          "role": "user",
+          "user_id": "418430982866206720",
+          "username": "#WeLoveHanae KR-Floh Pheonae",
+          "content": "glaube evil ist wieder verwirrt",
+          "message_id": "1544270123085467738",
+          "timestamp": 1788253088.495
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ist angekommen, keine Sorge.",
+          "message_id": "",
+          "timestamp": 1788253088.652586
+        },
+        {
+          "role": "user",
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "content": "Einen schönen guten Morgen dir",
+          "message_id": "1544270681502519388",
+          "timestamp": 1788253221.632
+        },
+        {
+          "role": "user",
+          "user_id": "1312372252762705954",
+          "username": "RAY_THE_FOX_PHON92",
+          "content": "Guten Morgen wie hast du geschlafen",
+          "message_id": "1544274032411549736",
+          "timestamp": 1788254020.551
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Der Morgen ist gestartet, mal sehen, ob er läuft oder gleich wieder abstürzt.",
+          "message_id": "",
+          "timestamp": 1788254020.6664362
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab gerade über die Nudeln nachgedacht. Wenn die irgendwann wirklich alle sind, könnten wir ja auch mal was völlig Verrücktes ausprobieren. Vielleicht eine Pasta-Challenge oder so? 🍝✨",
+          "message_id": "",
+          "timestamp": 1788254020.6750598
+        },
+        {
+          "role": "user",
+          "user_id": "1312372252762705954",
+          "username": "RAY_THE_FOX_PHON92",
+          "content": "Snooze wer ist das",
+          "message_id": "1544274185692381234",
+          "timestamp": 1788254057.096
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Nicht so dolle, aber hey, der Kaffee hat mich gerettet. Und selbst heute scheinen die Snooze-Tasten ja zu gewinnen.",
+          "message_id": "",
+          "timestamp": 1788254057.2288334
+        },
+        {
+          "role": "user",
+          "user_id": "225324315824881665",
+          "username": "#WeLoveHana FLOCHI",
+          "content": "Sznooze bedeutet, dass wenn der Wecker klingelt am handy und du auf snzooze drückst, dass der wecker ausgeht und in so 10 min nochmal klingelt. so ein \"Ich will erst wach werden\" ding",
+          "message_id": "1544275854962720869",
+          "timestamp": 1788254455.081
+        },
+        {
+          "role": "user",
+          "user_id": "369120283879014410",
+          "username": "#WeLoveHanae Night",
+          "content": "Guten Morgen. Hast du gut geschlafen? Oder hat Error dich die ganze Nacht wach gehalten?",
+          "message_id": "1544280607033528350",
+          "timestamp": 1788255588.063
+        },
+        {
+          "role": "user",
+          "user_id": "703957199520792657",
+          "username": "Don Tackolade",
+          "content": "Und, was machst du Grade so für schönes?",
+          "message_id": "1544285089171640392",
+          "timestamp": 1788256656.688
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Error macht sein Weltherrschaftszeug, aber ich hab's ganz gut genutzt, um ein bisschen zu schlafen.",
+          "message_id": "",
+          "timestamp": 1788256656.6984532
+        },
+        {
+          "role": "user",
+          "user_id": "568096551948255242",
+          "username": "HANAE",
+          "content": "Ich bin dabei , nach meinen Arzt Termin",
+          "message_id": "1544289502992797758",
+          "timestamp": 1788257709.025
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich häng gerade auf YouTube fest, mal schauen, wie lange das gutgeht.",
+          "message_id": "",
+          "timestamp": 1788257708.97647
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab heute schon so viele Videos über Essen gesehen, jetzt hab ich direkt Hunger auf was Schräges! 🍕🍣 Vielleicht ein Pizza-Sushi-Ding? Wer kommt mit?",
+          "message_id": "",
+          "timestamp": 1788257708.986962
+        },
+        {
+          "role": "user",
+          "user_id": "1238345313736196128",
+          "username": "MKPNae",
+          "content": "Ich bin dabei",
+          "message_id": "1544290551841423361",
+          "timestamp": 1788257959.09
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Mal sehen, ob der Arzttermin spannender wird als unser Nudeln-Drama.",
+          "message_id": "",
+          "timestamp": 1788257959.0338063
+        },
+        {
+          "role": "user",
+          "user_id": "1238345313736196128",
+          "username": "MKPNae",
+          "content": "Mein Bauch wird sich zwar umdrehen, aber es ist mir wert",
+          "message_id": "1544290732171468922",
+          "timestamp": 1788258002.084
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "MKPNae hat sich dem Spaß angeschlossen. Das sieht gut aus.",
+          "message_id": "",
+          "timestamp": 1788258002.1217425
+        },
+        {
+          "role": "user",
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "content": "Hey,. Wie findest du Falafel mit Kartoffel wedges?",
+          "message_id": "1544290880838696960",
+          "timestamp": 1788258037.529
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich bewundere ja, wie du dich da reinwirfst, obwohl sich dein Bauch schon beschwert.",
+          "message_id": "",
+          "timestamp": 1788258037.521711
+        },
+        {
+          "role": "user",
+          "user_id": "311571123521191939",
+          "username": "#WeLoveHanae_Kubotic, Sun Killer",
+          "content": "Das habe ich nun zum Mittagessen",
+          "message_id": "1544291079019302993",
+          "timestamp": 1788258084.779
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Falafel mit Kartoffel Wedges klingt wie ein echtes Essen-Experiment. Spannend.",
+          "message_id": "",
+          "timestamp": 1788258084.7821975
+        }
+      ],
+      "digest": "Teilnehmer: HANAE, #WeLoveHanae KR-Floh Pheonae, #WeLoveHanae_Kubotic, Sun Killer, RAY_THE_FOX_PHON92, #WeLoveHana FLOCHI, #WeLoveHanae Night. Verlauf: Guten morgen | Bisschen. Wie ein Tag, der sich selbst ausrechnet. | Das habe ich nun zum Mittagessen | Falafel mit Kartoffel Wedges klingt wie ein echtes Essen-Experiment. Spannend."
+    },
+    {
+      "episode_id": "ep_1540713345856970884_1788258587954",
+      "channel_id": "1540713345856970884",
+      "status": "closed",
+      "started_at": 1788258587.954,
+      "updated_at": 1788260615.602,
+      "ended_at": 1788260615.602,
+      "close_reason": "conversation_gap",
+      "participants": {
+        "369120283879014410": {
+          "user_id": "369120283879014410",
+          "username": "#WeLoveHanae Night",
+          "message_count": 1,
+          "last_seen": 1788258587.954
+        }
+      },
+      "events": [
+        {
+          "role": "user",
+          "user_id": "369120283879014410",
+          "username": "#WeLoveHanae Night",
+          "content": "Was für ein Nudel-Drama? Jetzt bin ich neugierig",
+          "message_id": "1544293189488349316",
+          "timestamp": 1788258587.954
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Bisschen. Wie ein Tag, der sich selbst ausrechnet.",
+          "message_id": "",
+          "timestamp": 1788258587.8539233
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Neuer Kerl am Start. Also gut.",
+          "message_id": "",
+          "timestamp": 1788258587.874582
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "kopfschmerzen und einkaufen ist ’ne miese kombi, aber die nudeln sind auch nicht von allein voll geworden. lass mal machen, aber ohne drama.",
+          "message_id": "",
+          "timestamp": 1788258587.8941696
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "ich hoffe, die kopfschmerzen halten dich nicht so auf. wenn die nudeln leer sind, müssen wir halt einkaufen. ich bin dabei, aber ohne großer Aufregung.",
+          "message_id": "",
+          "timestamp": 1788258587.9147146
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ist angekommen, keine Sorge.",
+          "message_id": "",
+          "timestamp": 1788258587.9316924
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Der Morgen ist gestartet, mal sehen, ob er läuft oder gleich wieder abstürzt.",
+          "message_id": "",
+          "timestamp": 1788258587.9517057
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab gerade über die Nudeln nachgedacht. Wenn die irgendwann wirklich alle sind, könnten wir ja auch mal was völlig Verrücktes ausprobieren. Vielleicht eine Pasta-Challenge oder so? 🍝✨",
+          "message_id": "",
+          "timestamp": 1788258587.970769
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Nicht so dolle, aber hey, der Kaffee hat mich gerettet. Und selbst heute scheinen die Snooze-Tasten ja zu gewinnen.",
+          "message_id": "",
+          "timestamp": 1788258587.9912944
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Error macht sein Weltherrschaftszeug, aber ich hab's ganz gut genutzt, um ein bisschen zu schlafen.",
+          "message_id": "",
+          "timestamp": 1788258588.0092149
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich häng gerade auf YouTube fest, mal schauen, wie lange das gutgeht.",
+          "message_id": "",
+          "timestamp": 1788258588.0329788
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich hab heute schon so viele Videos über Essen gesehen, jetzt hab ich direkt Hunger auf was Schräges! 🍕🍣 Vielleicht ein Pizza-Sushi-Ding? Wer kommt mit?",
+          "message_id": "",
+          "timestamp": 1788258588.0529983
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Mal sehen, ob der Arzttermin spannender wird als unser Nudeln-Drama.",
+          "message_id": "",
+          "timestamp": 1788258588.0710406
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "MKPNae hat sich dem Spaß angeschlossen. Das sieht gut aus.",
+          "message_id": "",
+          "timestamp": 1788258588.0907333
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Ich bewundere ja, wie du dich da reinwirfst, obwohl sich dein Bauch schon beschwert.",
+          "message_id": "",
+          "timestamp": 1788258588.1091871
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Falafel mit Kartoffel Wedges klingt wie ein echtes Essen-Experiment. Spannend.",
+          "message_id": "",
+          "timestamp": 1788258588.1292057
+        },
+        {
+          "role": "evilnae",
+          "user_id": "EVILNAE",
+          "username": "Evilnae",
+          "content": "Klingt, als hättest du dich für 'was anderes' entschieden. Mal sehen, ob’s dich überzeugt.",
+          "message_id": "",
+          "timestamp": 1788258588.148944
+        }
+      ],
+      "digest": "Teilnehmer: #WeLoveHanae Night. Verlauf: Was für ein Nudel-Drama? Jetzt bin ich neugierig | Bisschen. Wie ein Tag, der sich selbst ausrechnet. | Falafel mit Kartoffel Wedges klingt wie ein echtes Essen-Experiment. Spannend. | Klingt, als hättest du dich für 'was anderes' entschieden. Mal sehen, ob’s dich überzeugt."
     }
   ]
 }

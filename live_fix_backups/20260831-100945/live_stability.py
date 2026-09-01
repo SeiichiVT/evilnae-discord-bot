@@ -6,15 +6,6 @@ import os
 import re
 from typing import Any
 
-from live_behavior import (
-    apply_surface_variety_to_plan,
-)
-
-from turn_runtime import (
-    enrich_silent_final_line,
-    trace_candidate,
-)
-
 from participation import ParticipationDecision
 from character_state import extract_character_states
 from local_voice import LocalVoiceResult
@@ -53,8 +44,8 @@ from self_development import (
 )
 
 
-LIVE_STABILITY_VERSION = "1.6-behavior-trace"
-CONSOLE_OUTPUT_VERSION = "1.2-turn-trace"
+LIVE_STABILITY_VERSION = "1.5-turn-console-latency"
+CONSOLE_OUTPUT_VERSION = "1.1-turn-summary"
 
 _CURRENT_USER_TEXT = contextvars.ContextVar(
     "evilnae_live_user_text",
@@ -129,12 +120,7 @@ class ConsoleOutputFilter:
             (
                 "[LIVE IN]",
                 "[TURN]",
-                "[TURN STATE]",
-                "[TURN PLAN]",
-                "[TURN WRITER]",
-                "[TURN CHANGE]",
-                "[TURN FINAL]",
-                "[TURN BLOCK]",
+                "[SILENT FINAL]",
                 "[AGENCY APPLICATION REACTION]",
                 "[LIVE GUARD]",
                 "[LIVE WARN]",
@@ -253,26 +239,6 @@ class ConsoleOutputFilter:
                     1,
                 )
             )
-
-            stripped_line = line.strip()
-
-            if (
-                get_console_mode()
-                ==
-                "compact"
-                and
-                stripped_line.startswith(
-                    "[SILENT FINAL]"
-                )
-            ):
-                output.append(
-                    enrich_silent_final_line(
-                        stripped_line
-                    )
-                    +
-                    "\n"
-                )
-                continue
 
             if self._show_line(line):
                 output.append(
@@ -1516,16 +1482,6 @@ def wrap_response_planner(
             additions,
         )
 
-        plan = (
-            apply_surface_variety_to_plan(
-                plan,
-                recent_evilnae_messages=(
-                    recent
-                ),
-                user_text=user_text,
-            )
-        )
-
         social_state = (
             apply_social_state_to_plan(
                 plan,
@@ -2022,27 +1978,6 @@ def wrap_surface_writer(
                 "",
             )
             or ""
-        )
-
-        trace_candidate(
-            "qwen_surface",
-            candidate,
-            source="qwen",
-            reason=str(
-                getattr(
-                    result,
-                    "reason",
-                    "",
-                )
-                or ""
-            ),
-            accepted=bool(
-                getattr(
-                    result,
-                    "success",
-                    False,
-                )
-            ),
         )
 
         reason = (

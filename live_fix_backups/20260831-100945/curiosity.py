@@ -1,16 +1,11 @@
 from dataclasses import dataclass
 
-from live_behavior import (
-    is_nonconversational_self_answered_question,
-)
-
-
 
 # =========================================================
 # VERSION
 # =========================================================
 
-CURIOSITY_VERSION = "1.2-rhetorical-safe"
+CURIOSITY_VERSION = "1.1"
 
 
 # =========================================================
@@ -1626,21 +1621,6 @@ def question_output_violation_reasons(
         )
     )
 
-    rhetorical_marks = (
-        1
-        if
-        is_nonconversational_self_answered_question(
-            answer
-        )
-        else
-        0
-    )
-
-    conversational_question_marks = max(
-        0,
-        question_marks - rhetorical_marks,
-    )
-
     reasons = []
 
     # -----------------------------------------------------
@@ -1653,7 +1633,7 @@ def question_output_violation_reasons(
     if (
         not result.allowed
         and
-        conversational_question_marks
+        question_marks
         >
         0
     ):
@@ -1677,7 +1657,7 @@ def question_output_violation_reasons(
     if (
         result.allowed
         and
-        conversational_question_marks
+        question_marks
         >
         1
     ):
@@ -1726,9 +1706,7 @@ das Gespräch künstlich weiterzuführen.
 
 WICHTIG:
 
-Keine Gesprächs-Gegenfrage an den User.
-
-Eine selbst beantwortete rhetorische Frage oder ein Joke-Setup in derselben Nachricht ist erlaubt, wenn es der eigentliche Inhalt ist.
+0 Fragezeichen.
 """.strip()
 
     if (

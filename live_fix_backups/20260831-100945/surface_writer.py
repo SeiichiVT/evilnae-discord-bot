@@ -34,16 +34,11 @@ from voice_memory import (
 )
 
 
-from live_behavior import (
-    has_forbidden_conversational_question,
-)
-
-
 # =========================================================
 # VERSION
 # =========================================================
 
-SURFACE_WRITER_VERSION = "1.2-fast-rhetorical"
+SURFACE_WRITER_VERSION = "1.1-context-safe"
 
 
 # =========================================================
@@ -88,14 +83,6 @@ SURFACE_WRITER_TEMPERATURE = float(
     os.getenv(
         "SURFACE_WRITER_TEMPERATURE",
         "0.72"
-    )
-)
-
-
-SURFACE_WRITER_TIMEOUT = float(
-    os.getenv(
-        "SURFACE_WRITER_TIMEOUT",
-        "12"
     )
 )
 
@@ -655,12 +642,15 @@ def validate_surface_writer_candidate(
             "surface_plan_drift"
         )
 
-    if has_forbidden_conversational_question(
-        candidate,
-        allow_question=bool(
-            allow_question
-        ),
+    if (
+        not allow_question
+        and
+        count_genuine_questions(
+            candidate
+        )
+        > 0
     ):
+
         return (
             False,
             "surface_question_not_allowed"
@@ -940,11 +930,7 @@ async def generate_surface_response_from_plan(
 
                     num_predict=(
                         SURFACE_WRITER_NUM_PREDICT
-                    ),
-
-                    timeout=(
-                        SURFACE_WRITER_TIMEOUT
-                    ),
+                    )
                 )
             )
 
@@ -1148,7 +1134,7 @@ async def generate_surface_response_from_plan(
             )
 
             return SurfaceWriterResult(
-                output_text=candidate,
+                output_text="",
                 success=False,
                 used=True,
                 reason=validation_reason,
@@ -1202,8 +1188,7 @@ def format_surface_writer_debug() -> str:
         f"enabled={SURFACE_WRITER_ENABLED} "
         f"model={LOCAL_VOICE_MODEL} "
         f"predict={SURFACE_WRITER_NUM_PREDICT} "
-        f"temperature={SURFACE_WRITER_TEMPERATURE:.2f} "
-        f"timeout={SURFACE_WRITER_TIMEOUT:.1f}s"
+        f"temperature={SURFACE_WRITER_TEMPERATURE:.2f}"
     )
 
 

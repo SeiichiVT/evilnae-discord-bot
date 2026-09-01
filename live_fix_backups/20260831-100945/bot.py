@@ -184,18 +184,7 @@ from agency_initiative_v2 import (
 
 from turn_runtime import (
     TURN_RUNTIME_VERSION,
-    get_channel_turn_lease,
-    start_turn_trace,
-    trace_candidate,
-    trace_change,
     format_turn_summary,
-)
-
-from live_behavior import (
-    has_forbidden_conversational_question,
-    build_grounded_epistemic_fallback,
-    surface_failure_directive,
-    quality_requires_personality_repair,
 )
 
 from self_model import (
@@ -671,7 +660,7 @@ AUTO_LOG_PATH = _setup_auto_file_logging()
 # VERSION
 # =========================================================
 
-BOT_VERSION = "4.1.0-live-behavior-polish"
+BOT_VERSION = "4.0.1-turn-console-latency"
 PIPELINE_CONSOLIDATION_VERSION = "1.0"
 CHARACTER_FINAL_VERSION = "1.0"
 
@@ -3706,12 +3695,15 @@ def get_writer_violation_reasons(
             "banned_expression"
         )
 
-    if has_forbidden_conversational_question(
-        answer,
-        allow_question=bool(
-            decision.ask_question
-        ),
+    if (
+        not decision.ask_question
+        and
+        count_genuine_questions(
+            answer
+        )
+        > 0
     ):
+
         reasons.append(
             "question_not_allowed"
         )
@@ -3859,9 +3851,6 @@ WICHTIG:
 - keine Unicode-Emojis oder Discord-Custom-Emotes; der Emote-Layer kommt danach
 - keine Frage wenn das Brain keine erlaubt
 - keine erfundenen aktuellen Fakten
-- bei Wiederholung den Reaktionswinkel wechseln, NICHT nur Synonyme
-- bei Bot-/Generic-Problemen keine "klingt nach"/Support-/Service-Verpackung
-- Evilnaes eigene Haltung ist wichtiger als höfliches Validieren
 
 {participation_rule}
 
@@ -8798,7 +8787,7 @@ async def on_ready():
     print(
         f"Turn Runtime v"
         f"{TURN_RUNTIME_VERSION}: ACTIVE "
-        "(trace v2 + FIFO + text-stage changes + silence reasons)"
+        "(feelings + text changes + stage timing)"
     )
 
     print(
@@ -9064,7 +9053,8 @@ async def on_ready():
 # MESSAGE EVENT
 # =========================================================
 
-async def _evilnae_on_message_inner(
+@bot.event
+async def on_message(
     message
 ):
 
@@ -10401,13 +10391,6 @@ Participation-Entscheidung nötig.
                 "direct"
             )
 
-        start_turn_trace(
-            username=username,
-            user_id=user_id,
-            mode=brain_conversation_mode,
-            user_text=user_text,
-        )
-
         brain_start = (
             time.perf_counter()
         )
@@ -11224,38 +11207,6 @@ Participation-Entscheidung nötig.
                 "surface_writer_error"
             )
 
-            rejected_surface_candidate = str(
-                getattr(
-                    surface_writer_result,
-                    "output_text",
-                    "",
-                )
-                or ""
-            ).strip()
-
-            recovery_directive = (
-                surface_failure_directive(
-                    fallback_reason,
-                    rejected_surface_candidate,
-                )
-            )
-
-            if recovery_directive:
-                openai_writer_kwargs = dict(
-                    openai_writer_kwargs
-                )
-                openai_writer_kwargs["input"] = (
-                    str(
-                        openai_writer_kwargs.get(
-                            "input",
-                            "",
-                        )
-                        or ""
-                    )
-                    + "\n\n"
-                    + recovery_directive
-                )
-
             print(
                 "[WRITER ROUTER] "
                 f"user={username} "
@@ -11272,26 +11223,12 @@ Participation-Entscheidung nötig.
             **voice_kwargs
         ):
 
-            surface_attempted = (
-                surface_writer_result
-                is not None
-            )
-
-            if (
-                surface_writer_used
-                or
-                surface_attempted
-            ):
-                skip_reason = (
-                    "qwen_already_primary"
-                    if surface_writer_used
-                    else "surface_attempt_failed_no_second_local"
-                )
+            if surface_writer_used:
 
                 print(
                     "[LOCAL VOICE SECOND PASS SKIP] "
                     f"user={username} "
-                    f"reason={skip_reason}"
+                    "reason=qwen_already_primary"
                 )
 
                 return SimpleNamespace(
@@ -11304,7 +11241,9 @@ Participation-Entscheidung nötig.
                     meaning_preserved=1.0,
                     used=False,
                     rewritten=False,
-                    reason=skip_reason,
+                    reason=(
+                        "qwen_already_primary"
+                    ),
                 )
 
             return await humanize_evilnae_response(
@@ -11459,25 +11398,6 @@ Participation-Entscheidung nötig.
             or ""
         ).strip()
 
-        trace_candidate(
-            "primary_writer",
-            raw_surface_answer,
-            source=(
-                "qwen_surface"
-                if surface_writer_used
-                else "openai_fallback"
-            ),
-            reason=str(
-                getattr(
-                    surface_writer_result,
-                    "reason",
-                    "",
-                )
-                or ""
-            ),
-            accepted=True,
-        )
-
         # =================================================
         # 11. VALIDATE + REPAIR
         # =================================================
@@ -11511,13 +11431,6 @@ Participation-Entscheidung nötig.
             )
         )
 
-        trace_change(
-            "writer_validation",
-            raw_surface_answer,
-            answer,
-            reason="writer validation / repair",
-        )
-
         if not answer:
 
             recovery_candidates = [
@@ -11548,17 +11461,7 @@ Participation-Entscheidung nötig.
                 recovery_candidates.append(
                     (
                         "epistemic_unknown",
-                        (
-                            build_grounded_epistemic_fallback(
-                                user_text,
-                                is_hanae=is_hanae,
-                                recent_evilnae_messages=(
-                                    channel_evilnae_messages
-                                ),
-                            )
-                            or
-                            "weiß ich grad nicht sicher."
-                        )
+                        "weiß ich grad nicht sicher."
                     )
                 )
 
@@ -11780,19 +11683,9 @@ Wenn das Brain keine Gegenfrage erlaubt, stelle keine Gegenfrage.
 
                     fallback_candidates.append(
                         (
-                        "epistemic_unknown",
-                        (
-                            build_grounded_epistemic_fallback(
-                                user_text,
-                                is_hanae=is_hanae,
-                                recent_evilnae_messages=(
-                                    channel_evilnae_messages
-                                ),
-                            )
-                            or
+                            "epistemic_unknown",
                             "weiß ich grad nicht sicher."
                         )
-                    )
                     )
 
                 self_repair = (
@@ -11892,19 +11785,9 @@ Wenn das Brain keine Gegenfrage erlaubt, stelle keine Gegenfrage.
 
                     fallback_candidates.append(
                         (
-                        "epistemic_unknown",
-                        (
-                            build_grounded_epistemic_fallback(
-                                user_text,
-                                is_hanae=is_hanae,
-                                recent_evilnae_messages=(
-                                    channel_evilnae_messages
-                                ),
-                            )
-                            or
+                            "epistemic_unknown",
                             "weiß ich grad nicht sicher."
                         )
-                    )
                     )
 
                 safe_self_fallback = (
@@ -11954,13 +11837,6 @@ Wenn das Brain keine Gegenfrage erlaubt, stelle keine Gegenfrage.
             print(
                 "[SELF KNOWLEDGE REPAIR SUCCESS] "
                 f"user={username}"
-            )
-
-            trace_change(
-                "self_knowledge",
-                answer,
-                self_repair,
-                reason="self knowledge authority",
             )
 
             answer = (
@@ -12049,19 +11925,9 @@ Wenn das Brain keine Gegenfrage erlaubt, stelle keine Gegenfrage.
 
                     fallback_candidates.append(
                         (
-                        "epistemic_unknown",
-                        (
-                            build_grounded_epistemic_fallback(
-                                user_text,
-                                is_hanae=is_hanae,
-                                recent_evilnae_messages=(
-                                    channel_evilnae_messages
-                                ),
-                            )
-                            or
+                            "epistemic_unknown",
                             "weiß ich grad nicht sicher."
                         )
-                    )
                     )
 
                 knowledge_repair = (
@@ -12161,19 +12027,9 @@ Wenn das Brain keine Gegenfrage erlaubt, stelle keine Gegenfrage.
 
                     fallback_candidates.append(
                         (
-                        "epistemic_unknown",
-                        (
-                            build_grounded_epistemic_fallback(
-                                user_text,
-                                is_hanae=is_hanae,
-                                recent_evilnae_messages=(
-                                    channel_evilnae_messages
-                                ),
-                            )
-                            or
+                            "epistemic_unknown",
                             "weiß ich grad nicht sicher."
                         )
-                    )
                     )
 
                 safe_knowledge_fallback = (
@@ -12219,13 +12075,6 @@ Wenn das Brain keine Gegenfrage erlaubt, stelle keine Gegenfrage.
                 knowledge_repair = (
                     safe_knowledge_fallback
                 )
-
-            trace_change(
-                "knowledge",
-                answer,
-                knowledge_repair,
-                reason="knowledge/source authority",
-            )
 
             answer = (
                 knowledge_repair
@@ -12843,13 +12692,6 @@ Kein generischer Ersatz-Füllsatz.
                 original_writer_answer
             )
 
-        trace_change(
-            "local_voice",
-            original_writer_answer,
-            answer,
-            reason="local voice candidate",
-        )
-
         # =====================================================
         # B3I CONSOLIDATED POST-VOICE GATE
         #
@@ -13042,8 +12884,6 @@ Kein generischer Ersatz-Füllsatz.
                 is_hanae=is_hanae
             )
         )
-
-        pre_expression_answer = answer
 
         expression_guard = (
             apply_expression_final_guard(
@@ -13343,13 +13183,6 @@ Kein generischer Ersatz-Füllsatz.
                     second_expression_guard.cleaned
                 )
 
-        trace_change(
-            "expression",
-            pre_expression_answer,
-            answer,
-            reason="expression final guard",
-        )
-
         # =================================================
         # B3I CONSOLIDATED PRE-QUALITY CRITICAL GATE
         #
@@ -13442,8 +13275,6 @@ Kein generischer Ersatz-Füllsatz.
         # B3E FINAL OUTPUT QUALITY v2
         # =================================================
 
-        pre_quality_snapshot = answer
-
         answer = (
             trim_safe_generic_tail(
                 answer
@@ -13473,9 +13304,27 @@ Kein generischer Ersatz-Füllsatz.
         )
 
         quality_repair_needed = (
-            quality_requires_personality_repair(
-                pre_final_quality_analysis
-            )
+            pre_final_quality_analysis
+            .grammar_score
+            >= 3
+
+            or
+
+            pre_final_quality_analysis
+            .repetition_score
+            >= 2
+
+            or
+
+            pre_final_quality_analysis
+            .generic_score
+            >= 3
+
+            or
+
+            pre_final_quality_analysis
+            .total_penalty
+            >= 5
         )
 
         if quality_repair_needed:
@@ -13768,13 +13617,6 @@ Kein generischer Ersatz-Füllsatz.
             )
         )
 
-        trace_change(
-            "quality",
-            pre_quality_snapshot,
-            answer,
-            reason="output quality / repetition / anti-bot",
-        )
-
         # =================================================
         # B3I FINAL SEND CANDIDATE GATE
         #
@@ -13861,8 +13703,6 @@ Kein generischer Ersatz-Füllsatz.
             f"source={final_send_source} "
             f"repairs={get_response_repair_count()}"
         )
-
-        pre_social_identity_snapshot = answer
 
         # =================================================
         # 3.1 CHARACTER IDENTITY FINAL GATE
@@ -14048,13 +13888,6 @@ Keine Unicode-Emojis oder Custom-Emotes.
                     f"user={username}"
                 )
 
-        trace_change(
-            "identity_social",
-            pre_social_identity_snapshot,
-            answer,
-            reason="identity / social stance final guard",
-        )
-
         # =================================================
         # 11.9 EVILNAE APPLICATION EMOTE LAYER
         #
@@ -14067,8 +13900,6 @@ Keine Unicode-Emojis oder Custom-Emotes.
         # - höchstens EIN passendes Evilnae-App-Emote
         # - bei neutralen / ernsten Antworten auch KEINS
         # =================================================
-
-        pre_emote_snapshot = answer
 
         (
             answer,
@@ -14117,13 +13948,6 @@ Keine Unicode-Emojis oder Custom-Emotes.
             format_evilnae_emote_debug(
                 evilnae_emote_result
             )
-        )
-
-        trace_change(
-            "emote",
-            pre_emote_snapshot,
-            answer,
-            reason="application emote layer / cooldown",
         )
 
         # =================================================
@@ -14650,86 +14474,6 @@ Keine Unicode-Emojis oder Custom-Emotes.
         start_memory_worker_if_needed(
             user_id,
             username
-        )
-
-
-# =========================================================
-# 4.1 STRICT PER-CHANNEL TURN ORDER
-# =========================================================
-
-@bot.event
-async def on_message(
-    message
-):
-    channel = getattr(
-        message,
-        "channel",
-        None,
-    )
-
-    channel_id = str(
-        getattr(
-            channel,
-            "id",
-            "",
-        )
-        or ""
-    )
-
-    if not channel_id:
-        return await _evilnae_on_message_inner(
-            message
-        )
-
-    async with get_channel_turn_lease(
-        channel_id
-    ):
-        # Reset the per-task trace before ANY routing/participation
-        # decision can end in silence. The real conversation mode
-        # replaces this trace again immediately before Brain.
-        author = getattr(
-            message,
-            "author",
-            None,
-        )
-
-        start_turn_trace(
-            username=str(
-                getattr(
-                    author,
-                    "display_name",
-                    None,
-                )
-                or
-                getattr(
-                    author,
-                    "name",
-                    "unknown",
-                )
-                or
-                "unknown"
-            ),
-            user_id=str(
-                getattr(
-                    author,
-                    "id",
-                    "",
-                )
-                or ""
-            ),
-            mode="routing",
-            user_text=str(
-                getattr(
-                    message,
-                    "content",
-                    "",
-                )
-                or ""
-            ),
-        )
-
-        return await _evilnae_on_message_inner(
-            message
         )
 
 

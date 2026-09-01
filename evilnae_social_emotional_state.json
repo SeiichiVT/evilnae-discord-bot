@@ -9,10 +9,10 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.1285,
-      "updated_at": 1788092216.4756613,
-      "last_interaction_at": 1788092208.721764,
-      "last_event_id": "1543595338084913224",
+      "engagement": 0.0,
+      "updated_at": 1788254455.3793304,
+      "last_interaction_at": 1788254455.1111214,
+      "last_event_id": "1544275854962720869",
       "events": [
         "direct_engagement",
         "direct_engagement"
@@ -26,13 +26,18 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.1321,
-      "updated_at": 1788112170.6963654,
-      "last_interaction_at": 1788112164.2764528,
-      "last_event_id": "1543679040878026792",
+      "engagement": 0.2363,
+      "updated_at": 1788258090.6008747,
+      "last_interaction_at": 1788258084.698617,
+      "last_event_id": "1544291079019302993",
       "events": [
         "direct_engagement",
         "reply_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "direct_engagement",
+        "mention_engagement",
+        "direct_engagement",
         "direct_engagement",
         "reply_engagement"
       ]
@@ -40,32 +45,32 @@
     "568096551948255242": {
       "user_id": "568096551948255242",
       "username": "HANAE",
-      "closeness": 0.3378,
-      "trust": 0.1693,
-      "warmth": 0.8617,
+      "closeness": 0.3629,
+      "trust": 0.1843,
+      "warmth": 0.1199,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.5175,
-      "updated_at": 1788112290.3246808,
-      "last_interaction_at": 1788112283.7072225,
-      "last_event_id": "1543679541854076948",
+      "engagement": 0.1503,
+      "updated_at": 1788257716.2626908,
+      "last_interaction_at": 1788257708.9202847,
+      "last_event_id": "1544289502992797758",
       "events": [
+        "direct_engagement",
+        "positive",
+        "direct_engagement",
+        "reply_engagement",
+        "positive",
+        "affection",
+        "direct_engagement",
+        "affection",
+        "direct_engagement",
+        "affection",
+        "direct_engagement",
+        "reply_engagement",
         "mention_engagement",
-        "positive",
-        "direct_engagement",
-        "affection",
-        "reply_engagement",
-        "affection",
         "direct_engagement",
         "direct_engagement",
-        "direct_engagement",
-        "positive",
-        "direct_engagement",
-        "reply_engagement",
-        "positive",
-        "affection",
-        "direct_engagement",
-        "affection"
+        "reply_engagement"
       ]
     },
     "801026758664781824": {
@@ -87,15 +92,15 @@
     "248163234199240705": {
       "user_id": "248163234199240705",
       "username": "#WeLoveMogelnae Der_ChrisHD",
-      "closeness": 0.0539,
-      "trust": 0.0247,
-      "warmth": 0.0919,
+      "closeness": 0.0516,
+      "trust": 0.0239,
+      "warmth": 0.026,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.0714,
-      "updated_at": 1788115920.310004,
-      "last_interaction_at": 1788115920.2525692,
-      "last_event_id": "1543694795262795776",
+      "engagement": 0.0005,
+      "updated_at": 1788194542.1555927,
+      "last_interaction_at": 1788194541.8771718,
+      "last_event_id": "1544024561002094592",
       "events": [
         "direct_engagement",
         "reply_engagement",
@@ -117,12 +122,20 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.0164,
-      "updated_at": 1788104247.1022751,
-      "last_interaction_at": 1788104246.7533386,
-      "last_event_id": "1543645831259885729",
+      "engagement": 0.0418,
+      "updated_at": 1788253123.9669783,
+      "last_interaction_at": 1788253123.7864225,
+      "last_event_id": "1544270270808989818",
       "events": [
-        "reply_engagement"
+        "reply_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "direct_engagement",
+        "mention_engagement",
+        "mention_engagement",
+        "mention_engagement"
       ]
     },
     "703957199520792657": {
@@ -133,15 +146,18 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.303,
-      "updated_at": 1788116817.6210635,
-      "last_interaction_at": 1788116811.004114,
-      "last_event_id": "1543698531120840714",
+      "engagement": 0.1504,
+      "updated_at": 1788256662.8427978,
+      "last_interaction_at": 1788256656.635917,
+      "last_event_id": "1544285089171640392",
       "events": [
         "direct_engagement",
         "direct_engagement",
         "direct_engagement",
         "reply_engagement",
+        "direct_engagement",
+        "direct_engagement",
+        "direct_engagement",
         "direct_engagement"
       ]
     },
@@ -183,11 +199,12 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.0899,
-      "updated_at": 1788080183.0155597,
-      "last_interaction_at": 1788080171.6713936,
-      "last_event_id": "1543544849083666474",
+      "engagement": 0.09,
+      "updated_at": 1788251327.8256738,
+      "last_interaction_at": 1788251322.1949196,
+      "last_event_id": "1544262714002645075",
       "events": [
+        "direct_engagement",
         "direct_engagement"
       ]
     },
@@ -199,10 +216,10 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.1991,
-      "updated_at": 1788102247.0830057,
-      "last_interaction_at": 1788102238.5343442,
-      "last_event_id": "1543637407654477854",
+      "engagement": 0.0054,
+      "updated_at": 1788260616.1336012,
+      "last_interaction_at": 1788260615.50384,
+      "last_event_id": "1544301694060601434",
       "events": [
         "direct_engagement",
         "direct_engagement",
@@ -210,7 +227,12 @@
         "mention_engagement",
         "mention_engagement",
         "mention_engagement",
-        "direct_engagement"
+        "direct_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "reply_engagement"
       ]
     },
     "662625256007008256": {
@@ -222,9 +244,9 @@
       "rivalry": 0.0,
       "irritation": 0.0,
       "engagement": 0.0,
-      "updated_at": 1788081424.8013787,
-      "last_interaction_at": 1788081424.3458078,
-      "last_event_id": "1543550103049076816",
+      "updated_at": 1788193205.9907389,
+      "last_interaction_at": 1788193205.726917,
+      "last_event_id": "1544018956271095870",
       "events": []
     },
     "422400787503644672": {
@@ -235,10 +257,10 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.0749,
-      "updated_at": 1788103822.8798077,
-      "last_interaction_at": 1788103822.6409311,
-      "last_event_id": "1543644051931144222",
+      "engagement": 0.0001,
+      "updated_at": 1788201930.8276827,
+      "last_interaction_at": 1788201930.4712498,
+      "last_event_id": "1544055551892394094",
       "events": [
         "direct_engagement",
         "reply_engagement"
@@ -252,12 +274,16 @@
       "warmth": 0.0,
       "rivalry": 0.0,
       "irritation": 0.0,
-      "engagement": 0.09,
-      "updated_at": 1788093463.4655955,
-      "last_interaction_at": 1788093456.925768,
-      "last_event_id": "1543600573251719169",
+      "engagement": 0.3282,
+      "updated_at": 1788177520.3910015,
+      "last_interaction_at": 1788177513.8438592,
+      "last_event_id": "1543953137487052800",
       "events": [
-        "direct_engagement"
+        "direct_engagement",
+        "direct_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "reply_engagement"
       ]
     },
     "981262425724702780": {
@@ -269,10 +295,156 @@
       "rivalry": 0.0,
       "irritation": 0.0,
       "engagement": 0.0,
-      "updated_at": 1788116473.6593437,
-      "last_interaction_at": 1788116473.6009054,
-      "last_event_id": "1543697115891376158",
+      "updated_at": 1788207129.0127926,
+      "last_interaction_at": 1788207128.708278,
+      "last_event_id": "1544077355876618332",
       "events": []
+    },
+    "803646241723908117": {
+      "user_id": "803646241723908117",
+      "username": "#WeLoveHana_Angelnae",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0142,
+      "updated_at": 1788193204.1605692,
+      "last_interaction_at": 1788193203.8942468,
+      "last_event_id": "1544018948847042722",
+      "events": [
+        "direct_engagement"
+      ]
+    },
+    "1350453422641385556": {
+      "user_id": "1350453422641385556",
+      "username": "#WeLoveHana Kalowieslhausmeister",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.1698,
+      "updated_at": 1788166424.913924,
+      "last_interaction_at": 1788166419.505994,
+      "last_event_id": "1543906602300612640",
+      "events": [
+        "direct_engagement",
+        "reply_engagement"
+      ]
+    },
+    "932727146735087687": {
+      "user_id": "932727146735087687",
+      "username": "Leon-A320",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.1697,
+      "updated_at": 1788170120.976084,
+      "last_interaction_at": 1788170113.9210525,
+      "last_event_id": "1543922098777628773",
+      "events": [
+        "direct_engagement",
+        "reply_engagement"
+      ]
+    },
+    "496978671563702272": {
+      "user_id": "496978671563702272",
+      "username": "#WeLoveHanae Shiny DaniboyHD",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0,
+      "updated_at": 1788172876.6027508,
+      "last_interaction_at": 1788172876.3793845,
+      "last_event_id": "1543933685831696405",
+      "events": []
+    },
+    "381364812610797568": {
+      "user_id": "381364812610797568",
+      "username": "#WeLoveHanae Kennynae",
+      "closeness": 0.025,
+      "trust": 0.015,
+      "warmth": 0.1,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.2482,
+      "updated_at": 1788176090.031342,
+      "last_interaction_at": 1788176071.5070243,
+      "last_event_id": "1543947087635283999",
+      "events": [
+        "direct_engagement",
+        "reply_engagement",
+        "reply_engagement",
+        "positive"
+      ]
+    },
+    "454647918532493314": {
+      "user_id": "454647918532493314",
+      "username": "Seiken",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0,
+      "updated_at": 1788193195.2445757,
+      "last_interaction_at": 1788193194.987438,
+      "last_event_id": "1544018909512859698",
+      "events": []
+    },
+    "1312372252762705954": {
+      "user_id": "1312372252762705954",
+      "username": "RAY_THE_FOX_PHON92",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0898,
+      "updated_at": 1788254057.18327,
+      "last_interaction_at": 1788254057.18327,
+      "last_event_id": "1544274185692381234",
+      "events": [
+        "direct_engagement"
+      ]
+    },
+    "369120283879014410": {
+      "user_id": "369120283879014410",
+      "username": "#WeLoveHanae Night",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.1542,
+      "updated_at": 1788258593.8550544,
+      "last_interaction_at": 1788258587.842855,
+      "last_event_id": "1544293189488349316",
+      "events": [
+        "direct_engagement",
+        "reply_engagement"
+      ]
+    },
+    "1238345313736196128": {
+      "user_id": "1238345313736196128",
+      "username": "MKPNae",
+      "closeness": 0.0,
+      "trust": 0.0,
+      "warmth": 0.0,
+      "rivalry": 0.0,
+      "irritation": 0.0,
+      "engagement": 0.0798,
+      "updated_at": 1788258008.1790404,
+      "last_interaction_at": 1788258002.041666,
+      "last_event_id": "1544290732171468922",
+      "events": [
+        "reply_engagement"
+      ]
     }
   }
 }

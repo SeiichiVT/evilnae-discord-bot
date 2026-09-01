@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-ROUTING_HARDENING_VERSION = "1.4-trailing-vocative-plus"
+ROUTING_HARDENING_VERSION = "1.3-trailing-vocative"
 
 EVIL_VARIANT_PATTERN = re.compile(
     r"(?<![A-Za-zÄÖÜäöüß0-9_])e+v+i+l+(?:\s*n+a+e+)?(?![A-Za-zÄÖÜäöüß0-9_])",
@@ -358,39 +358,6 @@ def _looks_like_direct_vocative(
         )
     ):
         return True
-
-    # v1.4: first-person clause + trailing Evil/Evilnae
-    # is usually a social vocative:
-    # "Ich bereite mich auf den Stream vor, Evil."
-    # Object statements such as "Ich mag Evil" stay third-person.
-    if is_end:
-        first_person_clause = text[
-            :match.start()
-        ]
-
-        has_first_person = bool(
-            re.search(
-                r"\b(?:ich|wir)\b",
-                first_person_clause,
-                flags=re.IGNORECASE,
-            )
-        )
-
-        object_verb_tail = bool(
-            re.search(
-                r"\b(?:mag|liebe|hasse|kenne|sehe|vermisse|"
-                r"finde|meine|bin|heiße|heisse)\s*$",
-                first_person_clause.strip(),
-                flags=re.IGNORECASE,
-            )
-        )
-
-        if (
-            has_first_person
-            and
-            not object_verb_tail
-        ):
-            return True
 
     words = re.findall(
         r"[A-Za-zÄÖÜäöüß]+",
